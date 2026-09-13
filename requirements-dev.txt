@@ -1,0 +1,2 @@
+# Optional Python formatting/linting utility; not needed to run the app.
+ruff==0.16.7

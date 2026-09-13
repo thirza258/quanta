@@ -1,0 +1,648 @@
+[
+  {
+    "id": "security-analysis",
+    "number": 1,
+    "title": "Classical value investing",
+    "description": "The foundation of sound investment.",
+    "source": "Graham & Dodd · Security Analysis",
+    "level": "Foundational",
+    "icon": "book",
+    "modules": [
+      {
+        "id": "1.1",
+        "title": "Foundations of Graham & Dodd",
+        "subtitle": "Investment, speculation, and the margin of safety",
+        "minutes": 15,
+        "content": "## The idea\n\nAn investment thesis begins with a claim about value and the evidence that could disprove it. Price is observable; intrinsic value is an estimate. Treat that estimate as a range built from conservative assumptions about assets, earnings, and the claims senior to common equity.\n\n$$\n\\text{Margin of safety} = 1 - \\frac{P}{V}\n$$\n\n## A worked example\n\nA company trades at $60. Your conservative, base, and optimistic estimates are $75, $100, and $125. Against the base estimate, the discount is 40%. Against the conservative estimate, it is only 20%. A 30% required margin would reject this purchase under the conservative case.\n\n## Research protocol\n\nDistinguish a quoted discount from a loss guarantee. Financial leverage, a deteriorating business, and a mistaken estimate can consume the entire cushion. Write down a disconfirming observation before considering a purchase.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\text{Margin of safety} = 1 - \\frac{P}{V}",
+        "exercise": {
+          "question": "At a price of $60 and intrinsic value of $100, what is the margin of safety?",
+          "options": [
+            "20%",
+            "40%",
+            "60%"
+          ],
+          "answer": 1,
+          "explanation": "Subtract price divided by value from one: 1 − 60/100 = 40%."
+        },
+        "code": "price = 60\nintrinsic_value = 100\nmargin = 1 - price / intrinsic_value\nprint(\"Margin of safety:\", round(margin * 100, 2), \"%\")\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "valuation"
+      },
+      {
+        "id": "1.2",
+        "title": "Fixed-income & senior securities",
+        "subtitle": "Coverage, priority, and the asset cushion",
+        "minutes": 18,
+        "content": "## The idea\n\nA bond is a contractual claim, but the issuer must generate the cash to honor it. Examine payment priority, recurring earnings, and fixed charges across a full cycle. The common shareholder receives what remains after creditors and preferred holders are paid.\n\n$$\n\\text{Interest coverage} = \\frac{\\text{EBIT}}{\\text{Interest expense}}\n$$\n\n## A worked example\n\nAn issuer reports EBIT of $120 million and annual interest expense of $30 million: coverage is 4×. In a recession, EBIT falls to $45 million and coverage becomes 1.5×. If leases add $15 million of fixed charges, an appropriately adjusted numerator and denominator are needed; interest coverage alone is incomplete.\n\n## Research protocol\n\nReconcile accounting earnings to operating cash flow. Compare the weak-year coverage with covenants, refinancing dates, and liquid assets. Do not infer safety from a single strong year.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\text{Interest coverage} = \\frac{\\text{EBIT}}{\\text{Interest expense}}",
+        "exercise": {
+          "question": "EBIT is 90 and interest expense is 30. What is coverage?",
+          "options": [
+            "2×",
+            "3×",
+            "4×"
+          ],
+          "answer": 1,
+          "explanation": "90 / 30 = 3 times."
+        },
+        "code": "ebit = 90\ninterest = 30\nprint(\"Interest coverage:\", ebit / interest)\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "coverage"
+      },
+      {
+        "id": "1.3",
+        "title": "Normalized earning power",
+        "subtitle": "Separate recurring performance from accounting noise",
+        "minutes": 21,
+        "content": "## The idea\n\nReported earnings combine durable operations, cyclical effects, and items unlikely to recur. Build an explicit bridge from reported profit to adjusted profit. Normalization should remove symmetrical gains and losses, rather than merely adding back inconvenient expenses.\n\n$$\n\\overline{\\mathrm{EPS}} = \\frac{1}{n}\\sum_{t=1}^{n}\\mathrm{EPS}^{\\mathrm{adjusted}}_t\n$$\n\n## A worked example\n\nAdjusted earnings per share over five years are $2, $3, $4, $3, and $3. Their arithmetic mean is $3. A one-time property gain of $2 per share in the most recent year would raise reported EPS to $5, but does not raise this normalized estimate.\n\n## Research protocol\n\nCheck share-count changes, inflation, and changes in the business mix before averaging. Review inventory methods, provisions, stock compensation, and repeated restructuring costs. A frequently recurring “one-off” is an operating cost.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\overline{\\mathrm{EPS}} = \\frac{1}{n}\\sum_{t=1}^{n}\\mathrm{EPS}^{\\mathrm{adjusted}}_t",
+        "exercise": {
+          "question": "Which item most clearly calls for a normalization adjustment?",
+          "options": [
+            "Ordinary employee salaries",
+            "Recurring rent",
+            "A gain from selling the headquarters"
+          ],
+          "answer": 2,
+          "explanation": "A disposal gain generally does not describe recurring operating earning power."
+        },
+        "code": "earnings = [2, 3, 4, 3, 3]\nprint(\"Normalized EPS:\", sum(earnings) / len(earnings))\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "earnings"
+      },
+      {
+        "id": "1.4",
+        "title": "Balance sheet & asset-based valuation",
+        "subtitle": "Net-current-asset value and the liquidation test",
+        "minutes": 24,
+        "content": "## The idea\n\nNet-current-asset value gives no credit to fixed assets and deducts all liabilities and preferred claims. It is a deliberately demanding starting point. A separate liquidation analysis applies realistic recovery assumptions to receivables and inventory, recognizing collection costs and deteriorating stock.\n\n$$\n\\mathrm{NCAV/share} = \\frac{\\mathrm{Current\\ assets}-\\mathrm{Total\\ liabilities}-\\mathrm{Preferred}}{\\mathrm{Diluted\\ shares}}\n$$\n\n## A worked example\n\nCash of $40 million, receivables of $60 million, and inventory of $80 million sum to $180 million in current assets. With $70 million of liabilities and 10 million shares, NCAV is $11 per share. A two-thirds screen requires a price below $7.33. Haircuts of 15% to receivables and 40% to inventory lower adjusted value to $6.90 per share.\n\n## Research protocol\n\nUse actual filing availability dates. Deduct debt and other liabilities, including obligations that may not appear in current liabilities. Test whether cash burn can exhaust the cushion before value is realized.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\mathrm{NCAV/share} = \\frac{\\mathrm{Current\\ assets}-\\mathrm{Total\\ liabilities}-\\mathrm{Preferred}}{\\mathrm{Diluted\\ shares}}",
+        "exercise": {
+          "question": "Why does NCAV subtract total liabilities?",
+          "options": [
+            "Common equity is junior to all liabilities",
+            "Only current liabilities are payable",
+            "Fixed assets are always worthless"
+          ],
+          "answer": 0,
+          "explanation": "All creditors rank ahead of the residual common-equity claim."
+        },
+        "code": "cash = 40\nreceivables = 60\ninventory = 80\nliabilities = 70\nshares = 10\nncav = (cash + receivables + inventory - liabilities) / shares\nprint(\"NCAV / share:\", round(ncav, 2))\nprint(\"Screen price:\", round(ncav * 2 / 3, 2))\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "ncav"
+      },
+      {
+        "id": "1.5",
+        "title": "The Graham valuation formula",
+        "subtitle": "A sensitivity tool, with explicit limitations",
+        "minutes": 14,
+        "content": "## The idea\n\nThe Graham heuristic links earnings and an assumed growth rate. It is useful for seeing how an estimate responds to assumptions; it is not a universal pricing law. Small changes to growth and bond yields can produce large swings in implied value, especially for cyclical firms.\n\n$$\nV = \\frac{\\mathrm{EPS}\\,(8.5+2g)\\,4.4}{Y}\n$$\n\n## A worked example\n\nWith EPS of $4, growth g = 5 (five percentage points), and bond yield Y = 4.4 (also in percent), the formula gives $74. Raising Y to 6 reduces the estimate to about $54.27. Entering g = 0.05 would use the wrong units in this historical heuristic.\n\n## Research protocol\n\nCap growth assumptions and compare with an independently derived DCF and asset valuation. Expensing versus capitalizing research and development changes earnings and reinvestment requirements; keep those adjustments consistent.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "V = \\frac{\\mathrm{EPS}\\,(8.5+2g)\\,4.4}{Y}",
+        "exercise": {
+          "question": "In the historical Graham formula, 5% growth is entered as:",
+          "options": [
+            "0.05",
+            "5",
+            "500"
+          ],
+          "answer": 1,
+          "explanation": "The formula uses percentage-point inputs for both growth and bond yield."
+        },
+        "code": "eps = 4\ngrowth = 5\nbond_yield = 4.4\nvalue = eps * (8.5 + 2 * growth) * 4.4 / bond_yield\nprint(\"Graham value:\", round(value, 2))\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "graham"
+      }
+    ]
+  },
+  {
+    "id": "statistical-foundations",
+    "number": 2,
+    "title": "Statistical foundations",
+    "description": "Turn uncertainty into measurable evidence.",
+    "source": "Quantitative Investment Analysis · Vol. I",
+    "level": "Foundational",
+    "icon": "distribution",
+    "modules": [
+      {
+        "id": "2.1",
+        "title": "Time value of money",
+        "subtitle": "Discounting cash flows and terminal value",
+        "minutes": 15,
+        "content": "## The idea\n\nMoney available today can be invested. To compare future cash flows, discount each at a rate consistent with its timing, currency, and risk. Keep nominal cash flows with nominal rates and real cash flows with real rates.\n\n$$\nPV = \\sum_{t=1}^{T}\\frac{CF_t}{(1+r)^t}+\\frac{CF_{T+1}}{(r-g)(1+r)^T}\n$$\n\n## A worked example\n\nA payment of $110 one year from now is worth $100 at a 10% discount rate. For a perpetuity paying $5 next year with growth of 2% and a required return of 7%, value is $100. The growing-perpetuity relation requires r > g.\n\n## Research protocol\n\nModel an explicit forecast period before applying terminal growth. Examine what fraction of value comes from the terminal term and report a discount-rate/growth sensitivity table.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "PV = \\sum_{t=1}^{T}\\frac{CF_t}{(1+r)^t}+\\frac{CF_{T+1}}{(r-g)(1+r)^T}",
+        "exercise": {
+          "question": "When is a growing-perpetuity valuation finite and positive?",
+          "options": [
+            "When r > g",
+            "When r = g",
+            "When r < g"
+          ],
+          "answer": 0,
+          "explanation": "The denominator r − g must be positive."
+        },
+        "code": "cash_flow = 5\ndiscount_rate = 0.07\ngrowth = 0.02\nprint(\"Perpetuity value:\", cash_flow / (discount_rate - growth))\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "dcf"
+      },
+      {
+        "id": "2.2",
+        "title": "Probability distributions in finance",
+        "subtitle": "Normal, lognormal, and heavy-tailed returns",
+        "minutes": 18,
+        "content": "## The idea\n\nPrices cannot fall below zero in an unlevered cash asset, while returns can be negative. Lognormal price models arise from normal log returns. Real returns often exhibit heavier tails and time-varying volatility than a Gaussian model captures.\n\n$$\n\\log(S_T/S_0)\\sim\\mathcal{N}((\\mu-\\sigma^2/2)T,\\sigma^2T)\n$$\n\n## A worked example\n\nA one-day normal 99% loss threshold is about 2.33 standard deviations below the mean. If daily volatility doubles from 1% to 2%, the threshold roughly doubles. Heavy tails can still make realized losses beyond this threshold more frequent than the model predicts.\n\n## Research protocol\n\nGenerate both GBM and jump-diffusion paths with the same seed. Compare downside quantiles, not just means. A model is an approximation whose assumptions need direct checks.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\log(S_T/S_0)\\sim\\mathcal{N}((\\mu-\\sigma^2/2)T,\\sigma^2T)",
+        "exercise": {
+          "question": "Which feature most directly challenges a normal-return model?",
+          "options": [
+            "A positive asset price",
+            "More extreme returns than predicted",
+            "Daily observations"
+          ],
+          "answer": 1,
+          "explanation": "Heavy tails imply more probability mass far from the mean."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      },
+      {
+        "id": "2.3",
+        "title": "Sampling & confidence intervals",
+        "subtitle": "Estimate uncertainty, not just a point estimate",
+        "minutes": 21,
+        "content": "## The idea\n\nA sample mean varies across samples. Its standard error reflects sample size and dispersion. Serial dependence reduces the effective information in a time series, so the independent-observation formula can be too optimistic.\n\n$$\n\\overline{x}\\pm t_{\\alpha/2,n-1}\\frac{s}{\\sqrt n}\n$$\n\n## A worked example\n\nIf 25 independent observations have a sample mean of 1% and a standard deviation of 5%, the standard error is 1%. A 95% interval uses about 2.064 standard errors, giving approximately −1.064% to 3.064%. The data do not establish a positive mean at this confidence level.\n\n## Research protocol\n\nFor dependent returns, use a block bootstrap or a dependence-aware standard error. Record the resampling seed. A confidence interval describes repeated-sampling coverage, not a probability statement about a fixed parameter.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\overline{x}\\pm t_{\\alpha/2,n-1}\\frac{s}{\\sqrt n}",
+        "exercise": {
+          "question": "All else equal, quadrupling independent sample size changes standard error by:",
+          "options": [
+            "Doubling it",
+            "Halving it",
+            "Leaving it unchanged"
+          ],
+          "answer": 1,
+          "explanation": "Standard error scales as 1 / square root of n."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      },
+      {
+        "id": "2.4",
+        "title": "Hypothesis testing in markets",
+        "subtitle": "Distinguish evidence from a lucky backtest",
+        "minutes": 24,
+        "content": "## The idea\n\nState a null hypothesis before looking at the outcome. A p-value measures how incompatible an observation is with the null model; it is not the probability the null is true. Multiple strategy trials demand stronger evidence than a single pre-specified test.\n\n$$\nt=\\frac{\\overline{x}-\\mu_0}{s/\\sqrt n}\n$$\n\n## A worked example\n\nA test with a 5% significance threshold rejects true nulls about 5% of the time under its assumptions. If you independently test 20 null strategies, the probability of at least one false positive is 1 − 0.95²⁰, about 64%.\n\n## Research protocol\n\nSeparate model development and final evaluation chronologically. Keep a research log of failed trials and apply family-wise or false-discovery controls appropriate to the research question.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "t=\\frac{\\overline{x}-\\mu_0}{s/\\sqrt n}",
+        "exercise": {
+          "question": "A Type I error is:",
+          "options": [
+            "Failing to reject a false null",
+            "Rejecting a true null",
+            "Using a small sample"
+          ],
+          "answer": 1,
+          "explanation": "Type I error is a false positive."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      },
+      {
+        "id": "2.5",
+        "title": "Linear regression & correlation",
+        "subtitle": "Estimate alpha, beta, and explained variation",
+        "minutes": 14,
+        "content": "## The idea\n\nRegress asset excess returns on benchmark excess returns to estimate market exposure and an intercept. The slope describes association conditional on the model. Neither a significant coefficient nor a high R² establishes causation.\n\n$$\nr_i-r_f=\\alpha+\\beta(r_m-r_f)+\\epsilon_i\n$$\n\n## A worked example\n\nAn estimated daily alpha of 0.02% with a standard error of 0.03% has a t-statistic near 0.67. A positive estimate alone is weak evidence of persistent skill. A beta of 1.2 means a one-percentage-point benchmark move is associated with about a 1.2-point asset move in the fitted model.\n\n## Research protocol\n\nAlign return timestamps and subtract the same-period risk-free return. Inspect residuals for heteroskedasticity and autocorrelation, and use appropriate uncertainty estimates.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "r_i-r_f=\\alpha+\\beta(r_m-r_f)+\\epsilon_i",
+        "exercise": {
+          "question": "A beta of 1.2 primarily describes:",
+          "options": [
+            "Expected market sensitivity",
+            "A guaranteed 20% excess return",
+            "The fraction of winning trades"
+          ],
+          "answer": 0,
+          "explanation": "Beta is the slope on benchmark excess returns."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      }
+    ]
+  },
+  {
+    "id": "econometrics",
+    "number": 3,
+    "title": "Econometrics & factor models",
+    "description": "Understand the forces behind returns.",
+    "source": "Quantitative Investment Analysis · Vol. II",
+    "level": "Intermediate",
+    "icon": "factors",
+    "modules": [
+      {
+        "id": "3.1",
+        "title": "Multiple regression & diagnostics",
+        "subtitle": "Partial effects and fragile coefficients",
+        "minutes": 15,
+        "content": "## The idea\n\nA multiple regression attributes returns to several explanatory variables at once. A coefficient is a partial association holding the included regressors constant. Correlated features can make estimates unstable even when predictions appear accurate.\n\n$$\n\\widehat{\\beta}=(X^\\top X)^{-1}X^\\top y,\\qquad \\mathrm{VIF}_j=\\frac{1}{1-R_j^2}\n$$\n\n## A worked example\n\nIf one factor is explained by the remaining factors with R² = 0.90, its VIF is 10. The inflated variance makes its separate contribution hard to identify. Use a numerically stable least-squares decomposition rather than explicitly inverting XᵀX.\n\n## Research protocol\n\nInspect condition numbers and VIF, test residual variance and dependence, and document whether robust or HAC standard errors are used. Excluding a correlated feature changes the estimand.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\widehat{\\beta}=(X^\\top X)^{-1}X^\\top y,\\qquad \\mathrm{VIF}_j=\\frac{1}{1-R_j^2}",
+        "exercise": {
+          "question": "If R² for a regressor on other regressors is 0.8, VIF is:",
+          "options": [
+            "1.25",
+            "4",
+            "5"
+          ],
+          "answer": 2,
+          "explanation": "1 / (1 − 0.8) = 5."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      },
+      {
+        "id": "3.2",
+        "title": "Time series & cointegration",
+        "subtitle": "Stationarity, mean reversion, and volatility",
+        "minutes": 18,
+        "content": "## The idea\n\nA stationary process has stable distributional properties over time. Two non-stationary price series may share a stationary linear combination; this is cointegration. Correlated returns alone are insufficient evidence for a mean-reverting price spread.\n\n$$\nx_t=c+\\phi x_{t-1}+\\epsilon_t,\\qquad |\\phi|<1\n$$\n\n## A worked example\n\nFor an AR(1) with φ = 0.8, shocks decay geometrically. Its half-life is ln(0.5)/ln(0.8), approximately 3.1 periods. If φ = 1, the process is a random walk and the stationary mean-reversion interpretation fails.\n\n## Research protocol\n\nEstimate hedge ratios using training data only and apply the correct residual-based cointegration test. Stress-test structural breaks. GARCH models conditional variance, not a guarantee of directional predictability.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "x_t=c+\\phi x_{t-1}+\\epsilon_t,\\qquad |\\phi|<1",
+        "exercise": {
+          "question": "Correlation alone establishes cointegration:",
+          "options": [
+            "Always",
+            "Only with daily data",
+            "No"
+          ],
+          "answer": 2,
+          "explanation": "Cointegration concerns a stationary combination of integrated series."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] < data[\"sma_50\"]\n",
+        "kind": "mean_reversion"
+      },
+      {
+        "id": "3.3",
+        "title": "Portfolio theory & factor pricing",
+        "subtitle": "Diversification depends on covariance",
+        "minutes": 21,
+        "content": "## The idea\n\nPortfolio variance depends on both individual risks and their co-movement. Estimated means are noisy, and unconstrained optimization can produce extreme weights. Shrinkage and position bounds trade theoretical fit for more stable allocations.\n\n$$\n\\sigma_p^2=w^\\top\\Sigma w,\\qquad \\sum_iw_i=1\n$$\n\n## A worked example\n\nTwo equally weighted assets each have 20% volatility. With zero correlation, portfolio volatility is about 14.14%. With correlation of one, it remains 20%. Diversification is lost precisely when assets begin moving together.\n\n## Research protocol\n\nDistinguish exposure to market, size, value, profitability, investment, and momentum from unexplained alpha. Align factor definitions and timing, and evaluate a constrained portfolio outside the estimation window.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\sigma_p^2=w^\\top\\Sigma w,\\qquad \\sum_iw_i=1",
+        "exercise": {
+          "question": "Lower correlation, all else equal, typically:",
+          "options": [
+            "Improves diversification",
+            "Guarantees positive returns",
+            "Raises each asset’s expected return"
+          ],
+          "answer": 0,
+          "explanation": "Covariance contributes to total portfolio risk."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      },
+      {
+        "id": "3.4",
+        "title": "Risk & downside metrics",
+        "subtitle": "Describe the loss distribution honestly",
+        "minutes": 24,
+        "content": "## The idea\n\nVolatility treats gains and losses symmetrically. Drawdown, downside deviation, VaR, and expected shortfall answer different questions. Use them together and disclose the horizon, confidence level, and sign convention.\n\n$$\n\\mathrm{DD}_t=\\frac{V_t}{\\max_{s\\le t}V_s}-1\n$$\n\n## A worked example\n\nA portfolio rises from 100 to 120 and then falls to 90. The drawdown is −25%, despite being only 10% below its initial value. To recover from a 25% loss, it must gain 33.33%.\n\n## Research protocol\n\nEstimate historical VaR from daily loss quantiles, then compute expected shortfall from losses in the tail. Sparse samples make extreme quantiles unstable. In this workspace, VaR and CVaR are reported as positive loss magnitudes.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\mathrm{DD}_t=\\frac{V_t}{\\max_{s\\le t}V_s}-1",
+        "exercise": {
+          "question": "A fall from a peak of 200 to 150 has a drawdown of:",
+          "options": [
+            "−25%",
+            "−33.3%",
+            "−50%"
+          ],
+          "answer": 0,
+          "explanation": "(150 / 200) − 1 = −25%."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      },
+      {
+        "id": "3.5",
+        "title": "Backtest traps & research hygiene",
+        "subtitle": "Control what the experiment is allowed to know",
+        "minutes": 14,
+        "content": "## The idea\n\nA backtest should recreate the information set available at each decision. Revised financial statements, surviving-only universes, and same-bar execution all inflate apparent performance. The research process itself can overfit through repeated trials.\n\n$$\n\\mathrm{Position}_t=f(\\mathcal{I}_{t-1})\n$$\n\n## A worked example\n\nA filing describing the March quarter becomes public in May. A portfolio formed in April cannot use it. Similarly, a close-derived signal cannot earn the full return of the bar on which that close was observed.\n\n## Research protocol\n\nArchive point-in-time data and use next-open fills. Log strategy versions and split data chronologically. Reserve a final untouched test and disclose delisted-security coverage before interpreting a historical screen.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\mathrm{Position}_t=f(\\mathcal{I}_{t-1})",
+        "exercise": {
+          "question": "A close-derived signal should first execute at:",
+          "options": [
+            "The same day’s open",
+            "The next available tradable price",
+            "The prior close"
+          ],
+          "answer": 1,
+          "explanation": "Execution must occur after the signal becomes observable."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      }
+    ]
+  },
+  {
+    "id": "strategy-lab",
+    "number": 4,
+    "title": "The strategy lab",
+    "description": "Put investment ideas to the test.",
+    "source": "Applied research · Four guided projects",
+    "level": "Applied",
+    "icon": "lab",
+    "modules": [
+      {
+        "id": "4.1",
+        "title": "The systematic net-net screen",
+        "subtitle": "Translate balance-sheet discipline into a rule",
+        "minutes": 15,
+        "content": "## The idea\n\nBuild a universe at each rebalance date, select the latest statements actually published, and compute per-share net-current-asset value. A price below two-thirds of NCAV is a candidate screen, not a complete investment decision.\n\n$$\nP_t<\\frac{2}{3}\\mathrm{NCAV}_t\n$$\n\n## A worked example\n\nA stock at $6 with NCAV of $12 passes the valuation screen. If operating earnings are negative and quarterly cash burn is $2 per share, the apparent cushion can disappear quickly. Apply financial quality and liquidity filters before sizing.\n\n## Research protocol\n\nUse delisted securities and historical share counts. Compare gross and net performance, report turnover, and stress forced liquidation. The bundled synthetic data illustrates execution mechanics, not historical net-net profitability.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "P_t<\\frac{2}{3}\\mathrm{NCAV}_t",
+        "exercise": {
+          "question": "A $9 stock with $12 NCAV passes the two-thirds screen:",
+          "options": [
+            "Yes",
+            "No",
+            "Only when beta is low"
+          ],
+          "answer": 1,
+          "explanation": "The screen threshold is $8."
+        },
+        "code": "cash = 40\nreceivables = 60\ninventory = 80\nliabilities = 70\nshares = 10\nncav = (cash + receivables + inventory - liabilities) / shares\nprint(\"NCAV / share:\", round(ncav, 2))\nprint(\"Screen price:\", round(ncav * 2 / 3, 2))\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "ncav"
+      },
+      {
+        "id": "4.2",
+        "title": "Quality at a reasonable price",
+        "subtitle": "Combine valuation and business quality",
+        "minutes": 18,
+        "content": "## The idea\n\nStandardize earnings yield, invested-capital returns, and coverage within a contemporaneous universe. A composite score expresses an explicit preference rather than discovering an objective ranking. Avoid scale differences dominating the combination.\n\n$$\n\\mathrm{Score}_i=\\tfrac13[z(E/P)_i+z(ROIC)_i+z(\\mathrm{Coverage})_i]\n$$\n\n## A worked example\n\nSuppose a company’s standardized scores are 1.2 for earnings yield, 0.6 for ROIC, and −0.3 for coverage. Its equal-weight composite is 0.5. A debt-heavy company may look cheap on P/E while failing the coverage test.\n\n## Research protocol\n\nWinsorize using training-universe thresholds and neutralize sector exposures only if the thesis requires it. Track accounting definitions and compare with a simple equal-weight baseline.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\mathrm{Score}_i=\\tfrac13[z(E/P)_i+z(ROIC)_i+z(\\mathrm{Coverage})_i]",
+        "exercise": {
+          "question": "Why standardize inputs before combining them?",
+          "options": [
+            "To guarantee alpha",
+            "To make feature scales comparable",
+            "To eliminate all outliers"
+          ],
+          "answer": 1,
+          "explanation": "A common scale prevents arbitrary measurement units from dominating the score."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      },
+      {
+        "id": "4.3",
+        "title": "Statistical arbitrage pairs",
+        "subtitle": "Trade a spread with explicit exit conditions",
+        "minutes": 21,
+        "content": "## The idea\n\nA pairs strategy trades deviations in a statistically justified spread. Estimate a hedge ratio and a spread mean and scale from past observations. Entry and exit thresholds must be set before observing the test-period outcome.\n\n$$\nz_t=\\frac{s_t-\\overline{s}_{t-L:t-1}}{\\sigma_{s,t-L:t-1}}\n$$\n\n## A worked example\n\nA spread of 8 with a trailing mean of 2 and standard deviation of 3 has z = 2. A mean-reversion rule might short the spread, while a risk rule exits if the relationship breaks. Hedging notional value alone does not ensure beta or dollar neutrality.\n\n## Research protocol\n\nInclude short borrow, both legs’ commissions, and asynchronous fill risk. Re-estimate with a walk-forward schedule. Never assume that a historically stationary spread cannot undergo a permanent change.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "z_t=\\frac{s_t-\\overline{s}_{t-L:t-1}}{\\sigma_{s,t-L:t-1}}",
+        "exercise": {
+          "question": "A z-score of 2 means the spread is:",
+          "options": [
+            "Two dollars above the mean",
+            "Two standard deviations above the mean",
+            "Certain to fall next period"
+          ],
+          "answer": 1,
+          "explanation": "The z-score measures standardized deviation."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] < data[\"sma_50\"]\n",
+        "kind": "mean_reversion"
+      },
+      {
+        "id": "4.4",
+        "title": "Cross-sectional machine learning",
+        "subtitle": "Predict with a chronological research design",
+        "minutes": 24,
+        "content": "## The idea\n\nTrain regularized models on features known at prediction time. Cross-sectional ranking may be more stable than forecasting exact returns. The target horizon determines the embargo and overlap handling required between train and test sets.\n\n$$\n\\widehat{\\beta}=\\arg\\min_\\beta\\left\\{\\|y-X\\beta\\|_2^2+\\lambda\\|\\beta\\|_2^2\\right\\}\n$$\n\n## A worked example\n\nA 20-day forward return label for a training observation on January 31 contains February prices. A test fold beginning February 1 overlaps that information. Purge overlapping labels and apply an embargo appropriate to the design.\n\n## Research protocol\n\nFit scaling and feature selection on training data only. Compare ridge and tree models with simple factor ranks. Report net turnover-adjusted outcomes and every material hyperparameter search.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\widehat{\\beta}=\\arg\\min_\\beta\\left\\{\\|y-X\\beta\\|_2^2+\\lambda\\|\\beta\\|_2^2\\right\\}",
+        "exercise": {
+          "question": "Where should a feature scaler be fitted?",
+          "options": [
+            "On the whole dataset",
+            "On the test set",
+            "On each training fold only"
+          ],
+          "answer": 2,
+          "explanation": "Fitting preprocessing on test observations leaks information."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      }
+    ]
+  },
+  {
+    "id": "stock-bots",
+    "number": 5,
+    "title": "Algorithmic & AI stock bots",
+    "description": "Engineer a disciplined execution system.",
+    "source": "Architecture · Risk · Paper trading",
+    "level": "Advanced",
+    "icon": "bot",
+    "modules": [
+      {
+        "id": "5.1",
+        "title": "Event-driven bot architecture",
+        "subtitle": "Separate signals from execution and state",
+        "minutes": 15,
+        "content": "## The idea\n\nA reliable bot separates market ingestion, signal generation, sizing, order routing, and the audit trail. Each event has an identity and a timestamp. Replaying an event must not create a second unintended order.\n\n$$\n\\mathrm{Event}\\rightarrow\\mathrm{Signal}\\rightarrow\\mathrm{Risk}\\rightarrow\\mathrm{Order}\\rightarrow\\mathrm{Fill}\n$$\n\n## A worked example\n\nA process crashes after the broker accepts an order but before local confirmation. On restart, blindly retrying may double the position. Store an idempotent client order ID and reconcile broker state before retrying.\n\n## Research protocol\n\nKeep an append-only event log and a durable position snapshot. Treat missing acknowledgments as unknown state. This course uses a local mock broker, with no connection to a live brokerage account.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\mathrm{Event}\\rightarrow\\mathrm{Signal}\\rightarrow\\mathrm{Risk}\\rightarrow\\mathrm{Order}\\rightarrow\\mathrm{Fill}",
+        "exercise": {
+          "question": "What prevents duplicate orders after a retry?",
+          "options": [
+            "A faster polling loop",
+            "Idempotent order identifiers and reconciliation",
+            "Randomized position sizing"
+          ],
+          "answer": 1,
+          "explanation": "Stable identities connect retries to the same intended order."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      },
+      {
+        "id": "5.2",
+        "title": "Rule-based strategy bots",
+        "subtitle": "Build a rebalancer with observable rules",
+        "minutes": 18,
+        "content": "## The idea\n\nA rule-based bot transforms an information event into a target portfolio. Rebalancing computes the difference between current and desired holdings. Signal generation and execution frequency need not be the same.\n\n$$\n\\Delta q_i=\\frac{w_i^{*}V}{P_i}-q_i\n$$\n\n## A worked example\n\nA $100,000 portfolio targets a 10% allocation to an asset priced at $50. Its target is 200 shares. If 120 shares are already held, the raw order is 80 shares before commissions, lot sizes, and cash constraints.\n\n## Research protocol\n\nSchedule filing-driven value screens, spread-driven pairs rules, or trend rules independently. Test stale data and reject oversized orders. Log the inputs that produced each target.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\Delta q_i=\\frac{w_i^{*}V}{P_i}-q_i",
+        "exercise": {
+          "question": "With a target of 200 shares and 120 held, the rebalance quantity is:",
+          "options": [
+            "320",
+            "200",
+            "80"
+          ],
+          "answer": 2,
+          "explanation": "Trade the difference between target and current holdings."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      },
+      {
+        "id": "5.3",
+        "title": "AI decision layers",
+        "subtitle": "Keep model suggestions inside deterministic limits",
+        "minutes": 21,
+        "content": "## The idea\n\nA predictive model ranks opportunities; a qualitative model can summarize source text and identify risks. Neither should bypass position limits, data provenance checks, or the order approval policy. Treat model output as untrusted structured input.\n\n$$\n\\mathrm{AllowedOrder}=\\mathrm{Signal}\\cap\\mathrm{DataChecks}\\cap\\mathrm{RiskLimits}\n$$\n\n## A worked example\n\nAn LLM identifies an accounting concern in a filing. Save the cited passage, source date, schema version, and confidence rationale. A deterministic rule can veto the candidate, but a fluent summary is not verified financial evidence.\n\n## Research protocol\n\nEvaluate on held-out filings and include adversarial text in tests. Track drift and abstentions. Provider credentials and a separately validated model are required for live inference; the local simulator uses explicit deterministic rules.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\mathrm{AllowedOrder}=\\mathrm{Signal}\\cap\\mathrm{DataChecks}\\cap\\mathrm{RiskLimits}",
+        "exercise": {
+          "question": "Which component should enforce hard exposure limits?",
+          "options": [
+            "The LLM’s prose response",
+            "A deterministic risk layer",
+            "The chart renderer"
+          ],
+          "answer": 1,
+          "explanation": "Hard constraints must be enforced independently of probabilistic model output."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      },
+      {
+        "id": "5.4",
+        "title": "Position sizing & circuit breakers",
+        "subtitle": "Design the failure path before the happy path",
+        "minutes": 24,
+        "content": "## The idea\n\nPosition sizing couples expected edge to uncertainty and loss tolerance. The Kelly fraction is highly sensitive to estimated probabilities and payoff ratios. Fractional sizing and strict caps reduce exposure to estimation error.\n\n$$\nf^*=\\frac{pb-(1-p)}{b}\n$$\n\n## A worked example\n\nWith win probability p = 0.55 and win/loss payoff b = 1, full Kelly is 10%. Half Kelly is 5%. If p is actually 0.48, the strategy has negative expected edge; leverage does not repair a mistaken estimate.\n\n## Research protocol\n\nSet independent drawdown, concentration, stale-data, and spread checks. Persist the halt state and require an explicit reset after investigation. A stop order cannot guarantee its trigger price in a gap.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "f^*=\\frac{pb-(1-p)}{b}",
+        "exercise": {
+          "question": "For p = 0.55 and b = 1, half Kelly is:",
+          "options": [
+            "5%",
+            "10%",
+            "55%"
+          ],
+          "answer": 0,
+          "explanation": "Full Kelly is 0.10, so half Kelly is 0.05."
+        },
+        "code": "probability = 0.55\npayoff = 1\nkelly = (probability * payoff - (1 - probability)) / payoff\nprint(\"Half Kelly:\", round(kelly / 2, 4))\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "kelly"
+      },
+      {
+        "id": "5.5",
+        "title": "Mock broker & paper deployment",
+        "subtitle": "Observe fees, partial fills, and rejected orders",
+        "minutes": 14,
+        "content": "## The idea\n\nPaper trading checks operational behavior using simulated fills. An order acknowledgment is not a fill. Track submitted, partially filled, filled, cancelled, and rejected states, and reconcile cash and holdings after every fill.\n\n$$\n\\mathrm{Cash}_{t+1}=\\mathrm{Cash}_t-qP-\\mathrm{Commission}\n$$\n\n## A worked example\n\nBuying 10 shares at $100 with a $1 commission reduces cash by $1,001. With only $500 cash, the broker must reject or resize the request according to an explicit policy. A spread and participation cap make simulated execution less optimistic.\n\n## Research protocol\n\nUse the mock-broker panel in the Strategy Lab to place orders. Adjust slippage and available volume and inspect the resulting partial fills. Paper results omit many venue and market-impact effects.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\mathrm{Cash}_{t+1}=\\mathrm{Cash}_t-qP-\\mathrm{Commission}",
+        "exercise": {
+          "question": "A partially filled order should:",
+          "options": [
+            "Be treated as completely filled",
+            "Retain its remaining quantity",
+            "Erase its fill history"
+          ],
+          "answer": 1,
+          "explanation": "Order state records both executed and remaining quantity."
+        },
+        "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "trend"
+      }
+    ]
+  },
+  {
+    "id": "web3",
+    "number": 6,
+    "title": "Web3 & crypto economics",
+    "description": "Apply financial rigor to on-chain markets.",
+    "source": "Tokenomics · DeFi · Crypto execution",
+    "level": "Advanced",
+    "icon": "crypto",
+    "modules": [
+      {
+        "id": "6.1",
+        "title": "Tokenomics & monetary theory",
+        "subtitle": "Separate protocol activity from tokenholder value",
+        "minutes": 15,
+        "content": "## The idea\n\nA protocol can be useful without distributing economic value to its token. Examine issuance, unlocks, fee routing, burns, governance rights, and who bears operating costs. Nominal staking yield includes compensation for dilution and risk.\n\n$$\nMV=PY\n$$\n\n## A worked example\n\nA staking token pays 8% more units while total token supply grows 6%. A simple dilution-adjusted unit yield is 1.08/1.06 − 1, about 1.89%, before price changes, fees, slashing, and taxes. This is not a risk-free return.\n\n## Research protocol\n\nRead the actual economic rights and contract controls. Never treat proof-of-stake yield as literally risk-free: validator, slashing, liquidity, governance, and smart-contract risks remain.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "MV=PY",
+        "exercise": {
+          "question": "An 8% staking yield with 6% supply growth implies approximately:",
+          "options": [
+            "8% dilution-adjusted yield",
+            "1.89% dilution-adjusted unit yield",
+            "A guaranteed 2% dollar return"
+          ],
+          "answer": 1,
+          "explanation": "Adjust the units by total supply growth: 1.08 / 1.06 − 1."
+        },
+        "code": "from math import sqrt\nx = 10\ny = 20000\ntrade = 1\nfee = 0.003\noutput = y * trade * (1 - fee) / (x + trade * (1 - fee))\nratio = 2\nil = 2 * sqrt(ratio) / (1 + ratio) - 1\nprint(\"Swap output (USDC):\", round(output, 2))\nprint(\"Impermanent loss (%):\", round(il * 100, 2))\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "amm"
+      },
+      {
+        "id": "6.2",
+        "title": "AMMs & impermanent loss",
+        "subtitle": "Derive swap output from the invariant",
+        "minutes": 18,
+        "content": "## The idea\n\nA constant-product pool quotes trades from reserves rather than matching an order book. A large swap moves the marginal price. Trading fees change the effective input, while liquidity providers bear exposure to relative price movements.\n\n$$\n\\Delta y=\\frac{y\\,\\Delta x(1-f)}{x+\\Delta x(1-f)},\\qquad IL(k)=\\frac{2\\sqrt{k}}{1+k}-1\n$$\n\n## A worked example\n\nA pool contains 10 ETH and 20,000 USDC. Selling 1 ETH with no fee returns 20,000/11, about 1,818.18 USDC. The average execution price is worse than the initial 2,000 USDC marginal price. If the external price doubles, full-range impermanent loss is about 5.72% relative to holding.\n\n## Research protocol\n\nUse the AMM simulator to vary trade size, fees, and relative price. Full-range IL omits fee income. Concentrated positions need separate piecewise inventory accounting inside and outside their price ranges.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\Delta y=\\frac{y\\,\\Delta x(1-f)}{x+\\Delta x(1-f)},\\qquad IL(k)=\\frac{2\\sqrt{k}}{1+k}-1",
+        "exercise": {
+          "question": "A larger trade relative to reserves generally causes:",
+          "options": [
+            "Less price impact",
+            "More price impact",
+            "No price impact"
+          ],
+          "answer": 1,
+          "explanation": "The reserve curve becomes less favorable as the trade moves along it."
+        },
+        "code": "from math import sqrt\nx = 10\ny = 20000\ntrade = 1\nfee = 0.003\noutput = y * trade * (1 - fee) / (x + trade * (1 - fee))\nratio = 2\nil = 2 * sqrt(ratio) / (1 + ratio) - 1\nprint(\"Swap output (USDC):\", round(output, 2))\nprint(\"Impermanent loss (%):\", round(il * 100, 2))\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "amm"
+      },
+      {
+        "id": "6.3",
+        "title": "Crypto arbitrage & market neutrality",
+        "subtitle": "A hedged position still has several kinds of risk",
+        "minutes": 21,
+        "content": "## The idea\n\nCash-and-carry pairs a long spot position with a short derivative. Positive funding may compensate the short, but the rate can reverse. Delta neutrality does not eliminate liquidation, basis, collateral, custody, or venue risk.\n\n$$\n\\mathrm{NetCarry}\\approx\\mathrm{Funding}-\\mathrm{Borrow}-\\mathrm{Fees}-\\mathrm{BasisChange}\n$$\n\n## A worked example\n\nAt a constant 0.01% funding rate every eight hours, a simple annualized rate is 0.0001 × 3 × 365 = 10.95%. This assumes unchanged rates, no fees, and no compounding; it is not a forward yield guarantee.\n\n## Research protocol\n\nStress collateral in a price gap, include liquidation rules, and avoid relying on transfers between venues during a crisis. Study MEV as an execution cost and protection problem; no adversarial trading is executed by this platform.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\mathrm{NetCarry}\\approx\\mathrm{Funding}-\\mathrm{Borrow}-\\mathrm{Fees}-\\mathrm{BasisChange}",
+        "exercise": {
+          "question": "Delta neutrality removes:",
+          "options": [
+            "All investment risk",
+            "First-order directional exposure, approximately",
+            "Exchange default risk"
+          ],
+          "answer": 1,
+          "explanation": "Other risks remain even when spot-price sensitivity is hedged."
+        },
+        "code": "funding_rate = 0.0001\nprint(\"Simple annual carry (%):\", funding_rate * 3 * 365 * 100)\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "funding"
+      },
+      {
+        "id": "6.4",
+        "title": "Crypto execution engineering",
+        "subtitle": "Track nonces, confirmations, and transaction costs",
+        "minutes": 24,
+        "content": "## The idea\n\nOn-chain execution is an asynchronous state machine. A submitted transaction can remain pending, be replaced, or be removed by a reorganization. Nonces order an account’s transactions; a nonce manager must coordinate concurrent senders.\n\n$$\n\\mathrm{EffectiveGasPrice}=\\min(\\mathrm{MaxFee},\\mathrm{BaseFee}+\\mathrm{PriorityFee})\n$$\n\n## A worked example\n\nWith a base fee of 20 gwei, a priority fee of 2 gwei, and a max fee of 30 gwei, the effective price is 22 gwei. If the base fee rises above the cap, the transaction cannot be included on those terms. A higher tip still cannot guarantee inclusion.\n\n## Research protocol\n\nPersist transaction intents before signing, reconcile receipts, and choose a confirmation policy. Keep keys outside lesson code. The local course provides simulation only and never requests a wallet seed phrase.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\mathrm{EffectiveGasPrice}=\\min(\\mathrm{MaxFee},\\mathrm{BaseFee}+\\mathrm{PriorityFee})",
+        "exercise": {
+          "question": "A priority fee guarantees next-block inclusion:",
+          "options": [
+            "Yes",
+            "No",
+            "Only for swaps"
+          ],
+          "answer": 1,
+          "explanation": "Inclusion also depends on fee caps, block capacity, ordering, and network conditions."
+        },
+        "code": "from math import sqrt\nx = 10\ny = 20000\ntrade = 1\nfee = 0.003\noutput = y * trade * (1 - fee) / (x + trade * (1 - fee))\nratio = 2\nil = 2 * sqrt(ratio) / (1 + ratio) - 1\nprint(\"Swap output (USDC):\", round(output, 2))\nprint(\"Impermanent loss (%):\", round(il * 100, 2))\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "amm"
+      },
+      {
+        "id": "6.5",
+        "title": "Crypto stress testing",
+        "subtitle": "Model liquidity loss and collateral shortfalls",
+        "minutes": 14,
+        "content": "## The idea\n\nA stress test asks what happens under an adverse scenario rather than estimating its likelihood. Model a rapid price drop, collateral haircuts, widening spreads, and the inability to rebalance. Correlations and liquidity often deteriorate together.\n\n$$\n\\mathrm{HealthFactor}=\\frac{\\mathrm{CollateralValue}\\times\\mathrm{LiquidationThreshold}}{\\mathrm{DebtValue}}\n$$\n\n## A worked example\n\nCollateral worth $10,000, a liquidation threshold of 80%, and debt of $5,000 imply a health factor of 1.6. A 50% collateral-price drop lowers it to 0.8, before interest and fees, potentially triggering liquidation.\n\n## Research protocol\n\nUse the flash-crash scenario and evaluate the path to liquidation, not merely the final price. For LP positions compare fee income with inventory loss, gas, and execution slippage.\n\n### In the sandbox\n\nRun the lesson template, then change one assumption at a time. Record the parameter, the observed change, and whether the result supports your original claim. All default price paths are synthetic, and the accompanying trend strategy demonstrates execution mechanics. Its returns do not validate the lesson’s valuation thesis.",
+        "formula": "\\mathrm{HealthFactor}=\\frac{\\mathrm{CollateralValue}\\times\\mathrm{LiquidationThreshold}}{\\mathrm{DebtValue}}",
+        "exercise": {
+          "question": "A health factor below one commonly indicates:",
+          "options": [
+            "Excess collateral",
+            "Potential liquidation eligibility",
+            "A guaranteed profitable arbitrage"
+          ],
+          "answer": 1,
+          "explanation": "Collateral adjusted by the liquidation threshold no longer covers debt."
+        },
+        "code": "collateral = 10000\nthreshold = 0.8\ndebt = 5000\ncrash = 0.5\nprint(\"Initial health:\", collateral * threshold / debt)\nprint(\"Stressed health:\", collateral * (1 - crash) * threshold / debt)\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "kind": "liquidation"
+      }
+    ]
+  }
+]

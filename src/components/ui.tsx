@@ -1,0 +1,223 @@
+import * as Dialog from "@radix-ui/react-dialog";
+import {
+  X,
+  ArrowUpRight,
+  BookOpen,
+  ChartNoAxesCombined,
+  FlaskConical,
+  Bot,
+  Network,
+  Sigma,
+} from "lucide-react";
+import type { ReactNode } from "react";
+export function Modal({
+  open,
+  onOpenChange,
+  title,
+  description,
+  children,
+  wide = false,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  title: string;
+  description?: string;
+  children: ReactNode;
+  wide?: boolean;
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="modal-overlay" />
+        <Dialog.Content className={`modal ${wide ? "modal-wide" : ""}`}>
+          <div className="modal-heading">
+            <Dialog.Title>{title}</Dialog.Title>
+            <Dialog.Close className="icon-button" aria-label="Close dialog">
+              <X size={19} />
+            </Dialog.Close>
+          </div>
+          <Dialog.Description
+            className={description ? "modal-description" : "sr-only"}
+          >
+            {description || title}
+          </Dialog.Description>
+          {children}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+export function TrackIcon({
+  kind,
+  size = 20,
+}: {
+  kind: string;
+  size?: number;
+}) {
+  const Icon =
+    kind === "book"
+      ? BookOpen
+      : kind === "distribution"
+        ? Sigma
+        : kind === "factors"
+          ? ChartNoAxesCombined
+          : kind === "lab"
+            ? FlaskConical
+            : kind === "bot"
+              ? Bot
+              : Network;
+  return <Icon size={size} strokeWidth={1.6} />;
+}
+export function EmptyState({
+  icon,
+  title,
+  description,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="empty-state">
+      <span className="empty-icon">{icon}</span>
+      <h3>{title}</h3>
+      <p>{description}</p>
+      {children}
+    </div>
+  );
+}
+export function Loading({ label = "Loading workspace…" }: { label?: string }) {
+  return (
+    <div className="loading-state">
+      <span className="spinner" />
+      {label}
+    </div>
+  );
+}
+export function ExternalLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className="text-link">
+      {children}
+      <ArrowUpRight size={15} />
+    </a>
+  );
+}
+export function TrackArt({
+  kind,
+  large = false,
+}: {
+  kind: string;
+  large?: boolean;
+}) {
+  const lines = Array.from({ length: 7 }, (_, i) => i);
+  return (
+    <svg
+      className={`track-art ${large ? "large" : ""}`}
+      viewBox="0 0 200 120"
+      fill="none"
+      aria-hidden="true"
+    >
+      <defs>
+        <pattern
+          id={`grid-${kind}-${large}`}
+          width="20"
+          height="20"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d="M20 0H0V20"
+            stroke="currentColor"
+            strokeWidth=".5"
+            opacity=".12"
+          />
+        </pattern>
+      </defs>
+      <rect width="200" height="120" fill={`url(#grid-${kind}-${large})`} />
+      {kind === "book" ? (
+        <g stroke="currentColor">
+          <path d="M55 21 111 9 154 35 99 48Z" fill="var(--art-fill)" />
+          <path d="M55 21v68l44 25V48M99 114l55-15V35" />
+          <path
+            d="M64 28v58l28 16M107 52l39-11M107 62l39-11M107 72l39-11M107 82l26-8"
+            opacity=".5"
+          />
+          <path d="m68 20 43-9 28 17-42 11z" opacity=".4" />
+          <path d="M44 99 85 119M158 107l28-8" opacity=".2" />
+        </g>
+      ) : null}
+      {kind === "distribution" ? (
+        <g stroke="currentColor">
+          <path d="M20 96H183M35 96V20" opacity=".3" />
+          {lines.map((i) => (
+            <path
+              key={i}
+              d={`M25 95 C${65 - i * 3} 95 ${77 - i * 2} ${7 + i * 9} 105 ${7 + i * 9} S${143 + i * 2} 95 183 95`}
+              opacity={0.2 + i * 0.1}
+            />
+          ))}
+        </g>
+      ) : null}
+      {kind === "factors" ? (
+        <g stroke="currentColor">
+          {lines.slice(0, 5).map((i) => (
+            <path
+              key={i}
+              d={`M32 ${100 - i * 14} 77 ${78 - i * 13} 113 ${90 - i * 17} 168 ${49 - i * 7}`}
+              opacity={0.2 + i * 0.16}
+            />
+          ))}
+          <path d="M32 16v86h142" opacity=".25" />
+          <circle cx="113" cy="39" r="4" fill="var(--art-fill)" />
+          <circle cx="77" cy="39" r="3" fill="var(--art-fill)" />
+        </g>
+      ) : null}
+      {kind === "lab" ? (
+        <g stroke="currentColor">
+          <path d="M85 17h30M91 17v37l-33 48q-5 10 8 10h68q13 0 8-10l-33-48V17" />
+          <path
+            d="m76 79 12-5 18 9 17-6 15 24q4 7-6 7H69q-9 0-5-7z"
+            fill="var(--art-fill)"
+          />
+          <circle cx="96" cy="91" r="3" />
+          <circle cx="111" cy="99" r="2" />
+          <path d="M142 35h28M156 21v28M35 59h18M44 50v18" opacity=".35" />
+        </g>
+      ) : null}
+      {kind === "bot" ? (
+        <g stroke="currentColor">
+          <rect
+            x="65"
+            y="38"
+            width="70"
+            height="49"
+            rx="8"
+            fill="var(--art-fill)"
+          />
+          <path d="M100 38V23M87 97h26M52 51v23M148 51v23" />
+          <circle cx="100" cy="19" r="4" />
+          <circle cx="84" cy="58" r="4" />
+          <circle cx="116" cy="58" r="4" />
+          <path d="M88 74h24M32 39H18v46h26M165 34h17v57h-17" opacity=".35" />
+        </g>
+      ) : null}
+      {kind === "crypto" ? (
+        <g stroke="currentColor">
+          <path d="m100 15 48 29v48l-48 28-48-28V44zM100 15v49m48-20-48 20-48-20m48 20v56M52 92l48-28 48 28" />
+          <path d="m100 32 31 19v31l-31 18-31-18V51z" fill="var(--art-fill)" />
+          <path
+            d="m100 41 13 22-13 8-13-8zM87 68l13 18 13-18-13 8z"
+            opacity=".65"
+          />
+        </g>
+      ) : null}
+    </svg>
+  );
+}

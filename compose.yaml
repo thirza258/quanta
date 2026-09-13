@@ -1,0 +1,97 @@
+name: quanta
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-8080}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    mem_limit: 128m
+    networks: [frontend]
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://quanta:${POSTGRES_PASSWORD:-quanta-local-change-me}@postgres:5432/quanta
+      REDIS_URL: redis://redis:6379/0
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      JWT_SECRET: ${JWT_SECRET:-}
+      QUANTA_SANDBOX: guided
+      QUANTA_STORAGE: /app/storage
+      QUANTA_DATA_DIR: /app/data
+    volumes:
+      - api_storage:/app/storage
+      - market_data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 96
+    mem_limit: 1g
+    cpus: 2
+    restart: unless-stopped
+    networks: [frontend, backend]
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: quanta
+      POSTGRES_USER: quanta
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quanta-local-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U quanta -d quanta"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+    mem_limit: 512m
+    networks: [backend]
+  redis:
+    image: redis:7-alpine
+    command:
+      [
+        redis-server,
+        --appendonly,
+        "yes",
+        --maxmemory,
+        128mb,
+        --maxmemory-policy,
+        noeviction,
+      ]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+    mem_limit: 192m
+    networks: [backend]
+volumes:
+  postgres_data:
+  redis_data:
+  api_storage:
+  market_data:
+networks:
+  frontend:
+  backend:
+    internal: true

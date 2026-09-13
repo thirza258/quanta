@@ -1,0 +1,13 @@
+node_modules
+backend/.venv
+backend/storage
+backend/data
+.git
+.env
+.DS_Store
+**/__pycache__
+**/.pytest_cache
+artifacts
+dist
+test-results
+playwright-report

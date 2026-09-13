@@ -1,0 +1,9 @@
+# Reuse the locked and tested scientific environment from the API build.
+# Build first with: docker compose build api
+ARG QUANTA_API_IMAGE=quanta-api:latest
+FROM ${QUANTA_API_IMAGE}
+COPY backend/quanta/native_worker.py /worker.py
+USER 65534:65534
+HEALTHCHECK NONE
+ENTRYPOINT ["python", "-I", "/worker.py"]
+CMD []
