@@ -1,4 +1,106 @@
+# Bot course, attribution, and course layout — September 14, 2026
+
+Verified the running Docker application at **http://127.0.0.1:8088**, retaining the existing PostgreSQL/Redis volumes and prior simulator and book-course work.
+
+| Check | Result |
+| --- | --- |
+| TypeScript and Vite production build | Passed in the rebuilt web image |
+| Frontend catalog, progression, and simulator tests | 24 passed |
+| Backend API, all lesson templates, exams, paper project, and simulator tests | 246 passed (8.12 seconds) |
+| Browser scenarios | 37 verified: 30 passed in the full run, followed by all 7 targeted rechecks passing (47.2 seconds) |
+| Bot lesson rendering | All 32 lessons render display mathematics, two practice items, assignments, and their named sources |
+| Reference coverage | Shared footer verified across 14 routes covering every page type, including not-found; every course and all 106 lessons have source metadata |
+| Responsive course layout | No horizontal page overflow at 390, 768, and 1440 px; card footer spacing and minimum readable widths checked |
+| Offline project | Downloaded through the browser; local replay, partial fills, duplicates/conflicts, cash reservations, two writers, rollback, restart/halts, and evidence validation tested |
+| Catalog consistency | API response identical to the generated frontend catalog; generation deterministic |
+| Authoring checks | Changed-file Prettier, Ruff, and whitespace checks pass |
+
+The full browser run started before the rebuilt web container finished restarting, so its first five scenarios failed with connection-refused errors. Two new attribution scenarios also caught the shared footer's implicit landmark behavior when nested inside `main`. The footer now follows `main`, exposing a proper page-level content-information landmark. After the server was ready and the placement fixed, all seven affected scenarios passed. No unresolved browser failures remain.
+
+The bot course has 32 original applied lessons, 64 practice questions, seven four-question checkpoints, and a 32-question version-2 final. Existing 5.1–5.5 first-answer keys are explicitly tested. Threshold tests reject old final versions and verify that 25/32 fails while 26/32 passes. Browser flows cover project download, assignment notebook prefill, both practice answers, completion persistence, runnable project arithmetic, checkpoint continuation, and server-graded final persistence. Existing beginner, book-course, workspace, and simulator scenarios also passed across the runs.
+
+Independent project checks reconcile final cash **920939 cents**, **8 shares**, equity **1002539 cents**, fees **61 cents**, and **3 unique fills**, with the halt retained after reopening SQLite. Two expanding ridge fits produce MSE **0.495982553** against baseline **30.5** on artificial observations. AI fixture tests reject missing/future sources, unsupported facts, incorrect units/issuer/period, nonfinite or Boolean numeric values, missing fields, extra instruction fields, and a zero growth denominator. These are educational execution/evaluation fixtures; no broker or AI provider is connected.
+
+Manual screenshots reviewed: `/tmp/quanta-header-final.png`, `/tmp/quanta-mobile-final.png`, and `/tmp/quanta-lesson-references-mobile.png`. The book illustration is now an open book; cards retain footer space with long descriptions and adapt to a single column on narrow screens. The reference library aggregates cited sources and links source-use guidance plus generated production dependency notices. Attribution does not constitute legal clearance or reproduction permission.
+
+The complete catalog contains **106 lessons, 206 practice questions, and 182 exam questions across 23 assessments**. The in-app guided worksheets remain cash-only and do not imply trading-performance validation. The written/code capstone is self-assessed separately from the concept exam.
+
+---
+
+# Book-course expansion — September 14, 2026
+
+The local app now includes 24 Security Analysis lessons and 28 Quantitative Investment Analysis lessons. The source reading maps, scope, and assessment rules are documented in [Book courses](BOOK_COURSES.md). The learner flow is course reading plan → lesson and assignment → online practice grading → saved notebook/progress → checkpoint or final → persisted result and continuation.
+
+| Check | Result |
+| --- | --- |
+| TypeScript and Vite production build in Docker | Passed |
+| Frontend catalog, progression, and simulator tests | 22 passed |
+| Backend API, financial worksheets, accounts, exams, and simulator tests | 174 passed |
+| Course, assessment, and workspace browser scenarios | 23 verified; all 8 book-course scenarios passed on the final Docker build |
+| Expanded lesson rendering | All 52 lessons render equations, assignments, and two practice questions |
+| Desktop and 390-pixel mobile review | Course plans and readers render; no page-level horizontal overflow |
+| Client/server catalog consistency | Identical catalog served by the rebuilt API |
+| Authoring | Deterministic catalog generation; Ruff, changed-file Prettier, and whitespace checks pass |
+
+The browser suite initially passed 22 scenarios and found inline equation delimiters where display equations were intended. The shared course generator now emits standalone display delimiters. The targeted rendering check then passed across all 52 expanded lessons, followed by all eight book-course browser scenarios on the final Docker build (39.2 seconds). Verification also caught and corrected two numerical roundings in the quantitative worked examples and replaced unsupported Python comprehensions/generators with explicit guided-runtime loops.
+
+Both course flows save written capstone notes, grade both practice items online, retain completion on reload, execute the capstone worksheets, submit version-2 finals, retain results, and link every answer explanation to its lesson. Checkpoint continuation now follows the course boundary rather than the first lesson omitted from a sampled question set. Existing beginner completion, offline exams, account history/recovery, and saved experiment flows passed regression checks.
+
+Golden arithmetic checks independently verify the Alder claims bridge and conservative maximum price; the quantitative capstone mean, dispersion, interval, and cost sensitivity; the empirical tail convention; the compounded return after costs; and the Bayesian base-rate calculation. All 79 catalog templates run within the existing restricted Python runtime. The 52 new book worksheets remain in cash in the price sandbox, so their charts do not imply strategy validation.
+
+Course assessment counts are 104 practice items and 84 distinct exam items across the two expanded courses. Across all seven courses the catalog contains 79 lessons, 147 practice questions, and 127 exam questions in 16 assessments. Written capstones are explicitly self-assessed, separately from the numerical final-exam grades.
+
+---
+
 # Verification results
+
+## Stock trading terminal — September 14, 2026
+
+The new `/simulator` implements the first-release terminal in PRD Section 6.3. The updated web and API containers run at **http://127.0.0.1:8088/simulator**, with the existing PostgreSQL, Redis, learning data, and data volumes retained. This release does not claim completion of the broader 18-week roadmap or the subsequent simulator features.
+
+| Check | Result |
+| --- | --- |
+| TypeScript and Vite production build in Docker | Passed |
+| Vitest learning, indicators, warm-up, and CSV tests | 21 passed |
+| Pytest API, financial models, accounts, exams, and simulator | 117 passed |
+| Simulator browser stories on the development app | 9 passed |
+| Browser stories through Docker/Nginx/PostgreSQL/Redis | 24 scenarios verified; rate-limited account story passed on retry |
+| Ruff, changed-file Prettier, and diff whitespace checks | Passed |
+| Docker services | Web, API, PostgreSQL, and Redis healthy |
+
+The expanded Docker run passed 23 stories; its final existing workspace-conflict story received the expected authentication rate-limit response after repeated test runs. That story passed after the limit window, and the final buy/reduce/close, journal, and export story also passed on the updated web image. The application’s authentication limit was retained. When running repeated browser suites against the same local deployment, allow the 60-second authentication window to reset before retrying rate-limited account tests.
+
+### Acceptance coverage
+
+| Criterion | Evidence |
+| --- | --- |
+| SIM-AC-01 | Navigation and beginner practice links; desktop chart dimensions asserted at 1440×900; dedicated desktop/tablet/mobile visual inspection; persistent paper/mode labels. |
+| SIM-AC-02 | Stock search, timeframe, RSI, drawing creation/edit/lock/delete/undo, reload, and symbol/run isolation. Direct two-click creation and object dragging are verified; fullscreen dialogs work. |
+| SIM-AC-03 | Decimal round-trip fixture asserts $98,999 after buying 10 at $100 with a $1 fee, then $100,098 and $98 realized after selling at $110 with a $1 fee. Browser buy/reduce/close verifies positions, fills, journal, history, and exports. |
+| SIM-AC-04 | A nonmarketable limit remains unfilled, a confirmed amendment enables a volume-limited partial fill, cancellation releases the remainder, and later replay cannot fill it. |
+| SIM-AC-05 | Next-bar execution, stop gap pricing, strict passive limit touch, conservative stop-limit sequence, and shared liquidity. Market API reads can pin the displayed clock; future cursor requests are capped. Historical snapshots remain usable after removing their source file; daily bars cannot become intraday data. |
+| SIM-AC-06 | The browser loses a response only after the real service accepts the order, reloads, retries the stable UUID, and recovers exactly one order and position. A second signed-in browser recovers settings/positions; logout and guest ownership checks prevent access. Offline drafts remain intact. |
+| SIM-AC-07 | Invalid orders, cash/share reservations, rejected form and dragged amendments, concurrent writes, immutable request identifiers, and archived resets. Simulator writes leave learning state separate. |
+| SIM-AC-08 | Accessible order forms, keyboard submission, mobile buy/close/history, sticky Buy/Sell controls, internal table scrolling, and no page-level horizontal overflow at 390 pixels. |
+
+Browser regression work also fixed a chart-hover readout error, fast successive drawing clicks, dialogs outside fullscreen, and an order click coinciding with a background layout save. A deliberate held-response test verifies that the order waits for the preference write and then submits once. CSV tests preserve negative ledger numbers while escaping executable journal text.
+
+Agent-browser inspected the terminal in light and dark themes, at desktop, tablet, and mobile sizes. The deployed page has meaningful content, no error overlay, and no browser errors. Local screenshots: `artifacts/simulator-desktop.png`, `artifacts/simulator-tablet.png`, and `artifacts/simulator-mobile.png`.
+
+### Simulator performance sample
+
+Reference desktop: **Apple M2 Pro, 10 CPU cores, 16 GiB memory, Darwin 25.6.0**, headless **Chrome 152.0.7977.83**, 1440×900 viewport. The local deployment is the four-service Docker stack; the API is limited to two CPUs and 1 GiB. One benchmark client used seed 47 synthetic AAPL with **5,000 observed minute bars** and **Volume, SMA20, and RSI14** enabled.
+
+| Measurement | Sample | Empirical p95 | PRD target |
+| --- | --- | --- | --- |
+| Order acknowledgement | 50 sequential HTTP orders through the web proxy, response body consumed; excludes waiting for a fill | **36.9 ms** | Below 500 ms |
+| Pan/zoom frame interval | 891 `requestAnimationFrame` intervals during 360 iterations of Playwright drag/wheel input, after warm-up | **16.8 ms** | Below 33 ms |
+
+Maximum acknowledgement was 114.9 ms; maximum sampled frame interval was 16.8 ms. Both targets were met for this documented local sample. Frame intervals measure browser scheduling during chart input; this is not a production concurrency test or a guarantee across devices. The headless browser reported no page errors.
+
+Reproduce with `TEST_URL=http://127.0.0.1:8088 node scripts/benchmark-simulator.mjs`. The script creates an isolated guest run and writes `artifacts/simulator-performance.json` and `artifacts/simulator-5000-bars.png`.
+
+Historical data still requires an installed import. Corporate-action treatment is explicitly undeclared for existing imports; prices are used as supplied and no split/dividend adjustments are added by the engine. The guide documents immediate settlement, weekday-only synthetic sessions, fees, FIFO volume sharing, and replay fill timing. Live feeds, Level 2, margin/shorts, bots, and bracket/OCO orders remain the PRD’s subsequent releases.
 
 ## Final beginner-course and exam review — September 14, 2026
 

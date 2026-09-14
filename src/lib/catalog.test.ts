@@ -3,11 +3,43 @@ import { tracks, lessons, exams, findLesson, lessonTrack } from "./catalog";
 import { lessonExercises } from "./learning";
 import { percent } from "./api";
 describe("curriculum integrity", () => {
+  it("attributes every course and lesson to named sources", () => {
+    for (const item of [...tracks, ...lessons]) {
+      expect(item.references?.length).toBeGreaterThan(0);
+      for (const reference of item.references ?? []) {
+        expect(reference.title.length).toBeGreaterThan(10);
+        expect(new URL(reference.url).protocol).toBe("https:");
+      }
+    }
+  });
+  it("provides an applied bot course with independent assessments and downloadable projects", () => {
+    const course = tracks.find((track) => track.id === "stock-bots")!;
+    expect(course.studyType).toBe("applied");
+    expect(course.modules).toHaveLength(32);
+    expect(course.parts).toHaveLength(8);
+    expect(course.exams).toHaveLength(8);
+    expect(course.resources).toHaveLength(2);
+    expect(course.exams.at(-1)?.version).toBe(2);
+    expect(course.exams.at(-1)?.moduleIds).toEqual(
+      course.modules.map((lesson) => lesson.id),
+    );
+    const prompts = course.exams.flatMap((exam) =>
+      exam.questions.map((question) => question.question),
+    );
+    expect(new Set(prompts).size).toBe(60);
+    for (const lesson of course.modules) {
+      expect(lesson.kind).toBe("applied-study");
+      expect(lessonExercises(lesson)).toHaveLength(2);
+      expect(lesson.assignment?.prompt).toBeTruthy();
+      expect(lesson.assignment?.solution).toBeTruthy();
+      expect(lesson.content.split(/\s+/).length).toBeGreaterThan(200);
+    }
+  });
   it("resolves unique lessons to their parent tracks", () => {
     expect(tracks).toHaveLength(7);
     expect(tracks[0].id).toBe("trading-fundamentals");
-    expect(lessons).toHaveLength(37);
-    expect(new Set(lessons.map((l) => l.id)).size).toBe(37);
+    expect(lessons).toHaveLength(106);
+    expect(new Set(lessons.map((l) => l.id)).size).toBe(106);
     expect(findLesson("1.1")?.title).toBe("Foundations of Graham & Dodd");
     for (const lesson of lessons) {
       expect(findLesson(lesson.id)).toBe(lesson);
@@ -15,7 +47,7 @@ describe("curriculum integrity", () => {
     }
   });
   it("offers complete, uniquely identified exams and valid practice questions", () => {
-    expect(exams).toHaveLength(8);
+    expect(exams).toHaveLength(23);
     expect(new Set(exams.map((exam) => exam.id)).size).toBe(exams.length);
     for (const track of tracks) {
       expect(track.exams.filter((exam) => exam.kind === "final")).toHaveLength(
@@ -76,5 +108,40 @@ describe("curriculum integrity", () => {
     expect(percent(undefined)).toBe("—");
     expect(percent(0)).toBe("0.0%");
     expect(percent(-0.25)).toBe("-25.0%");
+  });
+  it("provides a complete reading map and independent assessments for both book courses", () => {
+    for (const [slug, count, parts] of [
+      ["security-analysis", 24, 8],
+      ["statistical-foundations", 28, 14],
+    ] as const) {
+      const track = tracks.find((item) => item.id === slug)!;
+      expect(track.modules).toHaveLength(count);
+      expect(track.parts).toHaveLength(parts);
+      expect(new Set(track.modules.map((lesson) => lesson.part))).toEqual(
+        new Set(track.parts!.map((part) => part.id)),
+      );
+      expect(
+        track.exams.filter((exam) => exam.kind === "checkpoint"),
+      ).toHaveLength(4);
+      const final = track.exams.find((exam) => exam.kind === "final")!;
+      expect(final.version).toBe(2);
+      expect(final.moduleIds).toEqual(track.modules.map((lesson) => lesson.id));
+      const allQuestions = track.exams.flatMap((exam) =>
+        exam.questions.map((question) => question.question),
+      );
+      expect(new Set(allQuestions).size).toBe(allQuestions.length);
+      for (const lesson of track.modules) {
+        expect(lessonExercises(lesson)).toHaveLength(2);
+        expect(lesson.reading).toBeTruthy();
+        expect(lesson.assignment?.prompt).toBeTruthy();
+        expect(lesson.assignment?.solution).toBeTruthy();
+        expect(lesson.content).toContain("$$");
+      }
+      expect(track.modules.at(-1)?.title).toContain("Capstone");
+    }
+    expect(findLesson("1.5")?.part).toBe("VIII");
+    expect(findLesson("1.5")?.reading).toContain(
+      "not presented as methods from the 1940 text",
+    );
   });
 });

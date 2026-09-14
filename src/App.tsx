@@ -11,6 +11,9 @@ const Notebook = lazy(() => import("./components/Notebook"));
 const Experiments = lazy(() => import("./components/Experiments"));
 const Library = lazy(() => import("./components/Library"));
 const ExamRoom = lazy(() => import("./components/ExamRoom"));
+const TradingSimulator = lazy(
+  () => import("./components/simulator/TradingSimulator"),
+);
 export default function App() {
   return (
     <BrowserRouter>
@@ -23,6 +26,7 @@ export default function App() {
               <Route path="curriculum/:trackId" element={<TrackDetail />} />
               <Route path="learn/:lessonId" element={<LessonReader />} />
               <Route path="exams/:examId" element={<ExamRoom />} />
+              <Route path="simulator" element={<TradingSimulator />} />
               <Route path="lab" element={<StrategyLab />} />
               <Route path="notebook" element={<Notebook />} />
               <Route path="experiments" element={<Experiments />} />

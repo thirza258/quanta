@@ -50,14 +50,19 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 
 ## What works
 
-- Seven courses and 37 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
-- An eight-question market essentials checkpoint, a 16-question fundamentals final, and a distinct final exam for each specialist track: 53 exam questions in total.
+- Seven courses and 106 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
+- Twenty-three open-book assessments with 182 original exam questions, including four checkpoints and a new final for each expanded book course.
+- **[Security Analysis](docs/BOOK_COURSES.md)**: 24 lessons following the 1940 book’s seven parts, separate modern extensions, 48 practice questions, and an investment committee capstone.
+- **[Quantitative Investment Analysis](docs/BOOK_COURSES.md)**: 28 lessons mapped to all 14 chapters of the fourth edition, 56 practice questions, and a reproducible research capstone. Both courses include reading plans, original worked cases, mathematical notation, executable worksheets, and notebook assignments with worked solutions.
+- **[Algorithmic & AI stock bots](docs/STOCK_BOTS_COURSE.md)**: 32 lessons in eight units, 64 practice questions, seven checkpoints, a 32-question final, and a downloadable Python project with durable paper accounting, a small trained ridge model, and AI evidence-validation fixtures.
+- Named references on every lesson and a shared source footer across all page types, a complete reference library, source-use guidance, and bundled dependency notices. Course cards wrap long text and use an open-book illustration.
 - Untimed, open-book exams with exact pass thresholds, saved drafts, answer navigation, pre-submission review, explanations, topic-specific lesson links, retakes, and attempt history. Course progress includes both lesson completion and exam passes.
 - Online grading, account-owned submission logs, idempotent retries, and device grading when the API is unavailable. Existing lesson IDs and workspace progress remain compatible.
 - Reading, split-pane, and full sandbox views; locally bundled Monaco Python editor with Cmd/Ctrl+Enter execution.
 - Guest persistence and email/password accounts with Argon2 hashing, HttpOnly JWT session cookies, revocation, version-checked workspace sync, and recovery of unsynced drafts.
 - Research notes, search, experiment snapshots, JSON/Markdown exports, responsive navigation, and persistent dark/light themes.
 - Seeded GBM, Merton jump-diffusion, Heston variance, and Markov regime-switching paths; crash, stagflation, liquidity-crisis, random-walk, and flash-crash scenarios.
+- A standalone [TradingView-style stock simulator](docs/SIMULATOR.md) at `/simulator`: persistent $100,000 paper accounts, six synthetic stocks, imported historical replay, interactive charts/drawings/indicators, four order types, partial fills, portfolio accounting, trade journals, exports, and mobile trading.
 - Long/cash backtesting using previous-close signals and next-open fills, commissions, slippage, same-asset buy-and-hold comparison, equity/candlestick/drawdown charts, monthly returns, and trade logs.
 - CAGR, Sharpe, Sortino, drawdown, win rate, profit factor, alpha, beta, VaR, CVaR, and Calmar analytics. Undefined ratios are explicitly represented by `null`.
 - NCAV, asset-recovery haircuts, Graham valuation, full-range and concentrated-liquidity AMM analysis, and simulated order fills with liquidity/stale-data/spread/drawdown guards.
@@ -138,6 +143,7 @@ Interactive API documentation is at `/docs` on the development API URL. The publ
 | GET | `/api/v1/health` | API/database/Redis readiness |
 | GET | `/api/v1/courses` | Beginner course and six specialist tracks, including exams |
 | POST | `/api/v1/auth/register`, `/login`, `/logout` | Account lifecycle (same `/auth` prefix) |
+| GET/POST/PUT | `/api/v1/simulator/...` | [Persistent trading account, observed prices, orders, replay, preferences, and journals](docs/SIMULATOR.md#http-interface) |
 | GET | `/api/v1/auth/me` | Current session profile |
 | GET / PUT | `/api/v1/workspace` | Account-owned, versioned state |
 | POST | `/api/v1/exercises/{lesson_id}/submit` | Check `{answer, question}`; question defaults to zero for existing clients |

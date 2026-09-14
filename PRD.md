@@ -11,7 +11,7 @@
 
 Quanta bridges four fundamental dimensions of financial economics and market practice:
 1. **Classical Fundamental Valuation**: Rigorous balance sheet deconstruction, earnings power normalization, debt coverage covenants, and margin-of-safety principles anchored in Benjamin Graham & David Dodd’s *Security Analysis* (1934/1940 editions) and modern corporate finance theory (Penman, Greenwald).
-2. **Quantitative Econometrics & Factor Investing**: Statistical inference, hypothesis testing, time-series econometrics (ARIMA, GARCH), multi-factor asset pricing (CAPM, Fama-French 3/5, Carhart), and risk management (VaR, CVaR, Deflated Sharpe Ratio) anchored in the CFA Institute’s *Quantitative Investment Analysis* (Volumes 1 & 2 by DeFusco et al.).
+2. **Quantitative Econometrics & Factor Investing**: Statistical inference, hypothesis testing, time-series econometrics (ARIMA, GARCH), multi-factor asset pricing (CAPM, Fama-French 3/5, Carhart), and risk management (VaR, CVaR, Deflated Sharpe Ratio) anchored in the CFA Institute’s *Quantitative Investment Analysis* (fourth edition, 2020).
 3. **Autonomous Execution, Generative AI & Web3 Cryptoeconomics**: Production-grade algorithmic trading systems, market microstructure (order book dynamics, Almgren-Chriss optimal execution), Machine Learning alpha models (XGBoost, deep tabular learning), Multi-Agent LLM fundamental equity analysts, decentralized finance (DeFi) automated market makers (Constant Product & Concentrated Liquidity AMMs), tokenomics, and cross-venue arbitrage bots.
 4. **Institutional Stock Buying & Selling Simulator**: A high-fidelity simulated brokerage and exchange matching engine supporting both manual graphical trading and programmatic API execution. Features continuous double-auction order matching, Level 2 Depth of Market (DOM), advanced order types (Market, Limit, Stop-Loss, Stop-Limit, Trailing Stop, OCO Bracket, TWAP/VWAP), Regulation T margin accounts with leverage, short selling with stock borrow locates and daily borrow fee accrual, forced margin liquidations, realistic queue priority fill probability, and real-time mark-to-market trade blotters.
 
@@ -19,7 +19,7 @@ Quanta bridges four fundamental dimensions of financial economics and market pra
 Modern educational software is saturated with cognitive noise—distracting gamification, cartoon mascots, marketing popups, and non-reproducible video lectures. Quanta operates on an institutional academic design ethos:
 * **Academic Editorial Typography**: Clear typographic hierarchy using `Inter`/`Geist Sans` for long-form theoretical expositions, native `KaTeX` for crisp LaTeX mathematical proofs, and `JetBrains Mono` with tabular numeral alignment (`tabular-nums`) for code and financial statements.
 * **Dual-Pane Computational Lecture Hall**: A synchronized split-screen reading and execution environment. The left pane provides university-level lecture chapters, derivations, historical filings, and footnotes. The right pane provides an embedded Python Monaco code editor, interactive TradingView financial charts, and an output console executing in $< 1.5$ seconds.
-* **Integrated Stock Trading Simulator & Blotter**: An institutional trading terminal allowing students to toggle seamlessly between programmatic Python algorithm execution and point-and-click trade entry with real-time Level 2 DOM, interactive order lines directly on candlestick charts, active position blotters, and margin utilization gauges.
+* **TradingView-Style Stock Trading Simulator**: A dedicated chart-first paper-trading workspace with a drawing toolbar, indicators, watchlist, buy/sell ticket, and tabbed positions/order-history panel. Learners practice manual stock trading from the beginner course onward. Section 6.3 defines the new terminal, its first-release scope, and acceptance criteria; advanced execution capabilities in Section 5.3 extend it in later releases.
 * **Zero Marketing Bloat**: Restrained monochrome palette (Slate-950/Slate-50), with color reserved strictly for directional market data (Emerald positive yield, Rose drawdowns/losses, Indigo benchmark equity curves).
 
 ---
@@ -279,6 +279,17 @@ flowchart LR
 
 ---
 
+### Book-course expansion — current learning requirements
+
+The current Track 1 and Track 2 reading courses supersede the earlier five-module implementations. Preserve existing lesson URLs, saved code, notes, and first-question answer keys. Their detailed authoring map and edition references are in [Book courses](docs/BOOK_COURSES.md).
+
+- **Security Analysis:** 24 substantial original lessons, organized around the 1940 edition’s seven parts: analytical method; fixed claims; preferred/convertible participation; common ownership; earnings; assets; comparisons and investment decisions. Keep the later growth heuristic and modern cash-flow models in a separately labeled extension unit. Include an original investment committee capstone with a reconciled claims schedule and valuation scenarios.
+- **Quantitative Investment Analysis:** 28 original lessons, two for each of the fourth edition’s 14 chapters, spanning cash-flow mathematics, descriptive statistics, probability, distributions, estimation, tests, regression, time series, machine learning, data projects, factor models, risk, and backtesting. Include a reproducible research capstone with costs and uncertainty.
+- Every lesson includes a measurable objective, book-reading connection, original worked example, equation, executable small-data worksheet, two practice questions, and a written assignment with a collapsible worked solution. Book-study lessons open in reading view; the sandbox remains available on demand.
+- Each expanded course includes four four-question checkpoints at unit boundaries and one independent final covering every module (24 and 28 questions respectively). Checkpoints require 75%; finals require 80%. Keep final IDs and increment their version to 2 so earlier short-exam passes do not certify the expanded assessment.
+- Reading plans show the edition, source links, prerequisites, outcomes, and linked units. Assignment drafts can be saved as lesson-linked notebook entries. Written capstones use an explicit self-review rubric; numerical exams are graded separately.
+- These are independent original companion lessons, not reproduced book chapters or publisher question banks. The advanced automation examples in the roadmap below are separate implementation ambitions and should not be represented as quotations, methods, or completed labs from the historical book.
+
 ### TRACK 1: CBS-FIN 601 — Classical Security Analysis & Fundamental Equity Valuation
 *Graduate-level corporate valuation anchored in Benjamin Graham & David Dodd’s Security Analysis (1934/1940 Editions), updated with modern financial reporting (US GAAP / IFRS).*
 
@@ -501,7 +512,7 @@ flowchart LR
 ---
 
 ### TRACK 2: MFE-STAT 501 — Mathematical & Statistical Foundations of Finance
-*Rigorous mathematical statistics and probability theory for financial engineering, covering CFA Institute Quantitative Investment Analysis (Volume 1) and master's level econometrics.*
+*Rigorous mathematical statistics and probability theory for financial engineering, covering CFA Institute Quantitative Investment Analysis (fourth edition) and master's level econometrics.*
 
 #### Chapter 6: Time Value of Money, Discount Factors & Term Structure
 * **Section 6.1: Compounding Limits & Instantaneous Discount Factors**
@@ -1090,9 +1101,19 @@ flowchart LR
 ### TRACK 5: MFE-ENG 701 — Algorithmic Execution Systems & Autonomous AI Stock Bots
 *Production-grade engineering for automated trading systems, limit order book microstructure, optimal execution, machine learning alpha generators, and autonomous LLM forensic agents.*
 
+#### Implemented applied course requirements — September 2026
+
+The local learning release expands Track 5 to **32 original lessons in eight units**, 64 practice items, seven four-question checkpoints, and a 32-question version-2 final. Units cover specification/data/events, trading rules and evaluation, execution/accounting, risk, ML, LLM research, operations, and projects. Existing lesson IDs 5.1–5.5 and first-answer keys remain compatible; old final attempts remain historical and do not satisfy the expanded final.
+
+Each lesson requires a concrete objective, substantive original explanation, worked case, rendered equation, executable guided worksheet, two practice questions, a notebook assignment with worked solution, and named primary references. Course pages expose unit navigation and downloadable project resources. The code and written dossier are self-assessed separately from the concept exam.
+
+The downloadable standard-library project must actually run local SQLite order/fill accounting with integer-cent fees, bounded volume, partial fills, immutable identities, transactions, restart recovery, reservations, pre-trade gates, and a persistent new-risk halt. It also fits two chronological ridge folds on artificial data and tests structured AI response fixtures against fictional evidence. It makes no broker or AI-provider calls. Its synchronous matcher and immediate-settlement assumptions must be visible. The wider provider, asynchronous Redis, boosted-tree, and live-operation labs below remain extension requirements, not claims about this offline project.
+
+Content must distinguish architecture from timing correctness, fitted constraints from economic laws, valid schemas from factual truth, and paper acceptance from live readiness. All pages require source attribution and links to source-use guidance; book explanations, examples, illustrations, and assignments should remain original. Attribution does not replace any license or permission needed for reused third-party material. See [course implementation and acceptance](docs/STOCK_BOTS_COURSE.md).
+
 #### Chapter 19: High-Performance Trading Bot Architecture
 * **Section 19.1: System Topologies: Vectorized Backtesters vs. Event-Driven Low-Latency Engines**
-  * *Lecture Content*: Analysis of computational paradigms: Why vectorized backtesting engines (e.g. standard Pandas scripts) introduce subtle look-ahead bias and fail to simulate execution latency, partial fills, queue priority, and event loops.
+  * *Lecture Content*: Analysis of computational paradigms: How both vectorized and event-driven engines can introduce look-ahead when timestamps are wrong. Compare explicit models for execution latency, partial fills, queue priority, and event loops; neither architecture automatically guarantees timing correctness.
   * *Architecture Pattern*: State machine event loop:
     $$\text{Tick / Bar Event} \longrightarrow \text{Order Book / State Store} \longrightarrow \text{Alpha Generator} \longrightarrow \text{Risk / Position Sizer} \longrightarrow \text{OMS / Router} \longrightarrow \text{Broker Fill Event}$$
 * **Section 19.2: Asynchronous Concurrency & Message Queues**
@@ -1185,9 +1206,9 @@ flowchart LR
 
 #### Chapter 21: Machine Learning & Deep Tabular Learning for Alpha
 * **Section 21.1: Financial Feature Engineering & Stationarity Transforms**
-  * *Lecture Content*: Transforming non-stationary price/volume series into stationary predictive features: Rolling normalized $z$-scores, fractional differences, volatility-adjusted momentum, volume-weighted spread indicators, and fundamental accrual metrics.
+  * *Lecture Content*: Constructing candidate features from price/volume series and testing their stability; transformations do not automatically establish stationarity. Examples include rolling normalized $z$-scores, fractional differences, volatility-adjusted momentum, volume-weighted spread indicators, and fundamental accrual metrics.
 * **Section 21.2: Gradient-Boosted Decision Trees (XGBoost / LightGBM) with Domain Constraints**
-  * *Lecture Content*: Handling heterogeneous tabular financial data with tree ensembles. Preventing financial absurdity using monotonic constraints (e.g. enforcing that higher normalized earnings yield or lower leverage must strictly increase or maintain predicted return score).
+  * *Lecture Content*: Handling heterogeneous tabular financial data with tree ensembles. Evaluating optional monotonic constraints as testable model priors, such as a proposed nondecreasing relationship with a defined quality score. These constraints do not establish causality or a universal financial law; compare unconstrained and constrained models on valid development folds.
 * **Section 21.3: Purged & Embargoed K-Fold Cross-Validation**
   * *Lecture Content*: Marcos López de Prado (2018): Why standard randomized $k$-fold cross-validation results in massive data leakage in financial time series due to overlapping label windows and serial correlation.
   * *Purging*: Removing training samples whose evaluation labels overlap with the test set.
@@ -1201,7 +1222,10 @@ flowchart LR
     import xgboost as xgb
     from scipy.stats import spearmanr
 
-    def purged_kfold_split(n_samples: int, n_splits: int = 5, embargo_pct: float = 0.02) -> list[tuple[np.ndarray, np.ndarray]]:
+    # Partition sketch only: this does NOT purge overlapping label intervals or enforce
+    # past-only training. A deployable splitter must accept label start/end times,
+    # filter unavailable labels, and preserve chronological evaluation manifests.
+    def embargoed_partition_sketch(n_samples: int, n_splits: int = 5, embargo_pct: float = 0.02) -> list[tuple[np.ndarray, np.ndarray]]:
         indices = np.arange(n_samples)
         fold_size = n_samples // n_splits
         embargo = int(n_samples * embargo_pct)
@@ -1219,7 +1243,7 @@ flowchart LR
         return splits
 
     def train_xgboost_alpha_model(X: pd.DataFrame, y: pd.Series) -> dict:
-        splits = purged_kfold_split(len(X), n_splits=5)
+        splits = embargoed_partition_sketch(len(X), n_splits=5)  # incomplete teaching sketch
         oos_predictions = np.zeros(len(X))
         
         for train_idx, test_idx in splits:
@@ -1249,7 +1273,7 @@ flowchart LR
     * **Agent B (Competitive Moat Specialist)**: Evaluates Item 1 and Item 7 against Porter's Five Forces, pricing power, customer concentration, and supplier leverage.
     * **Agent C (Chief Risk Officer)**: Evaluates Item 1A (Risk Factors) and macro exposure, holding absolute veto power over position entry.
 * **Section 22.3: Deterministic Guardrails & Pydantic Function Calling**
-  * *Lecture Content*: Eliminating LLM hallucinations in production finance: Enforcing strict Pydantic JSON schemas via function calling, confidence scoring thresholds, and deterministic numeric verification against SEC XBRL tables.
+  * *Lecture Content*: Reducing unsupported model output through strict schemas, provenance checks, explicit abstention, and deterministic numeric verification against eligible source records. Schema validity and confidence do not prove factual truth or grant trading permission.
 * *Sandbox Lab 22: Multi-Agent SEC 10-K Forensic Accounting & Qualitative Risk Auditor*
   * *Objective*: Construct a functional multi-agent pipeline in Python using structured Pydantic schemas that analyzes raw SEC 10-K filings, detects red flags, and generates a structured quantitative-qualitative rating.
   * *Starter Code*:
@@ -1831,58 +1855,95 @@ Every simulated trade logs institutional transaction costs:
   * Mathematical Equations: `KaTeX` native serif fonts.
   * Code & Financial Tables: `font-mono` (`JetBrains Mono`, `Geist Mono`) with CSS `font-variant-numeric: tabular-nums`.
 
-### 6.3 Interactive Stock Trading Terminal & Order Blotter Layout (ASCII Wireframe)
+### 6.3 New Stock Trading Simulator — TradingView-Style Workspace
 
-The platform provides a dedicated, full-featured **Trading Simulator Mode** that learners can toggle into directly from any lab or use standalone for discretionary paper trading and bot execution testing.
+**Product requirement:** Build a new, standalone stock paper-trading workspace at `/simulator`, with a TradingView-style charting layout and interaction model. The main experience is selecting a stock, analyzing its chart, placing a simulated buy or sell order, and managing positions without writing code. Use Quanta branding, typography, and themes throughout.
 
+This is a new learner-facing terminal. The existing small paper-order calculator in the research lab is a starting point for execution logic; it does not satisfy this requirement. Section 5.3 describes the broader execution-engine vision. The release scope below determines which capabilities the new terminal must initially expose.
+
+#### 6.3.1 First-Release Scope & Learner Journey
+
+* **Entry points:** Add **Trading simulator** to the main navigation and links from the beginner lessons on orders, returns, risk, and the paper-trading plan. The terminal must also work independently of lesson completion.
+* **Default account:** Start with a virtual $100,000 USD cash account, whole shares, and long-only buy/sell trading. Show **Paper trading** persistently. Advanced margin, short selling, and bot execution remain subsequent releases under Section 5.3.
+* **Market modes:** Support seeded synthetic markets and replay of installed historical stock datasets. Clearly display the mode, data source, interval, and simulation timestamp. Live or delayed feeds require a configured provider and are a later enhancement; neither synthetic nor replay prices may be labeled live.
+* **Primary journey:** Open the terminal → choose a stock from search or the watchlist → inspect candles and indicators → open Buy/Sell → preview and place an order → follow its status and chart marker → review or close the position → inspect P&L and trade history.
+* **Delivery sequence:** First deliver the chart workspace, then connect persistent paper orders and portfolio accounting, then complete replay, lesson integration, accessibility, and the acceptance scenarios in Section 6.3.5. The first release requires all three steps.
+
+#### 6.3.2 Workspace Layout
+
+Use the available viewport as a trading workspace, with a compact top toolbar, a narrow drawing toolbar on the left, the chart in the center, a watchlist/order-ticket sidebar on the right, and a resizable trading panel below the chart. Collapse the standard LMS sidebar while the terminal is open, while keeping an obvious way back to the learning workspace.
+
+```text
++-----------------------------------------------------------------------------------------------------+
+| QUANTA | Trading simulator | PAPER TRADING | Equity $100,000 | Cash $100,000 | Theme | Back to LMS  |
++-------+-------------------------------------------------------------------+-------------------------+
+| Draw  | AAPL v | 1m 5m 15m 1h 1D | Candles v | Indicators | Replay | Full | WATCHLIST               |
++-------+-------------------------------------------------------------------+-------------------------+
+| Cross | AAPL - Historical replay - As of [date/time] - O H L C            | Symbol   Last   Change  |
+| Trend |                                                                   | AAPL     ...     ...    |
+| H-line|                         MAIN PRICE CHART                          | MSFT     ...     ...    |
+| Rect  |                candles, crosshair, price/time axes                | NVDA     ...     ...    |
+| Text  |           position and working-order price lines                  | [+ Add symbol]          |
+| Ruler |                                                                   |-------------------------|
+| Erase |                                                                   | [BUY] [SELL]            |
+|       | Volume histogram / optional RSI or MACD pane                      | Type: [Limit v]         |
+|       | [Pause/Play] [Next bar] [Speed] [Simulation clock]                | Shares: [10]            |
+|       |                                                                   | Limit: [$...]           |
+|       |                                                                   | Est. total / fees       |
+|       |                                                                   | [Preview order]         |
++-------+-------------------------------------------------------------------+-------------------------+
+| [Positions] [Open orders] [Order history] [Trade history] [Account history]                         |
+| Symbol | Quantity | Average entry | Last price | Market value | Unrealized P&L | Close / Reduce     |
++-----------------------------------------------------------------------------------------------------+
 ```
-+-----------------------------------------------------------------------------------------------------------------------+
-| [QUANTA SIMULATOR]  Account: #SIM-88219 (Reg T Margin) | Equity: $114,820.50 | Cash: $42,110.00 | Day PnL: +$2,480.12 |
-+-------------------------------+-------------------------------------------------------+-------------------------------+
-| ORDER ENTRY TICKET            | INTERACTIVE CANDLESTICK CHART & VISUAL TRADING        | LEVEL 2 DEPTH OF MARKET (DOM) |
-+-------------------------------+-------------------------------------------------------+-------------------------------+
-| [ BUY ]   [ SELL / SHORT ]    | Symbol: AAPL (1-Min)  O: 224.10  H: 225.40  L: 223.90 | Level 2 Book: AAPL            |
-|                               |                                                       | Bid Vol  | Bid Price | Ask Price | Ask Vol |
-| Symbol: [ AAPL            ]   | 226.00 +--------------------------------------------+ | ---------+-----------+-----------+---------|
-| Order:  [ LIMIT          v]   |        |                                            | |          |           | 225.10    |   2,400 |
-|                               | 225.50 |       [TP Limit: $225.50 (Dashed Gold)]    | |          |           | 225.05    |   1,200 |
-| Shares: [ 200             ]   |        |      | |                                   | |          |           | 225.00    |     850 |
-| Quick:  [10%] [25%] [50%] [Max| 225.00 |     +-+ |                                  | | -------- SPREAD: $0.05 ---------- |
-|                               |        |     | | |                                  | | 1,500    | 224.95    |           |         |
-| Limit $: [ 224.80         ]   | 224.50 |    -+-+-+- [Filled Buy: 224.50 (Green Arrow| | 3,200    | 224.90    |           |         |
-| TIF:    [ GTC            v]   |        |   | |                                      | |   900    | 224.85    |           |         |
-|                               | 224.00 |   +-+  [SL Stop: $223.80 (Dashed Red)]     | | 4,100    | 224.80    | [Your Buy]|     200 |
-| [x] Attach Bracket (OCO)      |        +--------------------------------------------+ |-------------------------------|
-|   Take Profit: [ 225.50   ]   | Vol:   || |||| | | |||||| |||| |||||||| |||| |||||||  | Imbalance: 62% Bids / 38% Asks|
-|   Stop Loss:   [ 223.80   ]   +-------------------------------------------------------+-------------------------------|
-|                               | MARGIN UTILIZATION & PURCHASING POWER                                                 |
-| Order Value:       $44,960.00 | Total Buying Power: $84,220.00 | Maint Requirement: $28,705.00 | Cushion: 75.0%       |
-| Est Commission:         $1.00 | [============================================--------------------] 58% Margin Utilized |
-| Est SEC/TAF Fee:        $0.62 +---------------------------------------------------------------------------------------+
-| Margin Req (50%):  $22,480.00 |
-|                               |
-| [ SUBMIT BUY ORDER (ENTER) ]  |
-+-------------------------------+---------------------------------------------------------------------------------------+
-| TABBED BLOTTER: [ Positions (3) ]   [ Active Orders (2) ]   [ Execution Fills (14) ]   [ Margin & Cash Ledger ]       |
-+-----------------------------------------------------------------------------------------------------------------------+
-| Symbol | Side  | Quantity | Avg Entry | Mark Price | Market Value | Unrealized PnL ($ / %) | Realized PnL | Action        |
-|--------+-------+----------+-----------+------------+--------------+------------------------+--------------+---------------|
-| AAPL   | LONG  |      200 |   $224.50 |    $224.95 |   $44,990.00 |      +$90.00 (+0.20%)  |        $0.00 | [Close] [Trim]|
-| NVDA   | LONG  |      150 |   $118.20 |    $121.40 |   $18,210.00 |     +$480.00 (+2.71%)  |     +$120.00 | [Close] [Trim]|
-| TSLA   | SHORT |     -100 |   $215.00 |    $212.10 |  -$21,210.00 |     +$290.00 (+1.35%)  |     -$350.00 | [Cover] [Trim]|
-+-----------------------------------------------------------------------------------------------------------------------+
-```
 
-#### 6.3.1 Trading Ticket & Blotter UX Specifications
-* **Interactive Chart-Trading Integration**:
-  * Limit and Stop orders are rendered directly on the `lightweight-charts` canvas as draggable horizontal dashed lines with price tags.
-  * Dragging a dashed line immediately dispatches an order price amendment (`amend_order`) to the backend.
-  * Filled trades render discrete upward green arrows (Buys) or downward red arrows (Sells/Shorts) with hover tooltips displaying fill price, volume, and execution timestamp.
-* **Level 2 DOM Visualizer**:
-  * Real-time bid/ask depth ladder displaying cumulative volume bars with color intensity mapping.
-  * Highlights learner's resting orders directly within the queue.
-* **Margin Safety Barometer**:
-  * Dynamic visual color progression: Emerald green ($< 50\%$ margin utilized), Amber ($50\% - 80\%$), Crimson ($> 80\%$), flashing Red with audible alarm when Maintenance Excess $< 0$ (Margin Call state).
+The chart is the dominant visual element. On a 1440 × 900 desktop viewport, its region must occupy at least 60% of the workspace width and 50% of the usable height with the default panels open. Watchlist and trading-panel sizes must be adjustable and collapsible. Avoid a dashboard of summary cards around a small chart.
+
+#### 6.3.3 Required Terminal Features
+
+| ID | Area | First-release requirement |
+| :--- | :--- | :--- |
+| **SIM-01** | Symbol search & watchlist | Search available stocks by ticker or company name; add, remove, and reorder watchlist entries. Show last available price, absolute change, percentage change, and data timestamp. Selecting a symbol synchronizes the chart and ticket. Missing prices display as unavailable, never zero. |
+| **SIM-02** | Chart interaction | Provide candlestick, OHLC bar, and line views; mouse-wheel zoom, drag-to-pan, crosshair with price/time labels, OHLC/volume readout, auto-fit, and return-to-latest controls. Support touch pan/zoom. Changing symbols must not alter open orders or positions. |
+| **SIM-03** | Timeframes | Offer 1m, 5m, 15m, 1h, and 1D when supported by the selected data. Disable unsupported intervals with an explanation. Aggregate only from sufficiently granular data; daily OHLCV must not be presented as observed intraday prices. |
+| **SIM-04** | Drawing tools | Include trend line, horizontal line, rectangle, text annotation, and a price/percentage measurement tool. Learners can select, move, edit, lock, and delete drawings, with undo/redo. Save drawings per symbol and dataset/run context. |
+| **SIM-05** | Indicators | Include configurable SMA, EMA, volume, RSI, and MACD. Allow adding, hiding, editing parameters, and removing indicators, using separate lower panes where appropriate. Explain insufficient warm-up data and calculate from observations available at the simulation clock. |
+| **SIM-06** | Order ticket | Provide clear Buy/Sell tabs, quantity, Market/Limit/Stop/Stop-limit selection, required prices, and DAY/GTC duration. Preview estimated notional, costs, available cash/shares, and resulting exposure before explicit submission. Disable invalid orders and explain the reason next to the relevant field. |
+| **SIM-07** | Trading on the chart | Show entry/fill markers, the current position's average entry, and labeled working-order lines. A chart context menu can open a ticket at the selected price. Dragging an order line previews an amendment and requires confirmation; a rejected amendment restores the confirmed line and order values. Provide equivalent form controls. |
+| **SIM-08** | Portfolio & history | Provide bottom tabs for Positions, Open orders, Order history, Trade history, and Account history. Show filled/remaining quantities, order status, fill prices, costs, average cost, market value, and realized/unrealized P&L. Selecting a row opens its symbol on the chart. |
+| **SIM-09** | Position management | Support canceling working orders and reducing or closing a position through a prefilled ticket. Preview quantity and costs; a close request remains pending until filled. Do not remove positions or mark orders filled merely because a request was accepted. |
+| **SIM-10** | Market replay | Provide pause, play, next-bar, and speed controls with one simulation clock across chart, quotes, orders, and account valuation. Pausing stops market advancement while allowing order entry/cancellation. Restarting or moving backward creates a new run with fresh balances and preserves the prior run for review. |
+| **SIM-11** | Saved workspace | Save selected symbol, watchlist, interval, indicators, drawings, panel layout, and theme. Signed-in users recover their account, working orders, fills, and trade journal after reload or sign-in on another device. Keep simulator accounts separate from lesson progress and experiment snapshots. |
+| **SIM-12** | Learning & review | Offer a short optional first-trade walkthrough and contextual links to the beginner lessons. Allow a thesis/reason and lesson link on each trade journal entry. Export orders, fills, and account history as CSV, and export run configuration and journal as JSON. Learning credit rewards correct process and explanations, not profit alone. |
+
+#### 6.3.4 Execution, Recovery & Interface Requirements
+
+* **Consistent execution:** The manual terminal and future Python client must share the account and order service. Use persistent account-owned records and a server-authoritative cash/position ledger for signed-in trading. A browser must not supply its own accepted balance, fill price, or P&L. Retry the same order with a stable client identifier so double-clicks or lost responses do not create duplicate trades.
+* **Cash and shares:** Reserve available cash, including estimated costs, for open buy orders and reserve shares for open sell orders. Revalidate affordability at execution; price gaps must not create unintended borrowing. Canceling or expiring an order releases only its unfilled reservation. Reject selling more unreserved shares than the account holds.
+* **Fill assumptions:** Display the execution model and configured spread, slippage, commissions, and liquidity limits. In bar replay, orders placed after a bar closes become eligible on the next bar. Define gap handling, stop triggers, partial fills, and a deterministic conservative rule when a bar touches multiple order levels. A price touch must not imply guaranteed execution or unlimited liquidity. Level 2 queues must only be shown for datasets or synthetic models that provide depth.
+* **Accounting:** Specify cost-basis and fee-allocation conventions, use decimal monetary arithmetic, and reconcile every fill to cash, position quantity, and realized P&L. Display available cash separately from reserved cash. The initial synthetic teaching profile uses immediate settlement and labels that simplification; market-specific settlement, margin, borrowing, and fee schedules belong to explicitly versioned profiles before they are offered. Historical datasets must declare corporate-action treatment so splits or dividends are neither omitted without disclosure nor counted twice.
+* **Connection states:** Show loading, empty watchlist, unavailable symbol, market closed, replay complete, stale data, disconnected, pending, rejected, and recovered states. On reconnect, reconcile confirmed orders and fills before permitting another retry. Preserve the ticket draft during request failures. Do not invent fills while required data or execution services are unavailable.
+* **Account reset:** Resetting creates a new simulation account/run after confirmation and leaves prior history available for review/export. Signing out isolates account data; it must not copy positions, balances, or pending responses into a guest workspace. A guest preview may use a separately labeled device-only account.
+* **Visual system:** Use compact toolbars, thin panel dividers, aligned numeric columns, restrained chart gridlines, and the existing Quanta light/dark themes. Reserve directional colors for market information and accompany them with text or symbols. Buttons, chart tools, and status labels need accessible names and visible keyboard focus.
+* **Responsive behavior:** At tablet widths, collapse the watchlist and ticket into a drawer. At 390-pixel mobile width, provide Chart, Watchlist, Trade, and Portfolio views with a sticky Buy/Sell entry point. The page must not overflow horizontally; dense history tables may scroll within their own container. Trading must remain possible without dragging chart elements.
+* **Performance targets:** With 5,000 loaded bars and three enabled indicators, target p95 chart pan/zoom frame time below 33 ms on a documented reference desktop. Target p95 order acknowledgement below 500 ms on the documented local deployment, measured separately from waiting for a fill. Record hardware, dataset, concurrency, and measurement method with the release results.
+
+#### 6.3.5 Acceptance Criteria
+
+| ID | Scenario | Required result |
+| :--- | :--- | :--- |
+| **SIM-AC-01** | Open the new terminal from navigation or a beginner lesson. | `/simulator` displays the chart-first layout, drawing toolbar, right watchlist/ticket, bottom trading panel, and persistent paper-trading/data-mode labels. Desktop and mobile layouts satisfy Section 6.3.4. |
+| **SIM-AC-02** | Select another stock, change an available timeframe, add an indicator, and draw a trend line. | Chart, readout, and ticket stay synchronized. Saved settings and drawings survive reload and remain associated with the correct symbol and run. Unsupported intervals cannot be selected. |
+| **SIM-AC-03** | With $100,000 cash, buy 10 shares filled at $100 with a $1 fee; later sell all 10 at $110 with a $1 fee, with no other costs or cash flows. | Cash becomes $98,999 after entry and $100,098 after exit; the position closes and net realized P&L is $98. The chart and all history tabs agree with the ledger. |
+| **SIM-AC-04** | Place a nonmarketable limit order, advance replay, partially fill it, then cancel the remainder. | The order remains working until eligible liquidity arrives. Filled quantity is retained, the canceled remainder cannot execute, and only unused cash or shares are released. |
+| **SIM-AC-05** | Place a stop and replay a gap; also submit an order after viewing a completed candle. | Gap fills follow the documented model rather than the requested stop price. Newly submitted orders never fill in the already-observed candle. Future bars and indicator values are not exposed before the simulation clock. |
+| **SIM-AC-06** | Retry an order after its server response is lost; reload, disconnect/reconnect, and open the same account on another device. | Exactly one economic order exists, confirmed fills and balances recover, pending drafts remain understandable, and another learner or guest cannot access the account. |
+| **SIM-AC-07** | Try overspending, overselling, a rejected chart amendment, and a full account reset. | Invalid actions leave confirmed orders and balances unchanged. Reset produces a fresh run while prior history remains accessible and lesson/exam progress is preserved. |
+| **SIM-AC-08** | Complete a manual buy/reduce/close workflow using keyboard controls and at mobile width. | Every action has an accessible form/control equivalent; the learner can reach and read order feedback, positions, and trade history without page-level horizontal scrolling. |
+
+**Implementation status (September 14, 2026):** The first-release terminal is implemented at `/simulator`. See the [simulator guide and actual API contract](docs/SIMULATOR.md) and [acceptance and performance verification](docs/VERIFICATION.md).
+
+**Subsequent releases:** Multi-chart layouts, custom indicators, server-side price alerts, licensed live/delayed feeds, Level 2 DOM, bracket/OCO and trailing orders, realistic margin/short borrowing, TWAP/VWAP, and Python bot control. These extend the new terminal after the first-release acceptance criteria pass.
 
 ---
 

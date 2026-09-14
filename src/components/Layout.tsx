@@ -18,15 +18,18 @@ import {
   X,
   FileText,
   CircleHelp,
+  ChartNoAxesCombined,
 } from "lucide-react";
 import { useWorkspace } from "../lib/workspace";
 import { lessons, lessonTrack, tracks } from "../lib/catalog";
 import { Loading, Modal } from "./ui";
 import AuthModal from "./AuthModal";
+import PageReferences from "./PageReferences";
 const nav = [
   { path: "/", label: "Overview", icon: LayoutDashboard },
   { path: "/curriculum", label: "Curriculum", icon: BookOpen },
   { path: "/lab", label: "Strategy lab", icon: FlaskConical },
+  { path: "/simulator", label: "Trading simulator", icon: ChartNoAxesCombined },
   { path: "/experiments", label: "Saved experiments", icon: FolderOpen },
   { path: "/notebook", label: "My notebook", icon: FileText },
 ];
@@ -48,6 +51,12 @@ export default function Layout() {
       localStorage.setItem("quanta-theme", theme);
     } catch {}
   }, [theme]);
+  useEffect(() => {
+    const sync = () =>
+      setTheme(document.documentElement.dataset.theme || "light");
+    window.addEventListener("quanta-theme-change", sync);
+    return () => window.removeEventListener("quanta-theme-change", sync);
+  }, []);
   useEffect(() => {
     function handle(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -80,7 +89,9 @@ export default function Layout() {
   );
   if (!ready) return <Loading label="Opening your workspace…" />;
   return (
-    <div className="app-shell">
+    <div
+      className={`app-shell ${location.pathname === "/simulator" ? "simulator-shell" : ""}`}
+    >
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
@@ -249,6 +260,7 @@ export default function Layout() {
             <Outlet key={user?.id || "guest"} />
           </Suspense>
         </main>
+        <PageReferences />
       </div>
       <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
       <Modal

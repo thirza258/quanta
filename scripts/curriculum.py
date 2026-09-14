@@ -3,7 +3,11 @@
 import json
 from pathlib import Path
 
+from course_references import attach_references
 from foundations import build_foundations
+from quantitative_analysis import build_quantitative_analysis
+from security_analysis import build_security_analysis
+from stock_bots import build_stock_bots
 from track_exams import attach_exams
 
 tracks = [
@@ -181,7 +185,7 @@ tracks = [
         "econometrics",
         "Econometrics & factor models",
         "Understand the forces behind returns.",
-        "Quantitative Investment Analysis · Vol. II",
+        "Quantitative Investment Analysis · Applied econometrics extensions",
         "Intermediate",
         "factors",
         [
@@ -574,7 +578,21 @@ for index, (slug, title, description, source, level, icon, lessons) in enumerate
         }
     )
 attach_exams(catalog)
+for index, expanded in [
+    (0, build_security_analysis()),
+    (1, build_quantitative_analysis()),
+    (4, build_stock_bots()),
+]:
+    # Preserve the first exercise and its answer key for legacy saved submissions.
+    original = {m["id"]: m for m in catalog[index]["modules"]}
+    for module in expanded["modules"]:
+        if module["id"] in original:
+            exercise = original[module["id"]]["exercise"]
+            module["exercise"] = exercise
+            module["exercises"][0] = exercise
+    catalog[index] = expanded
 catalog.insert(0, build_foundations())
+attach_references(catalog)
 output = Path(__file__).resolve().parents[1] / "src/data/curriculum.json"
 output.parent.mkdir(exist_ok=True)
 output.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n")

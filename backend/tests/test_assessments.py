@@ -10,7 +10,7 @@ def payload(exam_id="fundamentals-final", correct=None):
     count = len(exam["questions"]) if correct is None else correct
     return {
         "id": str(uuid.uuid4()),
-        "version": 1,
+        "version": exam["version"],
         "startedAt": "2026-09-14T00:00:00Z",
         "answers": {
             q["id"]: q["answer"] if i < count else (q["answer"] + 1) % len(q["options"])
@@ -132,3 +132,26 @@ def test_workspace_round_trips_exam_draft_and_results(client):
     }
     assert client.put("/api/v1/workspace", json={"version": 0, "state": state}).status_code == 200
     assert client.get("/api/v1/workspace").json()["state"] == state
+
+
+@pytest.mark.parametrize("slug", ["security-analysis", "statistical-foundations", "stock-bots"])
+def test_expanded_final_rejects_old_version_and_grades_exact_threshold(client, slug):
+    exam_id = f"{slug}-final"
+    exam = EXAMS[exam_id]
+    body = payload(exam_id)
+    body["version"] = 1
+    assert client.post(f"/api/v1/exams/{exam_id}/submit", json=body).status_code == 409
+    required = (len(exam["questions"]) * exam["passingScore"] + 99) // 100
+    for correct, passed in [(required - 1, False), (required, True)]:
+        result = client.post(f"/api/v1/exams/{exam_id}/submit", json=payload(exam_id, correct))
+        assert result.status_code == 200, result.text
+        assert result.json()["passed"] is passed
+
+
+def test_book_course_practice_uses_both_question_keys(client):
+    for lesson in (m for m in LESSONS.values() if m["kind"] in ("book-study", "applied-study")):
+        for index, question in enumerate(lesson["exercises"]):
+            path = f"/api/v1/exercises/{lesson['id']}/submit"
+            result = client.post(path, json={"question": index, "answer": question["answer"]})
+            assert result.status_code == 200, result.text
+            assert result.json()["correct"] is True

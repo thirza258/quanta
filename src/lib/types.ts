@@ -17,6 +17,10 @@ export type Lesson = {
   objective?: string;
   exercises?: Exercise[];
   terms?: { term: string; definition: string }[];
+  part?: string;
+  reading?: string;
+  references?: { title: string; url: string }[];
+  assignment?: { prompt: string; solution: string };
 };
 export type ExamQuestion = Exercise & { id: string; lessonId: string };
 export type Exam = {
@@ -55,6 +59,12 @@ export type Track = {
   icon: string;
   modules: Lesson[];
   outcomes?: string[];
+  prerequisites?: string;
+  readingGuide?: string;
+  studyType?: string;
+  resources?: { title: string; url: string }[];
+  references?: { title: string; url: string }[];
+  parts?: { id: string; title: string; description: string }[];
   exams: Exam[];
 };
 export type Params = {

@@ -54,6 +54,19 @@ class ExamSubmission(SQLModel, table=True):
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
+class TradingRun(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    owner: str = Field(index=True)
+    version: int = 0
+    state: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class TradingDataset(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    bars: list = Field(sa_column=Column(JSON, nullable=False))
+
+
 def get_session():
     with Session(engine) as session:
         yield session

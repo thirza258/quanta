@@ -8,7 +8,7 @@ import {
   Server,
 } from "lucide-react";
 import { ExternalLink } from "./ui";
-import { lessons } from "../lib/catalog";
+import { lessons, tracks } from "../lib/catalog";
 const references = [
   [
     "Stocks and business ownership",
@@ -33,17 +33,17 @@ const references = [
   ],
   [
     "Security Analysis",
-    "Benjamin Graham & David Dodd",
+    "Benjamin Graham & David Dodd · 1940 edition",
     "The foundations of intrinsic value, earning power, senior claims, and margin of safety. Quanta’s lessons are original explanations, not reproductions of the textbook.",
     "Tracks 01 & 04",
-    "https://www.mheducation.com/highered.html",
+    "https://www.mheducation.com/highered/mhp/product/security-analysis-classic-1940-edition.html",
   ],
   [
     "Quantitative Investment Analysis",
-    "CFA Institute · DeFusco and coauthors",
+    "CFA Institute · Fourth edition",
     "Probability, estimation, regression, time series, portfolio construction, and quantitative risk management.",
     "Tracks 02 & 03",
-    "https://www.cfainstitute.org/insights/professional-learning/refresher-readings",
+    "https://www.wiley-vch.de/en/areas-interest/finance-economics-law/finance-investments-13fi/investments-securities-13fi3/quantitative-investment-analysis-978-1-119-74362-0",
   ],
   [
     "Fama–French Data Library",
@@ -66,6 +66,17 @@ const references = [
     "Track 06",
     "https://docs.uniswap.org/",
   ],
+];
+const additionalReferences = [
+  ...new Map(
+    tracks
+      .flatMap((track) => [
+        ...(track.references ?? []),
+        ...track.modules.flatMap((lesson) => lesson.references ?? []),
+      ])
+      .filter((source) => !references.some((row) => row[4] === source.url))
+      .map((source) => [source.url, source] as const),
+  ).values(),
 ];
 export default function Library() {
   const { pathname } = useLocation();
@@ -93,12 +104,61 @@ export default function Library() {
             <ExternalLink href={href}>Visit source</ExternalLink>
           </article>
         ))}
+        {additionalReferences.map((source) => (
+          <article className="reference-card" key={source.url}>
+            <span className="reference-icon">
+              <BookOpen size={23} />
+            </span>
+            <div>
+              <span className="eyebrow">COURSE REFERENCE</span>
+              <h2>{source.title}</h2>
+              <p>
+                Referenced in the course and lesson source lists. Consult the
+                original publication for context and terms of use.
+              </p>
+            </div>
+            <ExternalLink href={source.url}>Visit source</ExternalLink>
+          </article>
+        ))}
       </div>
       <p className="fine-print">
         Source links may lead to publisher catalogs or external documentation.
         Quanta does not bundle copyrighted textbooks or restricted market
         datasets.
       </p>
+      <section
+        id="source-use"
+        className="source-use"
+        aria-labelledby="source-use-title"
+      >
+        <h2 id="source-use-title">Source use and permissions</h2>
+        <p>
+          Course pages link to the books, papers, and documentation behind their
+          topics. Book companions use original explanations and fictional
+          exercises; read the referenced edition in your own lawfully obtained
+          copy. They do not reproduce the books or their problem sets.
+        </p>
+        <p>
+          Attribution acknowledges a source; it is not permission to reproduce
+          protected text, images, code, or datasets. Check the relevant license
+          or obtain permission before reusing third-party material. See the{" "}
+          <ExternalLink href="https://www.wipo.int/en/web/copyright/faq-copyright">
+            WIPO copyright guidance
+          </ExternalLink>
+          .
+        </p>
+        <p>
+          Names and trademarks identify their owners and sources. Quanta is not
+          affiliated with or endorsed by the named authors, CFA Institute,
+          publishers, brokers, or TradingView. Charts use the open-source
+          Lightweight Charts™ library by TradingView; its license and notices
+          are included in the{" "}
+          <a className="text-link" href="/third-party-notices.txt">
+            third-party notices
+          </a>
+          .
+        </p>
+      </section>
     </div>
   );
 }

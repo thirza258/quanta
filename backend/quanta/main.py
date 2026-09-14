@@ -20,6 +20,7 @@ from .assessments import ExamAnswers, grade
 from .database import ExamSubmission, Submission, User, Workspace, get_session, initialize
 from .econometrics import FactorRequest, PortfolioRequest, factor_model, portfolio
 from .limits import limiter
+from .simulator import router as simulator_router
 
 CATALOG = json.loads((Path(__file__).resolve().parents[2] / "src/data/curriculum.json").read_text())
 LESSONS = {m["id"]: m for c in CATALOG for m in c["modules"]}
@@ -33,6 +34,7 @@ async def lifespan(app):
 
 
 app = FastAPI(title="Quanta API", version="0.1.0", lifespan=lifespan)
+app.include_router(simulator_router)
 
 
 @app.middleware("http")
@@ -55,7 +57,9 @@ async def request_guards(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "same-origin"
-    if request.url.path.startswith(("/api/v1/auth", "/api/v1/workspace", "/api/v1/exams")):
+    if request.url.path.startswith(
+        ("/api/v1/auth", "/api/v1/workspace", "/api/v1/exams", "/api/v1/simulator")
+    ):
         response.headers["Cache-Control"] = "no-store"
     return response
 

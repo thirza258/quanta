@@ -22,7 +22,7 @@ def test_health_content_and_validation(client):
     catalog = client.get("/api/v1/courses").json()
     assert len(catalog) == 7
     assert catalog[0]["id"] == "trading-fundamentals"
-    assert sum(len(c["modules"]) for c in catalog) == 37
+    assert sum(len(c["modules"]) for c in catalog) == 106
     assert client.get("/api/v1/courses/lessons/missing").status_code == 404
     assert client.post("/api/v1/data/synthetic/generate", json={"years": 0}).status_code == 422
     assert client.post("/api/v1/analytics/valuation", json={"shares": 0}).status_code == 422

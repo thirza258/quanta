@@ -64,8 +64,8 @@ export default function TrackDetail() {
             </span>
             <span>
               <Clock3 size={16} />
-              {track.modules.reduce((n, m) => n + m.minutes, 0)} minutes of
-              reading
+              {track.modules.reduce((n, m) => n + m.minutes, 0)} minutes of{" "}
+              {track.parts ? "guided study" : "reading"}
             </span>
             <span>
               {track.modules.reduce(
@@ -105,8 +105,8 @@ export default function TrackDetail() {
             ))}
           </ul>
           <p>
-            No prior finance or programming knowledge required. Start with the
-            readings; Python examples are optional.
+            {track.prerequisites ??
+              "No prior finance or programming knowledge required. Start with the readings; Python examples are optional."}
           </p>
         </section>
       ) : !trackProgress(tracks[0], state).complete ? (
@@ -117,6 +117,64 @@ export default function TrackDetail() {
           </Link>{" "}
           to build the vocabulary used in this track.
         </p>
+      ) : null}
+      {track.readingGuide ? (
+        <section
+          className="course-reading-guide"
+          aria-labelledby="reading-guide-title"
+        >
+          <span className="eyebrow">
+            {track.studyType === "applied"
+              ? "BUILD, TEST, AND REVIEW"
+              : "READ ALONG WITH THE BOOK"}
+          </span>
+          <h2 id="reading-guide-title">
+            {track.studyType === "applied"
+              ? "Your course plan"
+              : "Your reading plan"}
+          </h2>
+          <p>{track.readingGuide}</p>
+          <div className="course-references">
+            {track.references?.map((reference) => (
+              <a
+                key={reference.url}
+                className="text-link"
+                href={reference.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {reference.title} <ArrowRight size={14} />
+              </a>
+            ))}
+          </div>
+          <nav
+            className="course-unit-links"
+            aria-label={
+              track.studyType === "applied" ? "Course units" : "Book units"
+            }
+          >
+            {track.parts?.map((part) => (
+              <a key={part.id} href={`#unit-${part.id}`}>
+                <span>{part.id}</span>
+                {part.title}
+              </a>
+            ))}
+          </nav>
+        </section>
+      ) : null}
+      {track.resources?.length ? (
+        <div className="course-resources" aria-label="Course downloads">
+          {track.resources.map((resource) => (
+            <a
+              key={resource.url}
+              className="button secondary"
+              href={resource.url}
+              download
+            >
+              {resource.title} <ArrowRight size={15} />
+            </a>
+          ))}
+        </div>
       ) : null}
       <div className="track-progress-row">
         <span>
@@ -141,6 +199,17 @@ export default function TrackDetail() {
       <div className="module-list">
         {track.modules.map((m, i) => (
           <Fragment key={m.id}>
+            {m.part && m.part !== track.modules[i - 1]?.part ? (
+              <div className="course-unit-heading" id={`unit-${m.part}`}>
+                <span className="eyebrow">UNIT {m.part}</span>
+                <h3>
+                  {track.parts?.find((part) => part.id === m.part)?.title}
+                </h3>
+                <p>
+                  {track.parts?.find((part) => part.id === m.part)?.description}
+                </p>
+              </div>
+            ) : null}
             <Link to={`/learn/${m.id}`} className="module-row">
               <span
                 className={`module-state ${state.completed.includes(m.id) ? "complete" : ""}`}

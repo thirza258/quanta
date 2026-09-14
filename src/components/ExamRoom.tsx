@@ -72,9 +72,11 @@ function Assessment({ exam }: { exam: Exam }) {
   const required = Math.ceil((exam.questions.length * exam.passingScore) / 100);
   const nextExam =
     track.exams[track.exams.findIndex((item) => item.id === exam.id) + 1];
-  const afterCheckpoint = track.modules.find(
-    (lesson) => !exam.moduleIds.includes(lesson.id),
-  );
+  const afterCheckpoint =
+    track.modules[
+      track.modules.findIndex((lesson) => lesson.id === exam.moduleIds.at(-1)) +
+        1
+    ];
   const nextTrack =
     tracks[tracks.findIndex((item) => item.id === track.id) + 1];
   const progress = trackProgress(track, state);
@@ -614,7 +616,9 @@ function Assessment({ exam }: { exam: Exam }) {
           </section>
           {nextExam && result.passed ? (
             <Link className="text-link" to={`/exams/${nextExam.id}`}>
-              Explore the final exam
+              {nextExam.kind === "final"
+                ? "Explore the final exam"
+                : "Explore the next checkpoint"}
               <ArrowRight size={15} />
             </Link>
           ) : null}

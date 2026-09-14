@@ -13,6 +13,7 @@ test("complete a lesson, run and restore an experiment, and retain a research no
   await expect(page).toHaveURL(/\/learn\/0\.1$/);
   // Existing lessons and saved research still use their original URLs.
   await page.goto("/learn/1.1");
+  await page.getByRole("button", { name: "Split view", exact: true }).click();
   await expect(
     page.getByRole("textbox", { name: "Python strategy editor" }),
   ).toBeVisible();
@@ -30,8 +31,22 @@ test("complete a lesson, run and restore an experiment, and retain a research no
     .getByRole("button", { name: "Save experiment", exact: true })
     .click();
   await page.getByRole("radio", { name: "B 40%" }).check();
-  await page.getByRole("button", { name: "Check answer", exact: true }).click();
-  await expect(page.locator(".quiz-feedback")).toContainText("That’s right.");
+  await page
+    .locator(".exercise-card")
+    .first()
+    .getByRole("button", { name: "Check answer", exact: true })
+    .click();
+  await expect(page.locator(".quiz-feedback").first()).toContainText(
+    "That’s right.",
+  );
+  const secondPractice = page.locator(".exercise-card").nth(1);
+  await secondPractice.getByRole("radio").nth(1).check();
+  await secondPractice
+    .getByRole("button", { name: "Check answer", exact: true })
+    .click();
+  await expect(secondPractice.getByRole("status")).toContainText(
+    "That’s right.",
+  );
   await page
     .getByRole("button", { name: "Mark module complete", exact: true })
     .click();

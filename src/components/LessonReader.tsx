@@ -42,7 +42,9 @@ function Reader({ lesson }: { lesson: Lesson }) {
     navigate = useNavigate(),
     track = lessonTrack(lesson.id)!,
     [view, setView] = useState<"split" | "reader" | "sandbox">(
-      lesson.kind === "fundamentals" ? "reader" : "split",
+      ["fundamentals", "book-study", "applied-study"].includes(lesson.kind)
+        ? "reader"
+        : "split",
     ),
     [noteOpen, setNoteOpen] = useState(false),
     [note, setNote] = useState(""),
@@ -112,7 +114,8 @@ function Reader({ lesson }: { lesson: Lesson }) {
           <div className="lesson-meta">
             <span>
               <Clock3 size={14} />
-              {lesson.minutes} min read
+              {lesson.minutes} min{" "}
+              {lesson.kind.endsWith("study") ? "study" : "read"}
             </span>
             <span>
               <Code2 size={15} />
@@ -123,6 +126,32 @@ function Reader({ lesson }: { lesson: Lesson }) {
               Add a note
             </button>
           </div>
+          {lesson.reading ? (
+            <aside
+              className="lesson-reading"
+              aria-label={
+                track.studyType === "applied"
+                  ? "Engineering study"
+                  : "Book reading"
+              }
+            >
+              <BookOpen size={18} />
+              <div>
+                <span className="eyebrow">
+                  {track.studyType === "applied"
+                    ? "COURSE CONNECTION"
+                    : "BOOK CONNECTION"}
+                </span>
+                <p>{lesson.reading}</p>
+                <Link className="text-link" to={`/curriculum/${track.id}`}>
+                  {track.studyType === "applied"
+                    ? "View the course plan"
+                    : "View the reading plan"}{" "}
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+            </aside>
+          ) : null}
           <div className="lesson-objective">
             <span className="eyebrow">YOUR OBJECTIVE</span>
             <p>
@@ -138,6 +167,31 @@ function Reader({ lesson }: { lesson: Lesson }) {
               {lesson.content}
             </ReactMarkdown>
           </div>
+          {lesson.assignment ? (
+            <section
+              className="lesson-assignment"
+              aria-labelledby="assignment-title"
+            >
+              <span className="eyebrow">APPLY THE METHOD</span>
+              <h2 id="assignment-title">Research assignment</h2>
+              <p>{lesson.assignment.prompt}</p>
+              <button
+                className="button secondary small"
+                onClick={() => {
+                  setNote(
+                    `Assignment: ${lesson.assignment!.prompt}\n\nMy calculation and evidence:\n\nAssumptions and limitations:\n\nDecision and next check:\n`,
+                  );
+                  setNoteOpen(true);
+                }}
+              >
+                <BookmarkPlus size={15} /> Write in notebook
+              </button>
+              <details>
+                <summary>Review the worked solution</summary>
+                <p>{lesson.assignment.solution}</p>
+              </details>
+            </section>
+          ) : null}
           <div className="lesson-code-card">
             <div>
               <Code2 size={16} />
@@ -175,6 +229,18 @@ function Reader({ lesson }: { lesson: Lesson }) {
             </section>
           ) : null}
           <PracticeQuestions lesson={lesson} />
+          {["0.4", "0.5", "0.7", "0.8"].includes(lesson.id) ? (
+            <div className="lesson-objective">
+              <span className="eyebrow">PUT IT INTO PRACTICE</span>
+              <p>
+                Practice this lesson with a virtual $100,000 account. Read a
+                stock chart, place a paper order, and record your reasoning.
+              </p>
+              <Link className="text-link" to={`/simulator?lesson=${lesson.id}`}>
+                Open trading simulator <ArrowRight size={15} />
+              </Link>
+            </div>
+          ) : null}
           <div className="lesson-completion">
             <button
               className={`button ${completed ? "secondary" : "primary"}`}

@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import "@fontsource-variable/inter";
 import "@fontsource/jetbrains-mono/400.css";
 import "./styles.css";
+import "./course-layout.css";
 import App from "./App";
 class ErrorBoundary extends Component<
   { children: ReactNode },

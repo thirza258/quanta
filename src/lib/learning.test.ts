@@ -43,8 +43,12 @@ describe("learning progression", () => {
     });
     expect(normalize(null).lastLesson).toBe("0.1");
     expect(practiceComplete(tracks[1].modules[0], normalize(previous))).toBe(
-      true,
+      false,
     );
+    // The original completion is preserved, while the added practice remains unanswered.
+    const expanded = normalize(previous);
+    expanded.submissions["1.1:q2"] = { answer: 1, correct: true };
+    expect(practiceComplete(tracks[1].modules[0], expanded)).toBe(true);
   });
   it("requires all beginner practice answers before lesson completion", () => {
     const state = emptyWorkspace();

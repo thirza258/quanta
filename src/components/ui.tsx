@@ -17,6 +17,7 @@ export function Modal({
   description,
   children,
   wide = false,
+  container,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -24,10 +25,11 @@ export function Modal({
   description?: string;
   children: ReactNode;
   wide?: boolean;
+  container?: HTMLElement | null;
 }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
+      <Dialog.Portal container={container}>
         <Dialog.Overlay className="modal-overlay" />
         <Dialog.Content className={`modal ${wide ? "modal-wide" : ""}`}>
           <div className="modal-heading">
@@ -143,14 +145,15 @@ export function TrackArt({
       <rect width="200" height="120" fill={`url(#grid-${kind}-${large})`} />
       {kind === "book" ? (
         <g stroke="currentColor">
-          <path d="M55 21 111 9 154 35 99 48Z" fill="var(--art-fill)" />
-          <path d="M55 21v68l44 25V48M99 114l55-15V35" />
           <path
-            d="M64 28v58l28 16M107 52l39-11M107 62l39-11M107 72l39-11M107 82l26-8"
+            d="M100 32Q76 16 40 24V91Q74 83 100 101Q126 83 160 91V24Q124 16 100 32Z"
+            fill="var(--art-fill)"
+          />
+          <path d="M100 32V101M34 31V98Q73 89 100 107Q127 89 166 98V31" />
+          <path
+            d="M51 40Q71 36 88 45M51 51Q71 47 88 56M51 62Q71 58 88 67M51 73Q69 69 80 75M112 45Q129 36 149 40M112 56Q129 47 149 51M112 67Q129 58 149 62M120 75Q133 70 149 73"
             opacity=".5"
           />
-          <path d="m68 20 43-9 28 17-42 11z" opacity=".4" />
-          <path d="M44 99 85 119M158 107l28-8" opacity=".2" />
         </g>
       ) : null}
       {kind === "distribution" ? (

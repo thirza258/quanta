@@ -6,6 +6,101 @@
   font-size: 10px;
   padding-top: 12px;
 }
+.course-reading-guide {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 28px;
+  margin: 24px 0;
+}
+.course-reading-guide h2,
+.lesson-assignment h2 {
+  font-size: 20px;
+  margin: 10px 0 14px;
+}
+.course-reading-guide p,
+.course-unit-heading p,
+.lesson-reading p,
+.lesson-assignment p {
+  color: var(--secondary);
+  font-size: 13px;
+  line-height: 1.85;
+}
+.course-references {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin: 18px 0;
+}
+.course-unit-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+  gap: 10px 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.course-unit-links a {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  color: var(--secondary);
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 6px 0;
+}
+.course-unit-links a:hover,
+.course-unit-links a:focus-visible {
+  color: var(--accent);
+}
+.course-unit-links span {
+  min-width: 24px;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--accent);
+}
+.course-unit-heading {
+  padding: 32px 0 16px;
+  scroll-margin-top: 85px;
+}
+.course-unit-heading h3 {
+  font-size: 20px;
+  margin: 8px 0;
+}
+.course-unit-heading p {
+  margin: 0;
+}
+.lesson-reading {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border-left: 3px solid var(--accent);
+  padding: 18px;
+  background: var(--surface);
+  margin: 24px 0;
+}
+.lesson-reading > svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+.lesson-reading p {
+  margin: 8px 0;
+}
+.lesson-assignment {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 32px 0;
+}
+.lesson-assignment details {
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.lesson-assignment summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 500;
+}
 .course-outcomes,
 .lesson-glossary {
   border: 1px solid var(--border);
