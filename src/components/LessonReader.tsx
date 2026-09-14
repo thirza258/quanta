@@ -130,9 +130,7 @@ function Reader({ lesson }: { lesson: Lesson }) {
             <aside
               className="lesson-reading"
               aria-label={
-                track.studyType === "applied"
-                  ? "Engineering study"
-                  : "Book reading"
+                track.studyType === "applied" ? "Applied study" : "Book reading"
               }
             >
               <BookOpen size={18} />

@@ -7,7 +7,7 @@ The expanded courses are available at `/curriculum/security-analysis` and `/curr
 | Security Analysis | 24 | 7 book parts + 1 extension | 48 | 4 × 4 questions | 24 |
 | Quantitative Investment Analysis | 28 | 14 book chapters | 56 | 4 × 4 questions | 28 |
 
-Both courses contain original explanations and fictional cases. Each lesson supplies an objective, reading connection, worked example, equation, runnable Python worksheet, two practice items, and a written task with a collapsible worked solution. Notebook assignments are prefilled with the task and space for evidence, assumptions, and a decision. The overall catalog now contains 106 lessons, 206 practice questions, and 182 exam questions across 23 assessments.
+Both courses contain original explanations and fictional cases. Each lesson supplies an objective, reading connection, worked example, equation, runnable Python worksheet, two practice items, and a written task with a collapsible worked solution. Notebook assignments are prefilled with the task and space for evidence, assumptions, and a decision. The overall catalog now contains 192 lessons, 388 practice questions, and 352 exam questions across 45 assessments.
 
 ## Reading references
 

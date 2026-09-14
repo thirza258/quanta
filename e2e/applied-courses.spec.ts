@@ -1,0 +1,183 @@
+import { test, expect } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import type { Track } from "../src/lib/types";
+
+const catalog = JSON.parse(
+  readFileSync(new URL("../src/data/curriculum.json", import.meta.url), "utf8"),
+) as Track[];
+const courses = catalog.filter((course) =>
+  ["econometrics", "web3", "stock-machine-learning"].includes(course.id),
+);
+
+for (const course of courses) {
+  test(`${course.id}: units, downloads, capstone practice, notebook, and worksheet`, async ({
+    page,
+  }) => {
+    await page.goto(`/curriculum/${course.id}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      course.title,
+    );
+    await expect(
+      page.getByRole("navigation", { name: "Course units" }).getByRole("link"),
+    ).toHaveCount(course.parts!.length);
+    await expect(page.locator(".module-row")).toHaveCount(
+      course.modules.length,
+    );
+    await expect(page.locator(".exam-card")).toHaveCount(course.exams.length);
+    if (course.id === "stock-machine-learning") {
+      await expect(page.locator(".inline-meta")).toContainText(
+        "720 minutes of guided study",
+      );
+      await expect(
+        page.getByText(course.readingGuide!, { exact: true }),
+      ).toBeVisible();
+    }
+    for (const resource of course.resources!) {
+      const waiting = page.waitForEvent("download");
+      await page
+        .getByRole("link", { name: resource.title, exact: true })
+        .click();
+      const file = await waiting;
+      expect(file.suggestedFilename()).toBe(resource.url.split("/").at(-1));
+      const bytes = readFileSync((await file.path())!);
+      expect(bytes.length).toBeGreaterThan(20);
+      if (resource.url.endsWith(".zip"))
+        expect(bytes.subarray(0, 2).toString()).toBe("PK");
+    }
+    const lesson = course.modules.at(-1)!;
+    await page.goto(`/learn/${lesson.id}`);
+    await expect(
+      page.getByRole("complementary", { name: "Applied study" }),
+    ).toContainText(lesson.reading!);
+    await expect(
+      page.getByRole("button", { name: "Mark module complete", exact: true }),
+    ).toBeDisabled();
+    await page.getByText("Review the worked solution", { exact: true }).click();
+    await expect(page.locator(".lesson-assignment details")).toContainText(
+      lesson.assignment!.solution,
+    );
+    for (const [index, question] of lesson.exercises!.entries()) {
+      const card = page.locator(".exercise-card").nth(index);
+      await card.getByRole("radio").nth(question.answer).check();
+      await card.getByRole("button", { name: "Check answer" }).click();
+      await expect(card.getByRole("status")).toContainText("That’s right.");
+    }
+    await page
+      .getByRole("button", { name: "Mark module complete", exact: true })
+      .click();
+    await page.reload();
+    await expect(
+      page.getByRole("button", { name: "Completed · undo" }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Write in notebook" }).click();
+    await expect(page.getByLabel("Research note")).toHaveValue(/Assignment:/);
+    await page.getByRole("button", { name: "Save to notebook" }).click();
+    await page.getByRole("button", { name: "Run in sandbox" }).click();
+    await page.getByRole("button", { name: "Run experiment" }).click();
+    await expect(page.locator(".console-output")).toContainText(
+      course.id === "econometrics"
+        ? "Rubric total: 100"
+        : course.id === "web3"
+          ? "Capstone rubric total: 100"
+          : "Planned study hours: 12.0",
+    );
+  });
+
+  test(`${course.id}: every lesson renders mathematics, assignments, practice, and references`, async ({
+    page,
+  }) => {
+    test.setTimeout(90000);
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    for (const lesson of course.modules) {
+      await page.goto(`/learn/${lesson.id}`);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        lesson.title,
+      );
+      await expect(page.locator(".katex-display")).toHaveCount(1);
+      await expect(page.locator(".katex-error")).toHaveCount(0);
+      await expect(page.locator(".exercise-card")).toHaveCount(2);
+      await expect(page.locator(".lesson-assignment")).toContainText(
+        lesson.assignment!.prompt,
+      );
+      const footer = page.getByRole("contentinfo", {
+        name: "Sources and attribution",
+      });
+      for (const reference of lesson.references!) {
+        await expect(
+          footer.getByRole("link", { name: reference.title, exact: true }),
+        ).toHaveAttribute("href", reference.url);
+      }
+    }
+    expect(errors).toEqual([]);
+  });
+
+  for (const exam of [course.exams[0], course.exams.at(-1)!]) {
+    test(`${course.id}: ${exam.kind} grades on the server and persists`, async ({
+      page,
+    }) => {
+      await page.goto(`/exams/${exam.id}`);
+      await page
+        .getByRole("button", { name: "Start exam", exact: true })
+        .click();
+      for (const [index, question] of exam.questions.entries()) {
+        await page
+          .getByRole("button", { name: new RegExp(`^Question ${index + 1},`) })
+          .click();
+        await page.getByRole("radio").nth(question.answer).check();
+      }
+      await page
+        .locator(".exam-navigation")
+        .getByRole("button", { name: "Review answers" })
+        .click();
+      const waiting = page.waitForResponse(
+        (response) =>
+          response.url().includes(`/exams/${exam.id}/submit`) &&
+          response.request().method() === "POST",
+      );
+      await page
+        .getByRole("button", { name: "Submit exam", exact: true })
+        .click();
+      expect(await (await waiting).json()).toMatchObject({
+        score: 100,
+        passed: true,
+        grading: "server",
+        version: exam.version,
+      });
+      await page.reload();
+      await expect(page.locator(".exam-score")).toContainText("100%");
+      if (exam.kind === "checkpoint") {
+        const next = course.modules[4];
+        await page
+          .getByRole("link", { name: `Continue to ${next.title}`, exact: true })
+          .click();
+        await expect(page).toHaveURL(
+          new RegExp(`/learn/${next.id.replace(".", "\\.")}$`),
+        );
+      }
+    });
+  }
+}
+
+test("expanded course cards and headers remain readable on mobile", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const route of [
+    "/curriculum",
+    ...courses.map((course) => `/curriculum/${course.id}`),
+  ]) {
+    await page.goto(route);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+    const artwork = page.locator(".track-art");
+    expect(await artwork.count()).toBeGreaterThan(0);
+    for (const art of await artwork.all()) {
+      expect(await art.locator(":scope > g").count()).toBeGreaterThan(0);
+    }
+  }
+});

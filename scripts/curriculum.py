@@ -4,11 +4,14 @@ import json
 from pathlib import Path
 
 from course_references import attach_references
+from econometrics_course import build_econometrics
 from foundations import build_foundations
 from quantitative_analysis import build_quantitative_analysis
 from security_analysis import build_security_analysis
 from stock_bots import build_stock_bots
+from stock_ml_course import build_stock_ml
 from track_exams import attach_exams
+from web3_course import build_web3
 
 tracks = [
     (
@@ -581,7 +584,9 @@ attach_exams(catalog)
 for index, expanded in [
     (0, build_security_analysis()),
     (1, build_quantitative_analysis()),
+    (2, build_econometrics()),
     (4, build_stock_bots()),
+    (5, build_web3()),
 ]:
     # Preserve the first exercise and its answer key for legacy saved submissions.
     original = {m["id"]: m for m in catalog[index]["modules"]}
@@ -591,6 +596,7 @@ for index, expanded in [
             module["exercise"] = exercise
             module["exercises"][0] = exercise
     catalog[index] = expanded
+catalog.append(build_stock_ml())
 catalog.insert(0, build_foundations())
 attach_references(catalog)
 output = Path(__file__).resolve().parents[1] / "src/data/curriculum.json"

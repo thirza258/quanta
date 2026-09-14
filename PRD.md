@@ -1103,7 +1103,7 @@ The current Track 1 and Track 2 reading courses supersede the earlier five-modul
 
 #### Implemented applied course requirements — September 2026
 
-The local learning release expands Track 5 to **32 original lessons in eight units**, 64 practice items, seven four-question checkpoints, and a 32-question version-2 final. Units cover specification/data/events, trading rules and evaluation, execution/accounting, risk, ML, LLM research, operations, and projects. Existing lesson IDs 5.1–5.5 and first-answer keys remain compatible; old final attempts remain historical and do not satisfy the expanded final.
+The local learning release expands Track 5 to **48 original lessons in twelve units**, 96 practice items, eleven four-question checkpoints, and a 48-question version-3 final. Units cover specification/data/events, trading rules and evaluation, execution/accounting, risk, ML, LLM research, operations, and projects. Existing lesson IDs 5.1–5.5 and first-answer keys remain compatible; old final attempts remain historical and do not satisfy the expanded final.
 
 Each lesson requires a concrete objective, substantive original explanation, worked case, rendered equation, executable guided worksheet, two practice questions, a notebook assignment with worked solution, and named primary references. Course pages expose unit navigation and downloadable project resources. The code and written dossier are self-assessed separately from the concept exam.
 
@@ -2912,3 +2912,21 @@ $$r_{\text{borrow}, j}(t) = r_{\text{base}} + \alpha \cdot \exp\left( -\beta \fr
 
 
 
+
+
+### Local course expansion: econometrics, coin creation, and stock ML
+
+The local learning catalog contains eight courses, 192 lessons, 388 practice questions, and 352 exam questions across 45 assessments. This course release extends the existing platform and does not claim completion of every production capability in the broader roadmap.
+
+| Course | Required implemented study scope | Assessment |
+| --- | --- | --- |
+| Algorithmic & AI stock bots | 48 lessons / 12 units; advanced execution, portfolio strategies, interval-purged research, capacity, AI evidence, and offline projects | 11 checkpoints + 48-question final, version 3 |
+| Financial econometrics | 32 lessons / 8 units; OLS, robust/HAC inference, dynamics, cointegration, GARCH, factors, panels, IV, DiD, risk and a research dossier | 7 checkpoints + 32-question final, version 2 |
+| Web3, cryptography & coin creation | 24 lessons / 6 units; hashes, signatures, Merkle proofs, wallets, native coin validation, ERC-20 creation, token economics, authority, and tests | 5 checkpoints + 24-question final, version 2 |
+| Machine learning for stocks | 24 lessons / 6 units / 720 study minutes; cleaning, timing, labels, pipelines, fitting, evaluation, diagnosis, repair, artifacts, batch inference, monitoring and capstone | 5 checkpoints + 24-question final, version 1 |
+
+Each applied lesson includes an objective, original explanation, worked case, equation, runnable guided worksheet, two practice questions, written assignment/solution, and primary references. ML study time budgets 8 minutes reading, 8 minutes worksheet, and 14 minutes project/review per lesson; exam time is additional. This estimate does not represent prerecorded video duration.
+
+Downloadable acceptance artifacts must include (1) actual quantitative estimation and transparent advanced execution fixtures, (2) a native coin with cryptographic signatures, Merkle commitments, nonces, atomic block acceptance, capped issuance and adverse tests, (3) a fixed-supply ERC-20 compiled/deployed/tested in a local EVM, and (4) a stock-ML lifecycle producing a cleaning audit, purged date partitions, real regression/classification fits, held-out metrics, persisted pipelines, model card, and inference without future outcomes. Source-only archives must match reviewed files and exclude installed packages, private keys, and run state.
+
+Existing module IDs and legacy first-practice keys remain valid. Expanded exam versions reject incompatible submissions while retaining historical attempts. Course completion requires the current assessments; written/project capstones remain separately self-assessed. All coin creation and model execution are local teaching exercises; public-chain launches, live brokerage authority, and unimplemented advanced ML extensions are not implied by an exam pass. See [applied course scope](docs/APPLIED_COURSES.md) and [verification evidence](docs/VERIFICATION.md).

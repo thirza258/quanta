@@ -80,7 +80,7 @@ test("beginner practice requires every answer and persists feedback and completi
   await expect(page.locator(".track-card")).toHaveCount(1);
   await expect(page.locator(".track-card")).toContainText(course.title);
   await page.getByRole("button", { name: "Not started", exact: true }).click();
-  await expect(page.locator(".track-card")).toHaveCount(6);
+  await expect(page.locator(".track-card")).toHaveCount(catalog.length - 1);
   await page.goto(`/learn/${course.modules[0].id}`);
   const first = page.locator(".exercise-card").first();
   await first.getByRole("radio").nth(0).check();

@@ -29,6 +29,27 @@ function draft(exam: Exam, correct = exam.questions.length): ExamDraft {
 }
 
 describe("learning progression", () => {
+  it("retains a version-2 bot pass as history without satisfying the expanded final", () => {
+    const current = tracks
+      .find((track) => track.id === "stock-bots")!
+      .exams.at(-1)!;
+    const previous: Exam = {
+      ...current,
+      version: 2,
+      questions: current.questions.filter(
+        (question) => Number(question.lessonId.split(".")[1]) <= 32,
+      ),
+      moduleIds: current.moduleIds.filter(
+        (id) => Number(id.split(".")[1]) <= 32,
+      ),
+    };
+    const state = emptyWorkspace();
+    const attempt = gradeExam(previous, draft(previous));
+    state.examAttempts[current.id] = [attempt];
+    expect(attempt.passed).toBe(true);
+    expect(examPassed(current, state)).toBe(false);
+    expect(normalize(state).examAttempts[current.id][0]).toEqual(attempt);
+  });
   it("migrates old workspaces without changing existing progress, code, or answers", () => {
     const previous = {
       completed: ["1.1"],

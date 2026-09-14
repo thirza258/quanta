@@ -6,6 +6,7 @@ import {
   ChartNoAxesCombined,
   FlaskConical,
   Bot,
+  BrainCircuit,
   Network,
   Sigma,
 } from "lucide-react";
@@ -67,7 +68,9 @@ export function TrackIcon({
             ? FlaskConical
             : kind === "bot"
               ? Bot
-              : Network;
+              : kind === "machine-learning"
+                ? BrainCircuit
+                : Network;
   return <Icon size={size} strokeWidth={1.6} />;
 }
 export function EmptyState({
@@ -219,6 +222,41 @@ export function TrackArt({
             d="m100 41 13 22-13 8-13-8zM87 68l13 18 13-18-13 8z"
             opacity=".65"
           />
+        </g>
+      ) : null}
+      {kind === "machine-learning" ? (
+        <g stroke="currentColor">
+          <path
+            d="M42 32L100 24M42 32L100 60M42 32L100 96M42 60L100 24M42 60L100 60M42 60L100 96M42 88L100 24M42 88L100 60M42 88L100 96M100 24L158 42M100 24L158 78M100 60L158 42M100 60L158 78M100 96L158 42M100 96L158 78"
+            opacity=".3"
+          />
+          {[32, 60, 88].map((y) => (
+            <circle
+              key={`input-${y}`}
+              cx="42"
+              cy={y}
+              r="7"
+              fill="var(--art-fill)"
+            />
+          ))}
+          {[24, 60, 96].map((y) => (
+            <circle
+              key={`hidden-${y}`}
+              cx="100"
+              cy={y}
+              r="9"
+              fill="var(--art-fill)"
+            />
+          ))}
+          {[42, 78].map((y) => (
+            <circle
+              key={`output-${y}`}
+              cx="158"
+              cy={y}
+              r="7"
+              fill="var(--art-fill)"
+            />
+          ))}
         </g>
       ) : null}
     </svg>

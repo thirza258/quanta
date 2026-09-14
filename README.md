@@ -50,11 +50,14 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 
 ## What works
 
-- Seven courses and 106 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
-- Twenty-three open-book assessments with 182 original exam questions, including four checkpoints and a new final for each expanded book course.
+- Eight courses and 192 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
+- Forty-five open-book assessments with 352 original exam questions, including four checkpoints and a new final for each expanded book course.
 - **[Security Analysis](docs/BOOK_COURSES.md)**: 24 lessons following the 1940 book’s seven parts, separate modern extensions, 48 practice questions, and an investment committee capstone.
 - **[Quantitative Investment Analysis](docs/BOOK_COURSES.md)**: 28 lessons mapped to all 14 chapters of the fourth edition, 56 practice questions, and a reproducible research capstone. Both courses include reading plans, original worked cases, mathematical notation, executable worksheets, and notebook assignments with worked solutions.
-- **[Algorithmic & AI stock bots](docs/STOCK_BOTS_COURSE.md)**: 32 lessons in eight units, 64 practice questions, seven checkpoints, a 32-question final, and a downloadable Python project with durable paper accounting, a small trained ridge model, and AI evidence-validation fixtures.
+- **[Algorithmic & AI stock bots](docs/STOCK_BOTS_COURSE.md)**: 48 lessons in twelve units, 96 practice questions, eleven checkpoints, a 48-question final, and a downloadable Python project with durable paper accounting, a small trained ridge model, and AI evidence-validation fixtures.
+- **[Financial econometrics](docs/APPLIED_COURSES.md)**: 32 lessons covering OLS, robust inference, time series, volatility, factors, panel data, and causal designs, with actual local regression and cointegration projects.
+- **[Web3, cryptography & coin creation](docs/APPLIED_COURSES.md)**: 24 lessons and complete downloadable native-coin and ERC-20 projects, including signatures, Merkle proofs, atomic validation, local Solidity deployment, and supply/allowance tests.
+- **[Machine learning for stocks](docs/APPLIED_COURSES.md)**: 24 thirty-minute lessons (12 hours of study and lab work) across the full data-to-monitoring lifecycle, with real ridge/forest/logistic training, held-out evaluation, saved pipelines, and batch inference.
 - Named references on every lesson and a shared source footer across all page types, a complete reference library, source-use guidance, and bundled dependency notices. Course cards wrap long text and use an open-book illustration.
 - Untimed, open-book exams with exact pass thresholds, saved drafts, answer navigation, pre-submission review, explanations, topic-specific lesson links, retakes, and attempt history. Course progress includes both lesson completion and exam passes.
 - Online grading, account-owned submission logs, idempotent retries, and device grading when the API is unavailable. Existing lesson IDs and workspace progress remain compatible.

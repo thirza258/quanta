@@ -134,13 +134,24 @@ def test_workspace_round_trips_exam_draft_and_results(client):
     assert client.get("/api/v1/workspace").json()["state"] == state
 
 
-@pytest.mark.parametrize("slug", ["security-analysis", "statistical-foundations", "stock-bots"])
+@pytest.mark.parametrize(
+    "slug",
+    [
+        "security-analysis",
+        "statistical-foundations",
+        "stock-bots",
+        "econometrics",
+        "web3",
+        "stock-machine-learning",
+    ],
+)
 def test_expanded_final_rejects_old_version_and_grades_exact_threshold(client, slug):
     exam_id = f"{slug}-final"
     exam = EXAMS[exam_id]
     body = payload(exam_id)
-    body["version"] = 1
-    assert client.post(f"/api/v1/exams/{exam_id}/submit", json=body).status_code == 409
+    for old_version in range(1, exam["version"]):
+        body["version"] = old_version
+        assert client.post(f"/api/v1/exams/{exam_id}/submit", json=body).status_code == 409
     required = (len(exam["questions"]) * exam["passingScore"] + 99) // 100
     for correct, passed in [(required - 1, False), (required, True)]:
         result = client.post(f"/api/v1/exams/{exam_id}/submit", json=payload(exam_id, correct))

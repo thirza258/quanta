@@ -1,3 +1,33 @@
+# Applied courses and 12-hour stock ML — September 14, 2026
+
+The rebuilt application runs at **http://127.0.0.1:8088** with healthy web, API, PostgreSQL, and Redis services. Existing data volumes were retained.
+
+| Check | Result |
+| --- | --- |
+| TypeScript/Vite production build | Passed in the final rebuilt web image |
+| Frontend catalog, progression, and simulator tests | 29 passed |
+| Backend API, all guided templates, assessment versions, and project invariants | 367 cases verified across the full run and targeted rechecks |
+| Browser scenarios | 50 verified: 48 passed in the full run; both affected scenarios passed after fixes (5.2 seconds) |
+| New applied-course flows | All 13 scenarios passed: downloads, unit maps, capstone practice/notebook/worksheet, references, current-version exams, continuation, persistence, and mobile layout |
+| Full expanded lesson rendering | All 128 bot/econometrics/Web3/ML lessons render equations, two practice items, assignments, and named references; the 52 book lessons also passed rendering checks |
+| Guided Python runtime | All 192 catalog templates executed within the existing restricted runtime |
+| ML lifecycle | Nine tests passed, including cleaning faults, label arithmetic, date purging, future-perturbation invariance, held-out outcome isolation, metric accounting, latest-row inference, and artifact/batch parity |
+| Native coin and ERC-20 downloads | Source archive extracted into a fresh directory, installed with npm ci, and passed six native-chain tests plus actual local Solidity compile/deploy/transfer/allowance/conservation/runtime checks |
+| Quantitative research project | Eight independent numerical/timing tests passed for OLS/HAC, cointegration diagnostics, GARCH/covariance arithmetic, irregular purging, queue priority, ranked caps, next-open accounting, and evidence denominators |
+| Compatibility | All 106 prior lesson URLs and first-practice keys preserved; old expanded-final versions rejected while historical passes remain stored |
+| Catalog and downloads | API equals generated catalog; source-only archives match reviewed files; generation and packaging deterministic |
+| Authoring | Changed-file Ruff, Prettier, and diff whitespace checks passed |
+
+The initial backend run passed 363 tests and found one outdated seven-course count. Updating it for the new eighth course and adding download/ML-threshold cases yielded 367 collected cases; all 69 affected API/assessment/download checks then passed. The browser run found an outdated six-unstarted-course expectation and a search regression caused by renaming the AMM lesson without retaining “impermanent loss.” The count now follows the catalog and the expanded AMM lesson retains its familiar title. Both affected browser flows passed on the final rebuilt app. No unresolved test failures remain.
+
+The dedicated ML course has **24 lessons × 30 minutes = 720 minutes / 12 hours** of planned reading, worksheet, and project work, with exams additional. The actual local pipeline generates imperfect synthetic data, audits cleaning, constructs dated features and matured labels, purges chronological partitions, fits ridge/forest/logistic candidates, selects using validation, refits eligible development rows, scores held-out outcomes, persists full pipelines, and performs batch inference without requiring future labels. Reports preserve baselines, unsuccessful results, probability diagnostics, artifact hashes, and descriptive monitoring. Neural/boosting, nested evaluation, post-hoc calibration, and other advanced experiments remain explicitly identified learner extensions, not claimed default fits.
+
+The native coin baseline reconciles balances **910/100** and supply **1,010** after its first block, with a **1,100** cap. Tests cover signatures, wrong domains, Merkle proofs, replay, insufficient funds, atomic rejection, forged headers/work/rewards, independent replay, and state isolation. The ERC-20 creates **1,000,000 whole tokens** on an in-process EVM; its main fixture gives a recipient **110 tokens** and finite remaining allowance **15**, followed by additional conservation steps. No public chain, token sale, exchange pool, or broker authority is created.
+
+Manual screenshots reviewed: `/tmp/quanta-ml-course-desktop.png`, `/tmp/quanta-ml-course-mobile.png`, `/tmp/quanta-web3-course-mobile.png`, and `/tmp/quanta-expanded-amm-final.png`. New neural-network artwork and the retained crypto illustration render; mobile course content stays within the viewport. The source footer continues across all page types. The current catalog contains **192 lessons, 388 practice questions, and 352 exam questions across 45 assessments**. See [course scope](APPLIED_COURSES.md) for exact study/project boundaries and commands.
+
+---
+
 # Bot course, attribution, and course layout — September 14, 2026
 
 Verified the running Docker application at **http://127.0.0.1:8088**, retaining the existing PostgreSQL/Redis volumes and prior simulator and book-course work.

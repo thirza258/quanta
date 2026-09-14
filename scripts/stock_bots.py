@@ -16,7 +16,7 @@ QUEUES = "https://docs.python.org/3/library/asyncio-queue.html"
 PROJECT = "/course-assets/stock-bots/paper_bot_lab.py"
 
 
-def build_stock_bots():
+def build_stock_bots_core():
     modules = []
 
     def add(id, part, title, objective, content, formula, code, task, solution, questions, reading):
@@ -1734,3 +1734,9 @@ When a new feature is proposed, document the economic hypothesis before tuning i
         },
         checkpoints,
     )
+
+
+def build_stock_bots():
+    from advanced_bots import expand_stock_bots
+
+    return expand_stock_bots(build_stock_bots_core())

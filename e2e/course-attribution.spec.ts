@@ -16,9 +16,9 @@ test("bot course: plan, project download, practice, notebook, and runnable works
   ).toBeVisible();
   await expect(
     page.getByRole("navigation", { name: "Course units" }).getByRole("link"),
-  ).toHaveCount(8);
-  await expect(page.locator(".module-row")).toHaveCount(32);
-  await expect(page.locator(".exam-card")).toHaveCount(8);
+  ).toHaveCount(12);
+  await expect(page.locator(".module-row")).toHaveCount(48);
+  await expect(page.locator(".exam-card")).toHaveCount(12);
   const download = page.waitForEvent("download");
   await page
     .getByRole("link", { name: "Download the Python paper-bot lab" })
@@ -31,7 +31,7 @@ test("bot course: plan, project download, practice, notebook, and runnable works
   await page.goto("/learn/5.29");
   await expect(page.locator(".learning-room")).toHaveClass(/view-reader/);
   await expect(
-    page.getByRole("complementary", { name: "Engineering study" }),
+    page.getByRole("complementary", { name: "Applied study" }),
   ).toBeVisible();
   const lesson = course.modules.find((item) => item.id === "5.29")!;
   for (const [index, question] of lesson.exercises!.entries()) {

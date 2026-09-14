@@ -3,6 +3,51 @@ import { tracks, lessons, exams, findLesson, lessonTrack } from "./catalog";
 import { lessonExercises } from "./learning";
 import { percent } from "./api";
 describe("curriculum integrity", () => {
+  it.each([
+    ["econometrics", 32, 8, 2],
+    ["web3", 24, 6, 2],
+    ["stock-machine-learning", 24, 6, 1],
+  ])(
+    "provides the complete applied %s course",
+    (slug, count, units, version) => {
+      const course = tracks.find((track) => track.id === slug)!;
+      expect(course.studyType).toBe("applied");
+      expect(course.modules).toHaveLength(Number(count));
+      expect(course.parts).toHaveLength(Number(units));
+      expect(course.exams).toHaveLength(Number(units));
+      expect(course.exams.at(-1)?.version).toBe(version);
+      expect(course.exams.at(-1)?.questions).toHaveLength(Number(count));
+      expect(course.exams.at(-1)?.moduleIds).toEqual(
+        course.modules.map((m) => m.id),
+      );
+      const prompts = course.exams.flatMap((exam) =>
+        exam.questions.map((q) => q.question),
+      );
+      expect(new Set(prompts).size).toBe(prompts.length);
+      for (const part of course.parts!) {
+        expect(course.modules.filter((m) => m.part === part.id)).toHaveLength(
+          4,
+        );
+      }
+      for (const lesson of course.modules) {
+        expect(lesson.kind).toBe("applied-study");
+        expect(lessonExercises(lesson)).toHaveLength(2);
+        expect(lesson.content.split(/\s+/).length).toBeGreaterThan(200);
+        expect(lesson.assignment?.prompt.length).toBeGreaterThan(30);
+        expect(lesson.assignment?.solution.length).toBeGreaterThan(30);
+      }
+    },
+  );
+  it("budgets twelve hours of ML lessons separately from its exams", () => {
+    const course = tracks.find(
+      (track) => track.id === "stock-machine-learning",
+    )!;
+    expect(
+      course.modules.reduce((total, lesson) => total + lesson.minutes, 0),
+    ).toBe(720);
+    expect(course.modules.every((lesson) => lesson.minutes === 30)).toBe(true);
+    expect(course.readingGuide).toContain("exam time is additional");
+  });
   it("attributes every course and lesson to named sources", () => {
     for (const item of [...tracks, ...lessons]) {
       expect(item.references?.length).toBeGreaterThan(0);
@@ -15,18 +60,18 @@ describe("curriculum integrity", () => {
   it("provides an applied bot course with independent assessments and downloadable projects", () => {
     const course = tracks.find((track) => track.id === "stock-bots")!;
     expect(course.studyType).toBe("applied");
-    expect(course.modules).toHaveLength(32);
-    expect(course.parts).toHaveLength(8);
-    expect(course.exams).toHaveLength(8);
-    expect(course.resources).toHaveLength(2);
-    expect(course.exams.at(-1)?.version).toBe(2);
+    expect(course.modules).toHaveLength(48);
+    expect(course.parts).toHaveLength(12);
+    expect(course.exams).toHaveLength(12);
+    expect(course.resources).toHaveLength(5);
+    expect(course.exams.at(-1)?.version).toBe(3);
     expect(course.exams.at(-1)?.moduleIds).toEqual(
       course.modules.map((lesson) => lesson.id),
     );
     const prompts = course.exams.flatMap((exam) =>
       exam.questions.map((question) => question.question),
     );
-    expect(new Set(prompts).size).toBe(60);
+    expect(new Set(prompts).size).toBe(92);
     for (const lesson of course.modules) {
       expect(lesson.kind).toBe("applied-study");
       expect(lessonExercises(lesson)).toHaveLength(2);
@@ -36,10 +81,10 @@ describe("curriculum integrity", () => {
     }
   });
   it("resolves unique lessons to their parent tracks", () => {
-    expect(tracks).toHaveLength(7);
+    expect(tracks).toHaveLength(8);
     expect(tracks[0].id).toBe("trading-fundamentals");
-    expect(lessons).toHaveLength(106);
-    expect(new Set(lessons.map((l) => l.id)).size).toBe(106);
+    expect(lessons).toHaveLength(192);
+    expect(new Set(lessons.map((l) => l.id)).size).toBe(192);
     expect(findLesson("1.1")?.title).toBe("Foundations of Graham & Dodd");
     for (const lesson of lessons) {
       expect(findLesson(lesson.id)).toBe(lesson);
@@ -47,7 +92,7 @@ describe("curriculum integrity", () => {
     }
   });
   it("offers complete, uniquely identified exams and valid practice questions", () => {
-    expect(exams).toHaveLength(23);
+    expect(exams).toHaveLength(45);
     expect(new Set(exams.map((exam) => exam.id)).size).toBe(exams.length);
     for (const track of tracks) {
       expect(track.exams.filter((exam) => exam.kind === "final")).toHaveLength(
