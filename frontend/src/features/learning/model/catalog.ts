@@ -1,11 +1,24 @@
-import type { Lesson, Track } from "@/features/learning/model/types";
+import type { CaseStudy, Lesson, Track } from "@/features/learning/model/types";
 import data from "@content/catalog/curriculum.json";
 function codeLanguage(value: unknown): Lesson["codeLanguage"] {
   if (value === undefined || value === "python" || value === "c") return value;
   throw new Error(`Unsupported course language: ${String(value)}`);
 }
+function caseKind(value: unknown): CaseStudy["kind"] {
+  if (
+    value === "documented" ||
+    value === "implementation" ||
+    value === "illustrative"
+  )
+    return value;
+  throw new Error(`Unsupported case kind: ${String(value)}`);
+}
 export const tracks: Track[] = data.map((track) => ({
   ...track,
+  caseStudies: track.caseStudies.map((item) => ({
+    ...item,
+    kind: caseKind(item.kind),
+  })),
   modules: track.modules.map((lesson) => ({
     ...lesson,
     codeLanguage: codeLanguage(

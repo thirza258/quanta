@@ -4,7 +4,9 @@
 
 From the repository root, run `npm run content:build` after editing course builders or projects. It regenerates the catalog and the copies/archives under `frontend/public/course-assets/`. Both scripts resolve repository paths from their own locations and can also run from another working directory.
 
-Preserve existing course IDs, lesson IDs, first-practice answer keys, and exam-version semantics when expanding courses. The array order controls the recommended learning sequence and displayed track labels. All cases should be original, clearly labeled if fictional, and include references at the lesson level. Project files included in archives are explicitly listed in `scripts/package_projects.py`.
+Preserve existing course IDs, lesson IDs, first-practice answer keys, and exam-version semantics when expanding courses. The array order controls the recommended learning sequence and displayed track labels. Case explanations and exercises should be original; distinguish documented events, practical implementations, and fictional scenarios, and include references at the lesson level. Project files included in archives are explicitly listed in `scripts/package_projects.py`.
+
+The [real-world case system](../docs/REAL_WORLD_CASES.md) covers all 300 lessons with a mix of Indonesian and global context. Edit shared source anchors in `authoring/real_world_cases.py` and individual applications in the four `case_applications_*.py` files. Every new lesson needs an explicit application; the build rejects missing or duplicate coverage. Cite the source beside the case, explain what it supports, and label any invented exercise numbers.
 
 The [news interpretation course](../docs/NEWS_COURSE.md) follows Security Analysis and uses the new `8.x` lesson namespace.
 

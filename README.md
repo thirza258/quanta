@@ -51,6 +51,7 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 ## What works
 
 - Twelve courses and 300 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
+- **[Real-world applications in every lesson](docs/REAL_WORLD_CASES.md)**: 300 distinct tasks and worked explanations built around 35 Indonesian and global cases, with primary references, dated event context, unit links, and notebook prompts. Documented events and illustrative exercise data are clearly distinguished.
 - Seventy-seven open-book assessments with 572 original exam questions, including four checkpoints and a new final for each expanded book course.
 - **[The intelligent & careful investor](docs/INTELLIGENT_INVESTOR.md)**: 16 lessons / 8 hours directly before Security Analysis, inspired by Graham’s *The Intelligent Investor*. Covers temperament, speculation, liquidity, diversification, margin of safety, allocation, costs and independent judgment, with 32 practice questions, four checkpoints, a final and an original investor-plan workbook.
 - **[Security Analysis](docs/BOOK_COURSES.md)**: 24 lessons following the 1940 book’s seven parts, separate modern extensions, 48 practice questions, and an investment committee capstone.
@@ -166,7 +167,7 @@ Interactive API documentation is at `/docs` on the development API URL. The publ
 | Method | Route | Purpose |
 | --- | --- | --- |
 | GET | `/api/v1/health` | API/database/Redis readiness |
-| GET | `/api/v1/courses` | Beginner course and eight specialist tracks, including exams |
+| GET | `/api/v1/courses` | All twelve courses, including exams and sourced real-world cases |
 | POST | `/api/v1/auth/register`, `/login`, `/logout` | Account lifecycle (same `/auth` prefix) |
 | GET/POST/PUT | `/api/v1/simulator/...` | [Persistent trading account, observed prices, orders, replay, preferences, and journals](docs/SIMULATOR.md#http-interface) |
 | GET | `/api/v1/auth/me` | Current session profile |

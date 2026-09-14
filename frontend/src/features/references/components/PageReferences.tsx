@@ -50,8 +50,9 @@ export default function PageReferences() {
         ))}
       </ul>
       <p>
-        Quanta’s course explanations, fictional cases, and exercises are
-        original teaching material. Books, research, and documentation are
+        Quanta’s course explanations and exercises are original teaching
+        material. Documented events cite their sources; fictional scenarios and
+        exercise data are labeled. Books, research, and documentation are
         credited to their respective authors. Quanta is an independent learning
         project; references do not imply affiliation or endorsement.
       </p>

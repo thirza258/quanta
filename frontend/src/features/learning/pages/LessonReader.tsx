@@ -1,5 +1,10 @@
 import PracticeQuestions from "@/features/assessments/components/PracticeQuestions";
 import CourseAssistant from "@/features/assistant/components/CourseAssistant";
+import RealWorldCase from "@/features/learning/components/RealWorldCase";
+import {
+  caseNotebookPrompt,
+  lessonCase,
+} from "@/features/learning/model/cases";
 import {
   findLesson,
   lessons,
@@ -69,6 +74,7 @@ function Reader({ lesson }: { lesson: Lesson }) {
     practicePassed = practiceComplete(lesson, state),
     exam = track.exams.find((exam) => exam.moduleIds.at(-1) === lesson.id),
     next = lessons[lessons.findIndex((l) => l.id === lesson.id) + 1];
+  const caseStudy = lessonCase(track, lesson);
   useEffect(() => {
     update((s) => ({ ...s, lastLesson: lesson.id }));
   }, [lesson.id, update]);
@@ -184,6 +190,11 @@ function Reader({ lesson }: { lesson: Lesson }) {
               <BookmarkPlus size={15} />
               Add a note
             </button>
+            {caseStudy ? (
+              <a className="text-link" href="#real-world-case">
+                Explore the real-world case <ArrowRight size={14} />
+              </a>
+            ) : null}
           </div>
           {lesson.reading ? (
             <aside
@@ -224,6 +235,20 @@ function Reader({ lesson }: { lesson: Lesson }) {
               {lesson.content}
             </ReactMarkdown>
           </div>
+          {caseStudy ? (
+            <RealWorldCase
+              lesson={lesson}
+              caseStudy={caseStudy}
+              onWrite={() => {
+                setNote((draft) =>
+                  [draft, caseNotebookPrompt(lesson, caseStudy)]
+                    .filter(Boolean)
+                    .join("\n\n"),
+                );
+                setNoteOpen(true);
+              }}
+            />
+          ) : null}
           {lesson.assignment ? (
             <section
               className="lesson-assignment"

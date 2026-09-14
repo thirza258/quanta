@@ -6,6 +6,24 @@ export type Exercise = {
   explanation: string;
 };
 
+export type CaseStudy = {
+  id: string;
+  title: string;
+  kind: "documented" | "implementation" | "illustrative";
+  setting: string;
+  period: string;
+  context: string;
+  boundary: string;
+  references: { title: string; url: string; scope: string }[];
+};
+
+export type RealWorldApplication = {
+  caseId: string;
+  connection: string;
+  task: string;
+  walkthrough: string;
+};
+
 export type Lesson = {
   id: string;
   title: string;
@@ -25,6 +43,7 @@ export type Lesson = {
   reading?: string;
   references?: { title: string; url: string }[];
   assignment?: { prompt: string; solution: string };
+  realWorld: RealWorldApplication;
 };
 
 export type Track = {
@@ -36,6 +55,7 @@ export type Track = {
   level: string;
   icon: string;
   modules: Lesson[];
+  caseStudies: CaseStudy[];
   outcomes?: string[];
   prerequisites?: string;
   readingGuide?: string;

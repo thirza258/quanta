@@ -77,6 +77,10 @@ def test_openai_sdk_calls_openrouter_with_authored_context(client, provider):
     context = json.loads(body["messages"][1]["content"].split("\n", 1)[1])
     assert context["lesson"]["id"] == "0.1"
     assert context["lesson"]["content"]
+    assert context["lesson"]["realWorld"]["caseId"] == "household"
+    assert [case["id"] for case in context["case_studies"]] == ["household"]
+    assert context["case_studies"][0]["references"][0]["scope"]
+    assert "sample numbers" in body["messages"][0]["content"] or "invented numbers" in body["messages"][0]["content"]
     assert context["current_code"] == "print(missing)"
     assert context["last_execution_error"] == "Name not defined: missing"
     assert "exercises" not in context["lesson"]
@@ -92,6 +96,7 @@ def test_course_setup_uses_local_guides_and_os(client, provider):
     assert response.status_code == 200
     context = json.loads(json.loads(calls[0].content)["messages"][1]["content"].split("\n", 1)[1])
     assert context["lesson"] is None
+    assert {case["id"] for case in context["case_studies"]} >= {"c_safety", "vectorization", "parallel", "gpu"}
     assert context["platform"] == "windows"
     assert any("make" in guide["content"] for guide in context["project_guides"])
     assert response.json()["files"][0]["target"] == "local"
