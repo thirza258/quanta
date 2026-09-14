@@ -8,7 +8,29 @@ import {
   Server,
 } from "lucide-react";
 import { ExternalLink } from "./ui";
+import { lessons } from "../lib/catalog";
 const references = [
+  [
+    "Stocks and business ownership",
+    "Investor.gov · U.S. Securities and Exchange Commission",
+    "A beginner reference for shares, dividends, ownership claims, and stock risks.",
+    "Start here",
+    "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks",
+  ],
+  [
+    "Understanding order types",
+    "Investor.gov · U.S. Securities and Exchange Commission",
+    "Market, limit, stop, and stop-limit instructions, including execution and price trade-offs.",
+    "Market fundamentals",
+    "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-14",
+  ],
+  [
+    "Evaluating stocks",
+    "FINRA Investor Education",
+    "Read business reports and understand the financial information behind a share price.",
+    "Market fundamentals",
+    "https://www.finra.org/investors/investing/investment-products/stocks/evaluating-stocks",
+  ],
   [
     "Security Analysis",
     "Benjamin Graham & David Dodd",
@@ -93,10 +115,14 @@ function Methodology() {
           <BookOpen size={23} />
           <h2>Read, then reproduce.</h2>
           <p>
-            Each of the 29 modules contains an original explanation, a
-            mathematical relationship, a worked example, and an exercise.
-            Complete the exercise to mark the module done. Use reading, split,
-            or sandbox view to match the task.
+            Each of the {lessons.length} modules contains an original
+            explanation, a mathematical relationship, a worked example, and an
+            exercise. Complete every practice question to mark a module done.
+            Each course also has a final exam; the beginner course includes a
+            checkpoint. Exams are untimed and open-book, with saved drafts,
+            explanations, and unlimited retakes. Complete the modules and pass
+            all exams to finish a course. Use reading, split, or sandbox view to
+            match the task.
           </p>
           <Link to="/curriculum" className="text-link">
             Explore the curriculum

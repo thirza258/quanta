@@ -10,6 +10,9 @@ test("complete a lesson, run and restore an experiment, and retain a research no
     "A little theory",
   );
   await page.getByRole("link", { name: "Start learning", exact: true }).click();
+  await expect(page).toHaveURL(/\/learn\/0\.1$/);
+  // Existing lessons and saved research still use their original URLs.
+  await page.goto("/learn/1.1");
   await expect(
     page.getByRole("textbox", { name: "Python strategy editor" }),
   ).toBeVisible();

@@ -12,21 +12,31 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useState } from "react";
-import { tracks, lessons, findLesson, lessonTrack } from "../lib/catalog";
+import {
+  tracks,
+  lessons,
+  exams,
+  findLesson,
+  lessonTrack,
+  trackLabel,
+} from "../lib/catalog";
+import {
+  examPassed,
+  exerciseKey,
+  lessonExercises,
+  trackProgress,
+} from "../lib/learning";
+import ExamCard from "./ExamCard";
 import { useWorkspace } from "../lib/workspace";
 import { TrackArt, TrackIcon } from "./ui";
 import type { Track } from "../lib/types";
 function TrackCard({ track }: { track: Track }) {
   const { state } = useWorkspace(),
-    completed = track.modules.filter((l) =>
-      state.completed.includes(l.id),
-    ).length;
+    progress = trackProgress(track, state);
   return (
     <Link className="track-card" to={`/curriculum/${track.id}`}>
       <div className="track-card-top">
-        <span className="track-number">
-          TRACK {String(track.number).padStart(2, "0")}
-        </span>
+        <span className="track-number">{trackLabel(track)}</span>
         <span className={`level-badge ${track.level.toLowerCase()}`}>
           {track.level}
         </span>
@@ -50,10 +60,20 @@ function TrackCard({ track }: { track: Track }) {
         </span>
         <ArrowUpRight size={17} />
       </div>
-      {completed > 0 ? (
+      <div className="track-assessment-meta">
+        <span>
+          {track.exams.length} {track.exams.length === 1 ? "exam" : "exams"}
+        </span>
+        <span>
+          {progress.complete
+            ? "Course complete"
+            : `${progress.percent}% complete`}
+        </span>
+      </div>
+      {progress.percent > 0 ? (
         <div
           className="card-progress"
-          style={{ width: `${(completed / track.modules.length) * 100}%` }}
+          style={{ width: `${progress.percent}%` }}
         />
       ) : null}
     </Link>
@@ -64,9 +84,27 @@ export default function Overview() {
     next = lessons.find((l) => !state.completed.includes(l.id)) || lessons[0],
     last = findLesson(state.lastLesson) || next,
     track = lessonTrack(last.id)!,
-    completed = state.completed.length,
+    completed = lessons.filter((lesson) =>
+      state.completed.includes(lesson.id),
+    ).length,
+    passedExams = exams.filter((exam) => examPassed(exam, state)).length,
+    totalProgress = Math.round(
+      ((completed + passedExams) / (lessons.length + exams.length)) * 100,
+    ),
+    pendingExams = exams.filter(
+      (exam) =>
+        state.examDrafts[exam.id] ||
+        (!examPassed(exam, state) &&
+          exam.moduleIds.every((id) => state.completed.includes(id))),
+    ),
     hasStarted =
-      state.runs > 0 || completed > 0 || Object.keys(state.drafts).length > 0;
+      state.lastLesson !== lessons[0].id ||
+      state.runs > 0 ||
+      completed > 0 ||
+      Object.keys(state.drafts).length > 0 ||
+      Object.keys(state.submissions).length > 0 ||
+      Object.keys(state.examDrafts).length > 0 ||
+      Object.keys(state.examAttempts).length > 0;
   return (
     <div className="page overview-page">
       <div className="page-eyebrow">
@@ -108,13 +146,13 @@ export default function Overview() {
           </span>
           <span>
             <strong>
-              {Math.round((completed / lessons.length) * 100)}
+              {totalProgress}
               <small>%</small>
             </strong>
             <label>Overall progress</label>
           </span>
           <div className="mini-progress">
-            <span style={{ width: `${(completed / lessons.length) * 100}%` }} />
+            <span style={{ width: `${totalProgress}%` }} />
           </div>
         </div>
         <div>
@@ -148,7 +186,7 @@ export default function Overview() {
                 : "A GOOD PLACE TO BEGIN"}
             </span>
             <div className="continue-track">
-              Track {String(track.number).padStart(2, "0")}
+              {trackLabel(track)}
               <span>/</span>
               {track.title}
             </div>
@@ -171,7 +209,11 @@ export default function Overview() {
           <div className="continue-art">
             <div className="orbital-line" />
             <TrackArt kind="book" large />
-            <span className="formula-tag">Value ≠ Price</span>
+            <span className="formula-tag">
+              {track.number === 0
+                ? "Understand before you trade"
+                : "Value ≠ Price"}
+            </span>
           </div>
         </section>
         <section className="toolkit-card">
@@ -202,10 +244,30 @@ export default function Overview() {
           </div>
         </section>
       </div>
+      {pendingExams.length ? (
+        <section
+          className="overview-exams"
+          aria-label="Continue your assessments"
+        >
+          <div className="section-heading">
+            <div>
+              <h2>Your next assessments</h2>
+              <p>
+                {passedExams} of {exams.length} exams passed. Apply what you
+                have learned.
+              </p>
+            </div>
+          </div>
+          {pendingExams.slice(0, 3).map((exam) => (
+            <ExamCard key={exam.id} exam={exam} />
+          ))}
+        </section>
+      ) : null}
       <div className="section-heading">
         <div>
           <h2>
-            Your learning path <span className="count-pill">6 tracks</span>
+            Your learning path{" "}
+            <span className="count-pill">{tracks.length} courses</span>
           </h2>
           <p>From fundamental principles to systematic strategies.</p>
         </div>
@@ -233,35 +295,52 @@ export function Curriculum() {
   const [query, setQuery] = useState(""),
     [filter, setFilter] = useState("All tracks");
   const { state } = useWorkspace();
-  const filtered = tracks.filter(
-    (t) =>
-      `${t.title} ${t.description} ${t.modules.map((m) => m.title).join(" ")}`
+  const filtered = tracks.filter((track) => {
+    const progress = trackProgress(track, state);
+    const started =
+      progress.percent > 0 ||
+      track.modules.some(
+        (lesson) =>
+          state.drafts[lesson.id] ||
+          lessonExercises(lesson).some(
+            (_, index) => state.submissions[exerciseKey(lesson.id, index)],
+          ),
+      ) ||
+      track.exams.some(
+        (exam) =>
+          state.examDrafts[exam.id] || state.examAttempts[exam.id]?.length,
+      );
+    return (
+      `${track.title} ${track.description} ${track.modules.map((module) => module.title).join(" ")}`
         .toLowerCase()
         .includes(query.toLowerCase()) &&
       (filter === "All tracks" ||
-        (filter === "In progress" &&
-          t.modules.some((l) => state.completed.includes(l.id))) ||
-        (filter === "Not started" &&
-          !t.modules.some((l) => state.completed.includes(l.id)))),
-  );
+        (filter === "In progress" && started && !progress.complete) ||
+        (filter === "Not started" && !started) ||
+        (filter === "Completed" && progress.complete))
+    );
+  });
   return (
     <div className="page">
       <div className="page-eyebrow">A CONNECTED CURRICULUM</div>
-      <h1>Six tracks. One deeper perspective.</h1>
+      <h1>Start with the basics. Build your perspective.</h1>
       <p className="page-subtitle">
-        Follow the full learning path or explore a question that interests you.
+        One beginner course, then six specialist tracks. Learn the language of
+        markets before building your investment and research skills.
       </p>
       <div className="catalog-toolbar">
         <div className="tabs">
-          {["All tracks", "In progress", "Not started"].map((f) => (
-            <button
-              key={f}
-              className={filter === f ? "active" : ""}
-              onClick={() => setFilter(f)}
-            >
-              {f}
-            </button>
-          ))}
+          {["All tracks", "In progress", "Not started", "Completed"].map(
+            (f) => (
+              <button
+                key={f}
+                className={filter === f ? "active" : ""}
+                onClick={() => setFilter(f)}
+              >
+                {f}
+              </button>
+            ),
+          )}
         </div>
         <label className="search-input compact">
           <Search size={16} />
@@ -290,7 +369,8 @@ export function Curriculum() {
         <p>
           <strong>Learning happens in the details.</strong> Each module includes
           original reading, a worked example, a runnable Python template, and a
-          question to check your understanding.
+          practice check. Course exams bring the ideas together with new
+          scenarios, feedback, and retakes.
         </p>
       </div>
     </div>

@@ -14,6 +14,36 @@ export type Lesson = {
   exercise: Exercise;
   code: string;
   kind: string;
+  objective?: string;
+  exercises?: Exercise[];
+  terms?: { term: string; definition: string }[];
+};
+export type ExamQuestion = Exercise & { id: string; lessonId: string };
+export type Exam = {
+  id: string;
+  title: string;
+  kind: string;
+  version: number;
+  description: string;
+  minutes: number;
+  passingScore: number;
+  moduleIds: string[];
+  questions: ExamQuestion[];
+};
+export type ExamDraft = {
+  id: string;
+  version: number;
+  startedAt: string;
+  answers: Record<string, number>;
+};
+export type ExamAttempt = ExamDraft & {
+  examId: string;
+  submittedAt: string;
+  correctCount: number;
+  total: number;
+  score: number;
+  passed: boolean;
+  grading: "server" | "device";
 };
 export type Track = {
   id: string;
@@ -24,6 +54,8 @@ export type Track = {
   level: string;
   icon: string;
   modules: Lesson[];
+  outcomes?: string[];
+  exams: Exam[];
 };
 export type Params = {
   model: "gbm" | "merton" | "heston" | "regime";
@@ -119,6 +151,8 @@ export type WorkspaceState = {
   notes: Note[];
   experiments: Experiment[];
   submissions: Record<string, { answer: number; correct: boolean }>;
+  examDrafts: Record<string, ExamDraft>;
+  examAttempts: Record<string, ExamAttempt[]>;
   runs: number;
 };
 export type User = { id: string; name: string; email: string };

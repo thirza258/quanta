@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -8,7 +9,9 @@ import {
   Clock3,
   Play,
 } from "lucide-react";
-import { tracks } from "../lib/catalog";
+import { tracks, trackLabel } from "../lib/catalog";
+import { examPassed, lessonExercises, trackProgress } from "../lib/learning";
+import ExamCard from "./ExamCard";
 import { useWorkspace } from "../lib/workspace";
 import { TrackArt } from "./ui";
 export default function TrackDetail() {
@@ -24,12 +27,21 @@ export default function TrackDetail() {
         </Link>
       </div>
     );
-  const completed = track.modules.filter((m) =>
-      state.completed.includes(m.id),
-    ).length,
-    next =
-      track.modules.find((m) => !state.completed.includes(m.id)) ||
-      track.modules[0];
+  const progress = trackProgress(track, state);
+  const completed = progress.modules;
+  const next = track.modules.find(
+    (module) => !state.completed.includes(module.id),
+  );
+  const nextExam = track.exams.find((exam) => !examPassed(exam, state));
+  const nextTrack =
+    tracks[tracks.findIndex((item) => item.id === track.id) + 1];
+  const nextPath = next
+    ? `/learn/${next.id}`
+    : nextExam
+      ? `/exams/${nextExam.id}`
+      : nextTrack
+        ? `/curriculum/${nextTrack.id}`
+        : "/curriculum";
   return (
     <div className="page track-detail">
       <Link to="/curriculum" className="text-link back-link">
@@ -39,7 +51,7 @@ export default function TrackDetail() {
       <div className="track-detail-hero">
         <div>
           <div className="page-eyebrow">
-            TRACK {String(track.number).padStart(2, "0")}
+            {trackLabel(track)}
             <span className="level-badge">{track.level}</span>
           </div>
           <h1>{track.title}</h1>
@@ -55,58 +67,111 @@ export default function TrackDetail() {
               {track.modules.reduce((n, m) => n + m.minutes, 0)} minutes of
               reading
             </span>
+            <span>
+              {track.modules.reduce(
+                (count, lesson) => count + lessonExercises(lesson).length,
+                0,
+              )}{" "}
+              practice questions
+            </span>
+            <span>
+              {track.exams.length} {track.exams.length === 1 ? "exam" : "exams"}
+            </span>
           </div>
-          <Link className="button primary" to={`/learn/${next.id}`}>
-            {completed ? "Continue track" : "Start this track"}
+          <Link className="button primary" to={nextPath}>
+            {progress.complete
+              ? nextTrack
+                ? "Continue to next course"
+                : "Browse curriculum"
+              : next
+                ? completed
+                  ? "Continue course"
+                  : "Start this course"
+                : "Continue to exam"}
             <ArrowRight size={16} />
           </Link>
         </div>
         <TrackArt kind={track.icon} large />
       </div>
+      {track.outcomes ? (
+        <section className="course-outcomes">
+          <h2>What you will learn</h2>
+          <ul>
+            {track.outcomes.map((outcome) => (
+              <li key={outcome}>
+                <Check size={16} />
+                {outcome}
+              </li>
+            ))}
+          </ul>
+          <p>
+            No prior finance or programming knowledge required. Start with the
+            readings; Python examples are optional.
+          </p>
+        </section>
+      ) : !trackProgress(tracks[0], state).complete ? (
+        <p className="inline-notice">
+          New to stocks or trading?{" "}
+          <Link className="text-link" to="/curriculum/trading-fundamentals">
+            Start with Trading & market fundamentals
+          </Link>{" "}
+          to build the vocabulary used in this track.
+        </p>
+      ) : null}
       <div className="track-progress-row">
         <span>
-          {completed} of {track.modules.length} modules completed
+          {completed} of {track.modules.length} modules · {progress.exams} of{" "}
+          {track.exams.length} exams passed
+          {progress.complete ? " · Course complete" : ""}
         </span>
-        <strong>{Math.round((completed / track.modules.length) * 100)}%</strong>
+        <strong>{progress.percent}%</strong>
       </div>
       <div className="progress-track">
-        <span
-          style={{ width: `${(completed / track.modules.length) * 100}%` }}
-        />
+        <span style={{ width: `${progress.percent}%` }} />
       </div>
       <div className="section-heading">
         <div>
-          <h2>Inside this track</h2>
-          <p>A principle, an example, and an experiment in every module.</p>
+          <h2>Inside this course</h2>
+          <p>
+            Read each lesson, check your understanding, and apply it in the
+            exams.
+          </p>
         </div>
       </div>
       <div className="module-list">
         {track.modules.map((m, i) => (
-          <Link to={`/learn/${m.id}`} key={m.id} className="module-row">
-            <span
-              className={`module-state ${state.completed.includes(m.id) ? "complete" : ""}`}
-            >
-              {state.completed.includes(m.id) ? (
-                <Check size={19} />
-              ) : (
-                String(i + 1).padStart(2, "0")
-              )}
-            </span>
-            <div>
-              <span className="eyebrow">MODULE {m.id}</span>
-              <h3>{m.title}</h3>
-              <p>{m.subtitle}</p>
-            </div>
-            <span className="module-minutes">
-              <Clock3 size={14} />
-              {m.minutes} min
-            </span>
-            <span className="module-type">
-              <Play size={12} />
-              Interactive
-            </span>
-            <ChevronRight size={20} />
-          </Link>
+          <Fragment key={m.id}>
+            <Link to={`/learn/${m.id}`} className="module-row">
+              <span
+                className={`module-state ${state.completed.includes(m.id) ? "complete" : ""}`}
+              >
+                {state.completed.includes(m.id) ? (
+                  <Check size={19} />
+                ) : (
+                  String(i + 1).padStart(2, "0")
+                )}
+              </span>
+              <div>
+                <span className="eyebrow">MODULE {m.id}</span>
+                <h3>{m.title}</h3>
+                <p>{m.subtitle}</p>
+              </div>
+              <span className="module-minutes">
+                <Clock3 size={14} />
+                {m.minutes} min
+              </span>
+              <span className="module-type">
+                <Play size={12} />
+                Interactive
+              </span>
+              <ChevronRight size={20} />
+            </Link>
+            {track.exams
+              .filter((exam) => exam.moduleIds.at(-1) === m.id)
+              .map((exam) => (
+                <ExamCard key={exam.id} exam={exam} />
+              ))}
+          </Fragment>
         ))}
       </div>
     </div>

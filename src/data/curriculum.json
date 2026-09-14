@@ -1,5 +1,918 @@
 [
   {
+    "id": "trading-fundamentals",
+    "number": 0,
+    "title": "Trading & market fundamentals",
+    "description": "Your first course: understand stocks, markets, orders, returns, and risk before exploring investment strategies.",
+    "source": "Original lessons · Investor.gov & FINRA references",
+    "level": "Beginner",
+    "icon": "book",
+    "outcomes": [
+      "Explain what stocks represent and how markets connect buyers and sellers",
+      "Read quotes, select order instructions, and calculate returns after costs",
+      "Interpret basic financial statements and plan for risk",
+      "Write a testable paper-trading plan and choose your next course"
+    ],
+    "modules": [
+      {
+        "id": "0.1",
+        "title": "What investing and trading mean",
+        "subtitle": "Start with goals, time horizons, and uncertainty",
+        "minutes": 12,
+        "objective": "Distinguish saving, investing, and trading; calculate a simple return and explain why a profit is uncertain.",
+        "kind": "fundamentals",
+        "content": "## The idea\n\nSaving sets money aside for future use. Investing commits capital to an asset with an uncertain future payoff. Trading buys and sells assets in an attempt to benefit from price changes. Their boundaries overlap: an investor still trades when entering or leaving a position. The useful distinction is the purpose, holding period, and evidence behind the decision.\n\nA long-term investor might study a business's ability to generate cash over years. A short-term trader might study an order imbalance over minutes. Neither time horizon guarantees success. Start by asking: **What am I buying, why might it pay me, when might I need the money, and how could I lose it?**\n\n## A worked example\n\nMaya spends $200 on a fictional investment and later receives $220 when she sells it. Ignoring costs and distributions, the gain is $20 and the return is $20 / $200 = 10%. If the sale brings $170 instead, the return is −15%. A hoped-for 10% return is an expectation, not money already earned.\n\n$$R = \\frac{\\text{ending value} - \\text{starting value}}{\\text{starting value}}$$\n\nAlways state the time period. A 10% return over one month and a 10% return over five years are different outcomes. Compare investments over matching periods and account for costs before deciding which performed better.\n\n## Build a decision before a position\n\nWrite a goal, a time horizon, a reason for the investment, and a condition that would invalidate that reason. Money needed soon has less time to recover from a fall. A promise of high returns with no risk is a reason to investigate the claim, not a substitute for evidence.\n\nFor this course, use hypothetical money. No brokerage account or coding experience is needed. Reading, arithmetic, and explaining your choices are enough. The optional Python example lets you change the numbers; its separate synthetic trading rule is not a recommended strategy.\n\n## Connect to later courses\n\nGraham & Dodd develops the distinction between price and estimated value. Statistical foundations teaches how to express uncertainty instead of treating a successful outcome as proof of skill.\n\n### Further reading\n\n[Investor education reference](https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks). Examples in this lesson use fictional companies and simplified amounts.",
+        "formula": "R=(V_1-V_0)/V_0",
+        "code": "initial = 200\nending = 220\nprint(\"Simple return (%):\", round((ending / initial - 1) * 100, 2))\n\n# An optional, separate demonstration using synthetic prices.\ndef strategy(data):\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "exercise": {
+          "question": "An investment rises from $200 to $220 before costs. What is its return?",
+          "options": [
+            "20%",
+            "10%",
+            "2%"
+          ],
+          "answer": 1,
+          "explanation": "The $20 gain divided by the $200 starting value is 0.10, or 10%."
+        },
+        "exercises": [
+          {
+            "question": "An investment rises from $200 to $220 before costs. What is its return?",
+            "options": [
+              "20%",
+              "10%",
+              "2%"
+            ],
+            "answer": 1,
+            "explanation": "The $20 gain divided by the $200 starting value is 0.10, or 10%."
+          },
+          {
+            "question": "Which statement best distinguishes investing from short-term trading?",
+            "options": [
+              "Investors cannot lose money",
+              "Trading requires no research",
+              "Their goals, holding periods, and decision evidence can differ"
+            ],
+            "answer": 2,
+            "explanation": "Both involve uncertain payoffs; the intended horizon and evidence differ, not the existence of risk."
+          },
+          {
+            "question": "What is missing from the claim ‘this strategy returned 12%’?",
+            "options": [
+              "The period, costs, and risk taken",
+              "A guarantee of next year's profit",
+              "The color of the chart"
+            ],
+            "answer": 0,
+            "explanation": "A return needs a time period and information about costs and risk to be meaningfully compared."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Capital",
+            "definition": "Money committed to an investment or trading activity."
+          },
+          {
+            "term": "Return",
+            "definition": "Gain or loss relative to the amount initially invested, over a stated period."
+          },
+          {
+            "term": "Time horizon",
+            "definition": "The intended length of time before money is needed or a position is closed."
+          }
+        ]
+      },
+      {
+        "id": "0.2",
+        "title": "Stocks, shares, and business ownership",
+        "subtitle": "Understand what a stockholder actually owns",
+        "minutes": 12,
+        "objective": "Explain equity ownership, market capitalization, dividends, and why share price alone does not measure value.",
+        "kind": "fundamentals",
+        "content": "## The idea\n\nA share of stock is an ownership interest in a company. Common equity is a residual claim: creditors and other senior claims come first. Owners can benefit from price appreciation and dividends, but dividends are not automatic and shareholders can lose their investment. Voting rights depend on the share class.\n\nSeparate three quantities: **share price** is the market price of one share; **shares outstanding** is the number issued and held; **market capitalization** is their product. Market capitalization describes the market value of equity, not the company's cash balance or an independent estimate of what the business is worth.\n\n## A worked example\n\nFictional Harbor Foods has 1,000,000 shares outstanding at $20 each. Its equity market capitalization is $20 million. Owning 100 shares means owning 100 / 1,000,000 = 0.01% of that share class, worth $2,000 at the quote. A declared $0.50 dividend per share would pay $50 on those 100 shares before taxes.\n\n$$\\text{Market capitalization} = \\text{price per share}\\times\\text{shares outstanding}$$\n\nAnother company has 100 million shares trading at $2, so its market capitalization is $200 million. Its lower share price does not make the entire business cheaper than Harbor Foods.\n\n## Splits and dilution\n\nIn a two-for-one stock split, 100 shares become 200; a theoretical $20 price becomes $10. The split itself leaves the $2,000 position value and ownership fraction unchanged. Real market prices may also move that day. A new share issuance is different: if your share count stays fixed while total shares increase, your ownership percentage falls. The company may receive new capital in exchange.\n\nA dividend is a distribution of company resources, not free additional wealth. All else equal, distributing cash reduces the company's value. Later return calculations include both price changes and cash distributions.\n\n## Connect to later courses\n\nSecurity analysis uses diluted shares and the priority of claims to calculate per-share value. Keep the denominator and the company-wide amounts consistent.\n\n### Further reading\n\n[Investor education reference](https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks). Examples in this lesson use fictional companies and simplified amounts.",
+        "formula": "M=P\\times N",
+        "code": "price = 20\nshares = 1000000\nowned = 100\nprint(\"Market capitalization:\", price * shares)\nprint(\"Ownership (%):\", owned / shares * 100)\n\n# An optional, separate demonstration using synthetic prices.\ndef strategy(data):\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "exercise": {
+          "question": "A company has 2 million shares at $15. What is its market capitalization?",
+          "options": [
+            "$30 million",
+            "$2 million",
+            "$15 million"
+          ],
+          "answer": 0,
+          "explanation": "Multiply 2 million shares by $15 per share to get $30 million of equity market value."
+        },
+        "exercises": [
+          {
+            "question": "A company has 2 million shares at $15. What is its market capitalization?",
+            "options": [
+              "$30 million",
+              "$2 million",
+              "$15 million"
+            ],
+            "answer": 0,
+            "explanation": "Multiply 2 million shares by $15 per share to get $30 million of equity market value."
+          },
+          {
+            "question": "You own 40 shares at $50 before a two-for-one split. What is the theoretical position immediately after the split?",
+            "options": [
+              "40 shares at $25",
+              "80 shares at $50",
+              "80 shares at $25"
+            ],
+            "answer": 2,
+            "explanation": "The share count doubles and theoretical price halves; position value remains $2,000."
+          },
+          {
+            "question": "Who has the residual claim after creditors and preferred claims?",
+            "options": [
+              "Common shareholders",
+              "Customers",
+              "The stock exchange"
+            ],
+            "answer": 0,
+            "explanation": "Common equity receives what remains after senior claims, which can be nothing."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Equity",
+            "definition": "An ownership claim on a company's residual assets and earnings."
+          },
+          {
+            "term": "Dividend",
+            "definition": "A distribution declared by a company for eligible shareholders."
+          },
+          {
+            "term": "Market capitalization",
+            "definition": "Share price multiplied by shares outstanding."
+          },
+          {
+            "term": "Dilution",
+            "definition": "A reduction in an existing holder's ownership fraction when additional shares are issued."
+          }
+        ]
+      },
+      {
+        "id": "0.3",
+        "title": "How stock markets work",
+        "subtitle": "Meet issuers, investors, brokers, exchanges, and indexes",
+        "minutes": 12,
+        "objective": "Trace a stock transaction and distinguish the primary market, secondary market, an index, and an ETF.",
+        "kind": "fundamentals",
+        "content": "## The idea\n\nIn a primary-market offering, a company issues new securities to raise money. In the secondary market, existing securities change hands between investors. When you buy already-issued shares from another investor, your payment generally goes to that seller, not to the company.\n\nA broker receives and routes your order. An exchange or other trading venue brings together buying and selling interest. Market makers quote prices at which they are willing to trade, subject to available size. Clearing and settlement handle the obligations after execution. A submitted order, a filled trade, and completed settlement are different stages.\n\nHours, settlement schedules, lot sizes, currencies, and account rules vary by market and broker. A lesson using dollar amounts does not imply those conventions apply to every exchange.\n\n## A worked example\n\nHarbor Foods issues 100,000 new shares at $20, raising $2 million before offering costs. Later, Maya buys 50 existing shares from Leo for $21 each through a broker. The $1,050 secondary-market payment goes to the selling side; Harbor Foods does not receive another $1,050 in capital from that trade.\n\n## Indexes, funds, and asset classes\n\nAn index is a rules-based measure of a basket of assets. An ETF is a fund whose shares trade on a market; it may seek to track an index, pursue an active strategy, or hold a narrow exposure. You buy fund shares, not the abstract index number. Fees and tracking differences can separate fund returns from index returns.\n\n| Instrument | Basic economic claim | A question to ask |\n| --- | --- | --- |\n| Stock | Business ownership | Can the business create durable value? |\n| Bond | A debt claim with contractual terms | Can the issuer meet its obligations? |\n| Fund / ETF | An interest in a pooled portfolio | What does it hold, and what does it cost? |\n| Derivative | A contract tied to an underlying variable | What payoff and obligations does the contract create? |\n\nOwning several funds does not necessarily create different exposures: their largest holdings may overlap. Likewise, an index moving up does not mean every constituent rose.\n\n## Connect to later courses\n\nFactor models use benchmarks; portfolio courses examine the exposures inside funds; execution courses distinguish an order's intent from what actually fills.\n\n### Further reading\n\n[Investor education reference](https://www.finra.org/investors/investing/investment-products/stocks). Examples in this lesson use fictional companies and simplified amounts.",
+        "formula": "\\text{Issue proceeds}=\\text{new shares}\\times\\text{issue price}",
+        "code": "new_shares = 100000\nissue_price = 20\nprint(\"Primary issue proceeds:\", new_shares * issue_price)\nprint(\"Secondary trade value:\", 50 * 21)\n\n# An optional, separate demonstration using synthetic prices.\ndef strategy(data):\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "exercise": {
+          "question": "You buy existing shares from another investor. Who generally receives the purchase money?",
+          "options": [
+            "The company automatically",
+            "The selling investor, through the transaction process",
+            "The index provider"
+          ],
+          "answer": 1,
+          "explanation": "A secondary-market trade transfers an existing security; it does not itself issue new company capital."
+        },
+        "exercises": [
+          {
+            "question": "You buy existing shares from another investor. Who generally receives the purchase money?",
+            "options": [
+              "The company automatically",
+              "The selling investor, through the transaction process",
+              "The index provider"
+            ],
+            "answer": 1,
+            "explanation": "A secondary-market trade transfers an existing security; it does not itself issue new company capital."
+          },
+          {
+            "question": "Which statement about an index and an ETF is correct?",
+            "options": [
+              "They are the same legal product",
+              "Every ETF is diversified across all markets",
+              "An index is a measure; an ETF is an investable fund that may track one"
+            ],
+            "answer": 2,
+            "explanation": "An index describes a basket under rules. An ETF has actual holdings, fees, and a trading price."
+          },
+          {
+            "question": "What does an order confirmation saying ‘submitted’ establish?",
+            "options": [
+              "The order was received, but execution still needs confirmation",
+              "Settlement is finished",
+              "Every requested share filled"
+            ],
+            "answer": 0,
+            "explanation": "Submission is not a fill. Check execution quantity and price separately from settlement."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Primary market",
+            "definition": "Issuance of new securities to investors."
+          },
+          {
+            "term": "Secondary market",
+            "definition": "Trading of already-issued securities."
+          },
+          {
+            "term": "Broker",
+            "definition": "A firm that receives and handles customer trading orders."
+          },
+          {
+            "term": "Index",
+            "definition": "A calculated measure of a selected basket of assets."
+          },
+          {
+            "term": "ETF",
+            "definition": "An exchange-traded fund whose shares represent an interest in its portfolio."
+          }
+        ]
+      },
+      {
+        "id": "0.4",
+        "title": "Prices, quotes, and order types",
+        "subtitle": "Read a quote and understand the trade-off between price and execution",
+        "minutes": 12,
+        "objective": "Calculate a spread, interpret OHLCV, and choose between market, limit, stop, and stop-limit orders in a hypothetical scenario.",
+        "kind": "fundamentals",
+        "content": "## The idea\n\nThe **bid** is a quoted buying price and the **ask** a quoted selling price. Their difference is the spread. The last traded price is a past transaction, so it is not a promise of your next fill. Available quantity matters: a large order can consume several price levels.\n\nOHLCV records the open, high, low, close, and traded volume for a period. A candle summarizes that period; it does not reveal the sequence of every trade. Volume is shares traded, not the number of distinct people buying.\n\n## A worked example\n\nA fictional quote shows bid $49.90 for 100 shares and ask $50.10 for 80 shares. The spread is $0.20. A small market buy may execute near $50.10; a market sell may execute near $49.90. An immediate buy and sell of 10 shares at those prices loses $2 before fees, even if the quotes do not change. A request for 200 shares cannot assume all 200 are available at the displayed ask.\n\n$$\\text{Spread}=\\text{ask}-\\text{bid}$$\n\n## Translate an intention into an order\n\n| Order | Instruction | Main trade-off |\n| --- | --- | --- |\n| Market | Trade at available prices | Execution price is uncertain |\n| Buy limit | Buy at the limit or lower | May fill partly or not at all |\n| Sell limit | Sell at the limit or higher | May fill partly or not at all |\n| Stop | Activate a market order when triggered | A gap can produce a worse fill than the stop |\n| Stop-limit | Activate a limit order when triggered | The limit can prevent an exit |\n\nFor a buy limit of $50 with the best ask at $50.10, the instruction does not permit a $50.10 fill. If the market falls to $50, a fill still depends on available quantity and priority. Trigger conventions differ by venue and broker.\n\n## Connect to later courses\n\nThe paper-trading lab demonstrates some order mechanics using hypothetical accounts. Strategy backtests use next-open fills and configurable costs. Neither a candle touching a price nor a stop instruction guarantees a fill at that price.\n\n### Further reading\n\n[Investor education reference](https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-14). Examples in this lesson use fictional companies and simplified amounts.",
+        "formula": "s=a-b",
+        "code": "bid = 49.90\nask = 50.10\nquantity = 10\nprint(\"Spread:\", round(ask - bid, 2))\nprint(\"Round-trip spread cost:\", round((ask - bid) * quantity, 2))\n\n# An optional, separate demonstration using synthetic prices.\ndef strategy(data):\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "exercise": {
+          "question": "The bid is $24.95 and the ask is $25.05. What is the spread?",
+          "options": [
+            "$0.05",
+            "$0.10",
+            "$25.00"
+          ],
+          "answer": 1,
+          "explanation": "$25.05 minus $24.95 is a $0.10 spread."
+        },
+        "exercises": [
+          {
+            "question": "The bid is $24.95 and the ask is $25.05. What is the spread?",
+            "options": [
+              "$0.05",
+              "$0.10",
+              "$25.00"
+            ],
+            "answer": 1,
+            "explanation": "$25.05 minus $24.95 is a $0.10 spread."
+          },
+          {
+            "question": "You will pay at most $30 per share. Which order expresses that constraint?",
+            "options": [
+              "A market buy",
+              "A sell stop at $30",
+              "A buy limit at $30"
+            ],
+            "answer": 2,
+            "explanation": "A buy limit sets a maximum purchase price; it does not guarantee execution."
+          },
+          {
+            "question": "A sell stop at $45 triggers after the market gaps to $40. What can happen?",
+            "options": [
+              "It must fill at exactly $45",
+              "It may fill near $40 or another available price",
+              "It guarantees a profit"
+            ],
+            "answer": 1,
+            "explanation": "A triggered stop becomes a market order; the stop price is not a guaranteed execution price."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Bid–ask spread",
+            "definition": "The difference between the quoted ask and bid."
+          },
+          {
+            "term": "Liquidity",
+            "definition": "The ability to trade a quantity promptly without a large price impact."
+          },
+          {
+            "term": "Slippage",
+            "definition": "The difference between an expected trade price and the actual fill."
+          },
+          {
+            "term": "OHLCV",
+            "definition": "Open, high, low, close, and volume for a defined interval."
+          }
+        ]
+      },
+      {
+        "id": "0.5",
+        "title": "Returns, compounding, and trading costs",
+        "subtitle": "Measure what you keep, over the time you hold",
+        "minutes": 12,
+        "objective": "Calculate profit after fees, total return with dividends, and compounded returns; distinguish realized from unrealized gains.",
+        "kind": "fundamentals",
+        "content": "## The idea\n\nProfit in money and return in percent answer different questions. Include the purchase cost, sale proceeds, distributions, and fees. An unrealized gain is a change in the marked value of an open position. A realized gain results from closing it. Both affect your economic wealth, and an unrealized gain can disappear before a sale.\n\n## A worked example\n\nBuy 10 shares at $100 and pay a $2 entry fee: the cash outlay is $1,002. Receive $10 of dividends in total. Sell all 10 shares at $110 and pay a $2 exit fee: sale proceeds are $1,098. The net gain is $1,098 + $10 − $1,002 = $106. The return on the initial cash outlay is $106 / $1,002, approximately 10.58%, before taxes.\n\n$$R_{\\text{net}}=\\frac{\\text{net sale proceeds}+\\text{distributions}-\\text{initial outlay}}{\\text{initial outlay}}$$\n\nZero commission does not mean zero trading cost. Spreads, slippage, fund expenses, financing, and applicable taxes can affect the outcome. Avoid double counting a spread already embedded in the actual fill prices.\n\n## Returns multiply through time\n\nA $100 position gains 10%, reaching $110, then loses 10%, reaching $99. The combined return is −1%, although the arithmetic average of the two period returns is zero.\n\n$$R_{\\text{combined}}=(1+r_1)(1+r_2)-1$$\n\nA decline from $100 to $80 is a 20% loss. Recovering from $80 to $100 requires a 25% gain because the new denominator is smaller. A basis point is 0.01 percentage points: 10 basis points equals 0.10%, or 0.001 as a decimal multiplier. A 10 bp fee on $1,000 is $1.\n\n## Connect to later courses\n\nStatistical foundations develops discounting and annualization. Backtests later separate the strategy return from the benchmark and charge costs at execution. Keep the time period, units, and cash-flow assumptions visible in every comparison.\n\n### Further reading\n\n[Investor education reference](https://www.finra.org/investors/investing/investment-products/stocks). Examples in this lesson use fictional companies and simplified amounts.",
+        "formula": "R=\\prod_t(1+r_t)-1",
+        "code": "outlay = 10 * 100 + 2\nproceeds = 10 * 110 - 2\ndividends = 10\nprint(\"Net profit:\", proceeds + dividends - outlay)\nprint(\"Net return (%):\", round((proceeds + dividends - outlay) / outlay * 100, 2))\nprint(\"After +10% then -10%:\", 100 * 1.10 * 0.90)\n\n# An optional, separate demonstration using synthetic prices.\ndef strategy(data):\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "exercise": {
+          "question": "$100 gains 10% and then loses 10%. What remains?",
+          "options": [
+            "$100",
+            "$99",
+            "$101"
+          ],
+          "answer": 1,
+          "explanation": "$100 × 1.10 × 0.90 = $99. Sequential returns compound."
+        },
+        "exercises": [
+          {
+            "question": "$100 gains 10% and then loses 10%. What remains?",
+            "options": [
+              "$100",
+              "$99",
+              "$101"
+            ],
+            "answer": 1,
+            "explanation": "$100 × 1.10 × 0.90 = $99. Sequential returns compound."
+          },
+          {
+            "question": "A 10 basis point fee on $1,000 is:",
+            "options": [
+              "$10",
+              "$100",
+              "$1"
+            ],
+            "answer": 2,
+            "explanation": "10 bp = 0.10% = 0.001. Multiply $1,000 by 0.001."
+          },
+          {
+            "question": "A stock's quoted price gain is $50, with $8 total fees and $5 dividends. What is the net gain before taxes?",
+            "options": [
+              "$47",
+              "$50",
+              "$63"
+            ],
+            "answer": 0,
+            "explanation": "$50 + $5 − $8 = $47. Include distributions and subtract transaction costs."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Total return",
+            "definition": "Price change plus distributions relative to the initial investment."
+          },
+          {
+            "term": "Compounding",
+            "definition": "Applying each period's return to the value left by previous periods."
+          },
+          {
+            "term": "Basis point",
+            "definition": "One hundredth of a percentage point, or 0.0001 as a decimal."
+          },
+          {
+            "term": "Unrealized gain",
+            "definition": "A rise in the marked value of a position that is still open."
+          }
+        ]
+      },
+      {
+        "id": "0.6",
+        "title": "Reading a business before buying its stock",
+        "subtitle": "Connect financial statements, earnings, cash, and valuation",
+        "minutes": 12,
+        "objective": "Identify the three main financial statements, calculate EPS and P/E, and distinguish a low price from evidence of value.",
+        "kind": "fundamentals",
+        "content": "## The idea\n\nThe income statement describes revenues, expenses, and profit over a period. The balance sheet is a snapshot of assets, liabilities, and equity at a date. The cash-flow statement explains movements in cash from operating, investing, and financing activities. Profit and cash flow differ because recognition and payment need not happen together.\n\nA sale on credit can increase revenue and receivables before cash arrives. Borrowing increases cash and debt without creating sales profit. Buying equipment uses cash immediately, while its accounting expense can be spread over years. Ask what caused each change before declaring the business stronger.\n\n## A worked example\n\nFictional Cedar Tools reports $12 million revenue, $2 million net income available to common shareholders, and 1 million weighted-average diluted shares. Earnings per share (EPS) is $2. At a $30 share price, the price-to-earnings ratio (P/E) is 15. Its balance sheet shows $15 million assets and $9 million liabilities, leaving $6 million book equity.\n\n$$\\mathrm{EPS}=\\frac{\\text{net income available to common}}{\\text{weighted-average diluted shares}},\\qquad P/E=\\frac{P}{\\mathrm{EPS}}$$\n\nSuppose operating cash flow is only $0.4 million because customers have not yet paid. That does not prove fraud, but it raises a useful question about collections and working capital. A second company with a P/E of 8 may be cheaper relative to reported earnings, or those earnings may be about to decline. The multiple alone cannot decide.\n\n## Price, value, and available evidence\n\nPrice is a current quote. Value is an estimate based on future cash flows, assets, and risk. Book equity is an accounting residual, not a guaranteed sale value. Compare several periods, examine debt and one-time items, and read the company's published reports.\n\nWhen simulating a past decision, use only information available at that time. A December reporting period does not make a report released in March available in December. Treat a promotional post as a lead to verify, not as a financial statement.\n\n## Connect to later courses\n\nThese distinctions prepare you for normalized earnings, net-current-asset value, senior claims, and margin of safety in Track 01.\n\n### Further reading\n\n[Investor education reference](https://www.finra.org/investors/investing/investment-products/stocks/evaluating-stocks). Examples in this lesson use fictional companies and simplified amounts.",
+        "formula": "\\mathrm{Equity}=\\mathrm{Assets}-\\mathrm{Liabilities}",
+        "code": "net_income = 2000000\nshares = 1000000\neps = net_income / shares\nprint(\"EPS:\", eps)\nprint(\"P/E:\", 30 / eps)\nprint(\"Book equity:\", 15000000 - 9000000)\n\n# An optional, separate demonstration using synthetic prices.\ndef strategy(data):\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "exercise": {
+          "question": "Which statement shows assets and liabilities at a particular date?",
+          "options": [
+            "Income statement",
+            "Balance sheet",
+            "A price chart"
+          ],
+          "answer": 1,
+          "explanation": "The balance sheet is a dated snapshot; income and cash-flow statements cover periods."
+        },
+        "exercises": [
+          {
+            "question": "Which statement shows assets and liabilities at a particular date?",
+            "options": [
+              "Income statement",
+              "Balance sheet",
+              "A price chart"
+            ],
+            "answer": 1,
+            "explanation": "The balance sheet is a dated snapshot; income and cash-flow statements cover periods."
+          },
+          {
+            "question": "Net income available to common is $6 million, with 3 million diluted shares. At a $20 price, what is P/E?",
+            "options": [
+              "10",
+              "20",
+              "60"
+            ],
+            "answer": 0,
+            "explanation": "EPS is $6m / 3m = $2. P/E is $20 / $2 = 10."
+          },
+          {
+            "question": "A December report is published in March. Can a December backtest decision use it?",
+            "options": [
+              "Yes, because December is the reporting period",
+              "Yes, if the result improves",
+              "No, it was not yet publicly available"
+            ],
+            "answer": 2,
+            "explanation": "Availability dates, not just reporting periods, determine whether information could have been used."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Balance sheet",
+            "definition": "A statement of assets, liabilities, and equity at a date."
+          },
+          {
+            "term": "EPS",
+            "definition": "Earnings available to common shareholders divided by the corresponding share count."
+          },
+          {
+            "term": "P/E",
+            "definition": "Share price divided by earnings per share for a stated period."
+          },
+          {
+            "term": "Intrinsic value",
+            "definition": "An estimate of economic worth under explicit assumptions."
+          }
+        ]
+      },
+      {
+        "id": "0.7",
+        "title": "Risk, diversification, and position sizing",
+        "subtitle": "Understand what can go wrong before choosing a quantity",
+        "minutes": 12,
+        "objective": "Distinguish company and market risk; calculate a hypothetical position size and explain why stops do not cap every loss.",
+        "kind": "fundamentals",
+        "content": "## The idea\n\nCompany risk comes from a particular issuer, such as a failed product. Market risk can affect many investments together, such as a broad repricing of discount rates. Diversification spreads exposure, but correlated holdings can decline at the same time. Ten companies in one narrow industry may share much of the same risk.\n\nVolatility describes variability in returns. Drawdown measures the decline from a previous portfolio peak. Neither alone captures every risk: an illiquid asset can have infrequent price changes and still be hard to sell. Consider liquidity, debt, concentration, and the ability to tolerate losses.\n\n## A worked example\n\nIn a paper account with $10,000, a hypothetical plan allocates $100 to the loss between a $50 entry and a $48 exit trigger. Planned risk per share is $2. Dividing $100 by $2 gives 50 shares, a $2,500 position. The $100 budget is 1% of this example account; it is an illustration, not a universal sizing recommendation.\n\n$$q=\\left\\lfloor\\frac{\\text{planned risk budget}}{\\text{entry price}-\\text{planned exit price}}\\right\\rfloor$$\n\nIf a gap leads to an actual $45 exit, the loss is $250 before costs, not $100. Fees and slippage also change the result. The calculation describes a planned scenario, not a maximum loss guarantee. Check the cash required as well as the planned risk; a cash account must be able to fund the purchase.\n\n## Borrowing and short selling\n\nMargin uses borrowed money to increase exposure. If $1,000 of your money and $1,000 of borrowing buy $2,000 of stock, a 10% stock loss removes $200, or 20% of your initial equity, before financing costs. The debt still needs to be repaid. Short selling sells borrowed shares and requires buying them back; rising prices can create losses beyond the initial proceeds. Detailed rules vary by account and market.\n\n## Connect to later courses\n\nPortfolio construction measures co-movement. Risk management studies drawdowns and tail losses. Bot engineering turns exposure limits and stale-price checks into explicit controls.\n\n### Further reading\n\n[Investor education reference](https://www.investor.gov/introduction-investing/getting-started/asset-allocation). Examples in this lesson use fictional companies and simplified amounts.",
+        "formula": "q=\\lfloor B/(P_{entry}-P_{exit})\\rfloor",
+        "code": "budget = 100\nentry = 50\nplanned_exit = 48\nquantity = budget // (entry - planned_exit)\nprint(\"Illustrative shares:\", quantity)\nprint(\"Capital required:\", quantity * entry)\nprint(\"Loss if filled at 45:\", quantity * (entry - 45))\n\n# An optional, separate demonstration using synthetic prices.\ndef strategy(data):\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "exercise": {
+          "question": "Does owning ten stocks from the same narrow industry remove market risk?",
+          "options": [
+            "Yes, ten always means diversified",
+            "Yes, if each ticker differs",
+            "No, the holdings can share risks and fall together"
+          ],
+          "answer": 2,
+          "explanation": "Count underlying exposures, not just ticker names. Diversification does not eliminate broad market losses."
+        },
+        "exercises": [
+          {
+            "question": "Does owning ten stocks from the same narrow industry remove market risk?",
+            "options": [
+              "Yes, ten always means diversified",
+              "Yes, if each ticker differs",
+              "No, the holdings can share risks and fall together"
+            ],
+            "answer": 2,
+            "explanation": "Count underlying exposures, not just ticker names. Diversification does not eliminate broad market losses."
+          },
+          {
+            "question": "A paper plan risks $120 between a $40 entry and a $37 exit, before costs. What quantity follows from that plan?",
+            "options": [
+              "40 shares",
+              "120 shares",
+              "3 shares"
+            ],
+            "answer": 0,
+            "explanation": "$120 / ($40 − $37) = 40 shares. Actual losses can exceed the plan after gaps and costs."
+          },
+          {
+            "question": "$1,000 equity plus $1,000 borrowing buys $2,000 of stock. A 10% stock decline loses what fraction of initial equity, before costs?",
+            "options": [
+              "5%",
+              "20%",
+              "10%"
+            ],
+            "answer": 1,
+            "explanation": "The asset loses $200 while the debt is unchanged: $200 / $1,000 = 20%."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Drawdown",
+            "definition": "A decline from a previous peak in portfolio value."
+          },
+          {
+            "term": "Diversification",
+            "definition": "Spreading investments across exposures to reduce concentration."
+          },
+          {
+            "term": "Leverage",
+            "definition": "Using borrowing or contracts to create exposure larger than the capital committed."
+          },
+          {
+            "term": "Position sizing",
+            "definition": "Choosing the quantity to hold given capital and explicitly stated risk assumptions."
+          }
+        ]
+      },
+      {
+        "id": "0.8",
+        "title": "Build your first research and trading plan",
+        "subtitle": "Bring the fundamentals together and prepare for the advanced tracks",
+        "minutes": 12,
+        "objective": "Write a testable paper-trading plan with an entry reason, order, sizing assumptions, exit conditions, costs, and review process.",
+        "kind": "fundamentals",
+        "content": "## The idea\n\nA plan makes a decision reviewable. Write it before observing the outcome. Specify the asset and source, the reason to enter, the evidence that would invalidate the reason, the intended holding period, the order instruction, the quantity, and the expected costs. Record actual fills separately from your intention.\n\nAvoid evaluating a plan only by whether the last trade made money. A disciplined decision can lose; a poorly supported decision can profit by chance. Keep the record of losing trials as well as winners. Compare a strategy against a relevant benchmark over the same period using the same cost conventions.\n\n## A worked example\n\nIn a fictional $5,000 paper account, Ari studies Harbor Foods after a published report. The hypothesis is that collections will recover; the invalidating evidence is another deterioration in receivables and operating cash flow. Ari considers 10 shares using a $20 buy limit, reserving roughly $200 plus costs. If the ask stays above $20, the order can remain unfilled.\n\nThe plan records an illustrative $18 exit trigger, a $20 planned price loss for 10 shares, and a gap scenario: an actual $15 exit would lose $50 before costs. Ari schedules a review after the next public report. There is no guarantee that the thesis works, the order fills, or the exit matches the trigger.\n\n## Your research note\n\nUse **Add a note** to record your own fictional plan:\n\n1. Asset, source, and information availability date.\n2. Hypothesis, holding period, and evidence against it.\n3. Entry instruction, quantity, cash required, and cost assumptions.\n4. Planned exit, a worse-fill scenario, and concentration check.\n5. Benchmark, review date, and the result you will record even if it fails.\n\nConfirmation bias means favoring supporting evidence and overlooking contradictions. Chasing a recent gain without checking the thesis is another common error. Add an explicit reason to wait when the evidence or data is insufficient.\n\n## Choose what to study next\n\n| What you want to understand | Continue with |\n| --- | --- |\n| Business value and a margin of safety | [Classical value investing](/curriculum/security-analysis) |\n| Returns, probability, and evidence | [Statistical foundations](/curriculum/statistical-foundations) |\n| Exposures and portfolio risk | [Econometrics & factor models](/curriculum/econometrics) after statistics |\n| Testing repeatable rules | [Systematic strategies](/curriculum/strategy-lab) after valuation and statistics |\n| Reliable automated execution | [Autonomous stock bots](/curriculum/stock-bots) after strategy testing |\n| Tokens and liquidity pools | [Web3 & cryptoeconomics](/curriculum/web3) after risk fundamentals |\n\nComplete the practice questions and final exam to check your readiness. You may revisit any lesson or retake an exam; later tracks remain available for learners who already know the basics.\n\n### Further reading\n\n[Investor education reference](https://www.finra.org/investors/investing/investment-products/stocks/evaluating-stocks). Examples in this lesson use fictional companies and simplified amounts.",
+        "formula": "\\text{Planned loss}=q(P_{entry}-P_{exit})",
+        "code": "quantity = 10\nentry = 20\nprint(\"Position value:\", quantity * entry)\nprint(\"Planned price loss:\", quantity * (entry - 18))\nprint(\"Gap scenario loss:\", quantity * (entry - 15))\n\n# An optional, separate demonstration using synthetic prices.\ndef strategy(data):\n    return data[\"close\"] > data[\"sma_50\"]\n",
+        "exercise": {
+          "question": "Which plan is easiest to evaluate honestly?",
+          "options": [
+            "Buy because the price went up yesterday",
+            "Record the thesis, invalidating evidence, order, quantity, costs, and review date",
+            "Keep only profitable trades in the journal"
+          ],
+          "answer": 1,
+          "explanation": "Explicit assumptions and a complete record let you compare the decision with what actually happened."
+        },
+        "exercises": [
+          {
+            "question": "Which plan is easiest to evaluate honestly?",
+            "options": [
+              "Buy because the price went up yesterday",
+              "Record the thesis, invalidating evidence, order, quantity, costs, and review date",
+              "Keep only profitable trades in the journal"
+            ],
+            "answer": 1,
+            "explanation": "Explicit assumptions and a complete record let you compare the decision with what actually happened."
+          },
+          {
+            "question": "A strategy earned a profit in one backtest. What follows?",
+            "options": [
+              "It will profit in live markets",
+              "It has no risk",
+              "It needs further testing for costs, bias, and performance on new data"
+            ],
+            "answer": 2,
+            "explanation": "One result may reflect luck, unrealistic execution, or information leakage. It is not proof of a durable edge."
+          },
+          {
+            "question": "Which behavior is confirmation bias?",
+            "options": [
+              "Recording evidence that contradicts your thesis",
+              "Keeping a losing trial in the journal",
+              "Reading only sources that agree with your position"
+            ],
+            "answer": 2,
+            "explanation": "Seeking only agreement prevents a fair test of the hypothesis."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Trading plan",
+            "definition": "A written decision process covering evidence, execution, risk, and review."
+          },
+          {
+            "term": "Benchmark",
+            "definition": "A comparison portfolio or measure selected for a stated evaluation."
+          },
+          {
+            "term": "Confirmation bias",
+            "definition": "Favoring evidence that agrees with a prior belief."
+          },
+          {
+            "term": "Backtest",
+            "definition": "A simulation of a rule on past or generated observations under explicit assumptions."
+          }
+        ]
+      }
+    ],
+    "exams": [
+      {
+        "id": "fundamentals-checkpoint",
+        "title": "Market essentials checkpoint",
+        "kind": "checkpoint",
+        "passingScore": 75,
+        "minutes": 16,
+        "moduleIds": [
+          "0.1",
+          "0.2",
+          "0.3",
+          "0.4"
+        ],
+        "version": 1,
+        "description": "Apply the ideas to new scenarios. Untimed, open-book, with explanations after submission and unlimited retakes.",
+        "questions": [
+          {
+            "id": "fundamentals-checkpoint-q1",
+            "lessonId": "0.1",
+            "question": "Which description is an expectation rather than a realized outcome?",
+            "options": [
+              "I sold for a $25 loss",
+              "I hope this asset earns 6% next year",
+              "The purchase fee was $2"
+            ],
+            "answer": 1,
+            "explanation": "A hoped-for future return is uncertain; an executed sale and paid fee are observed outcomes."
+          },
+          {
+            "id": "fundamentals-checkpoint-q2",
+            "lessonId": "0.1",
+            "question": "What belongs in a decision before committing hypothetical capital?",
+            "options": [
+              "A purpose, horizon, and loss scenario",
+              "Only last week's winner",
+              "An assumed guaranteed return"
+            ],
+            "answer": 0,
+            "explanation": "An explicit purpose, horizon, and downside scenario makes the decision reviewable."
+          },
+          {
+            "id": "fundamentals-checkpoint-q3",
+            "lessonId": "0.2",
+            "question": "You hold 60 shares and a company declares $0.25 per share. What distribution is due before taxes?",
+            "options": [
+              "$240",
+              "$60",
+              "$15"
+            ],
+            "answer": 2,
+            "explanation": "60 × $0.25 = $15. Future dividends are not guaranteed."
+          },
+          {
+            "id": "fundamentals-checkpoint-q4",
+            "lessonId": "0.2",
+            "question": "A $3 stock must be cheaper than a $30 stock. Why is this reasoning incomplete?",
+            "options": [
+              "Every stock has the same share count",
+              "Share count, earnings, assets, and risks differ",
+              "Market capitalization is always cash"
+            ],
+            "answer": 1,
+            "explanation": "Price per share alone cannot compare whole-business value or economic worth."
+          },
+          {
+            "id": "fundamentals-checkpoint-q5",
+            "lessonId": "0.3",
+            "question": "Which participant generally receives a customer's order and routes it for execution?",
+            "options": [
+              "A broker",
+              "An index number",
+              "A company's customers"
+            ],
+            "answer": 0,
+            "explanation": "The broker handles the customer order and its execution routing."
+          },
+          {
+            "id": "fundamentals-checkpoint-q6",
+            "lessonId": "0.3",
+            "question": "An index rises 2%. Must each company in it rise 2%?",
+            "options": [
+              "Yes, by definition",
+              "Yes, if the index is popular",
+              "No, constituents contribute different returns and weights"
+            ],
+            "answer": 2,
+            "explanation": "An index aggregates its constituents under a methodology; individual returns differ."
+          },
+          {
+            "id": "fundamentals-checkpoint-q7",
+            "lessonId": "0.4",
+            "question": "A candle's high is $55 and low $48. What can you infer?",
+            "options": [
+              "Every trader bought at $48",
+              "These were the period's extreme traded prices, not guaranteed fills",
+              "The high happened before the low"
+            ],
+            "answer": 1,
+            "explanation": "OHLC does not reveal every trade's order or promise execution at an extreme."
+          },
+          {
+            "id": "fundamentals-checkpoint-q8",
+            "lessonId": "0.4",
+            "question": "An order requests 200 shares but only 60 execute. How should it be recorded?",
+            "options": [
+              "As 200 filled",
+              "As no trade",
+              "As a partial fill of 60, with 140 unfilled"
+            ],
+            "answer": 2,
+            "explanation": "Track executed quantity independently of requested quantity."
+          }
+        ]
+      },
+      {
+        "id": "fundamentals-final",
+        "title": "Trading fundamentals final exam",
+        "kind": "final",
+        "passingScore": 80,
+        "minutes": 32,
+        "moduleIds": [
+          "0.1",
+          "0.2",
+          "0.3",
+          "0.4",
+          "0.5",
+          "0.6",
+          "0.7",
+          "0.8"
+        ],
+        "version": 1,
+        "description": "Apply the ideas to new scenarios. Untimed, open-book, with explanations after submission and unlimited retakes.",
+        "questions": [
+          {
+            "id": "fundamentals-final-q1",
+            "lessonId": "0.1",
+            "question": "An asset bought for $500 is sold for $450 with no costs or distributions. What is the return?",
+            "options": [
+              "−10%",
+              "−50%",
+              "+10%"
+            ],
+            "answer": 0,
+            "explanation": "The loss is $50 relative to $500: −50 / 500 = −10%."
+          },
+          {
+            "id": "fundamentals-final-q2",
+            "lessonId": "0.1",
+            "question": "Two investments each earned 8%, one in a year and one in four years. What should you do before comparing performance?",
+            "options": [
+              "Treat their performance as identical",
+              "Align periods and examine costs and risk",
+              "Assume the longer holding was risk-free"
+            ],
+            "answer": 1,
+            "explanation": "The same percentage over different periods is not the same rate of growth. Costs and risk also matter."
+          },
+          {
+            "id": "fundamentals-final-q3",
+            "lessonId": "0.2",
+            "question": "A firm has 4 million shares at $12. What is its equity market value?",
+            "options": [
+              "$3 million",
+              "$16 million",
+              "$48 million"
+            ],
+            "answer": 2,
+            "explanation": "4 million × $12 = $48 million. This is market capitalization, not company cash."
+          },
+          {
+            "id": "fundamentals-final-q4",
+            "lessonId": "0.2",
+            "question": "You keep 100 shares while total shares rise from 1,000 to 2,000 in a new issuance. Your ownership changes from:",
+            "options": [
+              "10% to 5%",
+              "10% to 20%",
+              "5% to 10%"
+            ],
+            "answer": 0,
+            "explanation": "100 / 1,000 = 10%; 100 / 2,000 = 5%. The ownership fraction is diluted."
+          },
+          {
+            "id": "fundamentals-final-q5",
+            "lessonId": "0.3",
+            "question": "A company sells newly issued shares to fund a factory. Which market activity is this?",
+            "options": [
+              "An index rebalance",
+              "A primary-market issuance",
+              "Only a secondary-market trade"
+            ],
+            "answer": 1,
+            "explanation": "Newly issued shares raise capital for the issuer in the primary market."
+          },
+          {
+            "id": "fundamentals-final-q6",
+            "lessonId": "0.3",
+            "question": "Two ETFs both hold mostly the same large technology companies. What should a learner conclude?",
+            "options": [
+              "Two fund names guarantee diversification",
+              "Their returns must exactly match",
+              "Their underlying exposures overlap"
+            ],
+            "answer": 2,
+            "explanation": "Different fund labels can conceal similar holdings. Examine the portfolio rather than counting fund names."
+          },
+          {
+            "id": "fundamentals-final-q7",
+            "lessonId": "0.4",
+            "question": "The bid is $79.80 and ask $80.20. Buying and immediately selling 5 shares at those prices costs how much in spread alone?",
+            "options": [
+              "$0.40",
+              "$2.00",
+              "$4.00"
+            ],
+            "answer": 1,
+            "explanation": "The $0.40 per-share spread multiplied by 5 shares is $2."
+          },
+          {
+            "id": "fundamentals-final-q8",
+            "lessonId": "0.4",
+            "question": "A sell stop-limit triggers, but all available bids fall below its limit. What can happen?",
+            "options": [
+              "The position remains unsold",
+              "The limit guarantees a fill",
+              "The exchange refunds the loss"
+            ],
+            "answer": 0,
+            "explanation": "A triggered limit order still requires a permitted price. It can fail to execute during a decline."
+          },
+          {
+            "id": "fundamentals-final-q9",
+            "lessonId": "0.5",
+            "question": "$200 gains 20% and then loses 25%. What is the ending value?",
+            "options": [
+              "$190",
+              "$200",
+              "$180"
+            ],
+            "answer": 2,
+            "explanation": "$200 × 1.20 × 0.75 = $180, a combined loss of 10%."
+          },
+          {
+            "id": "fundamentals-final-q10",
+            "lessonId": "0.5",
+            "question": "Total entry outlay is $1,005; net sale proceeds are $1,050; dividends are $20. What is the net profit before tax?",
+            "options": [
+              "$45",
+              "$65",
+              "$75"
+            ],
+            "answer": 1,
+            "explanation": "$1,050 + $20 − $1,005 = $65. The stated outlay and proceeds already include trading costs."
+          },
+          {
+            "id": "fundamentals-final-q11",
+            "lessonId": "0.6",
+            "question": "Assets are $90 million and liabilities $55 million. What is book equity?",
+            "options": [
+              "$35 million",
+              "$145 million",
+              "$55 million"
+            ],
+            "answer": 0,
+            "explanation": "The accounting identity gives equity = assets − liabilities = $35 million."
+          },
+          {
+            "id": "fundamentals-final-q12",
+            "lessonId": "0.6",
+            "question": "A business reports a profit while customer receivables rise and cash collection is weak. What is the best next step?",
+            "options": [
+              "Assume profit equals cash",
+              "Buy because its share price is low",
+              "Examine working capital and the cash-flow statement"
+            ],
+            "answer": 2,
+            "explanation": "Profit recognition can precede cash collection. Investigate the cause before forming a conclusion."
+          },
+          {
+            "id": "fundamentals-final-q13",
+            "lessonId": "0.7",
+            "question": "A paper risk budget is $150 with a $30 entry and $27 planned exit. What is the illustrative quantity before costs?",
+            "options": [
+              "5 shares",
+              "50 shares",
+              "150 shares"
+            ],
+            "answer": 1,
+            "explanation": "$150 divided by $3 per share gives 50 shares; this does not cap losses after a gap."
+          },
+          {
+            "id": "fundamentals-final-q14",
+            "lessonId": "0.7",
+            "question": "A portfolio falls from a $12,000 peak to $9,000. What is its drawdown?",
+            "options": [
+              "25%",
+              "33.3%",
+              "75%"
+            ],
+            "answer": 0,
+            "explanation": "The $3,000 decline is measured against the $12,000 peak: 25%."
+          },
+          {
+            "id": "fundamentals-final-q15",
+            "lessonId": "0.8",
+            "question": "After trying 50 rules, a researcher reports only the best one. What is missing?",
+            "options": [
+              "A more colorful chart",
+              "A guarantee from the broker",
+              "The trial history and evaluation on data not used to select the rule"
+            ],
+            "answer": 2,
+            "explanation": "Selecting the best of many trials can select luck. Preserve all trials and use new evaluation data."
+          },
+          {
+            "id": "fundamentals-final-q16",
+            "lessonId": "0.8",
+            "question": "New published evidence contradicts your written thesis. Which response best follows a research plan?",
+            "options": [
+              "Ignore it until the price recovers",
+              "Reassess the thesis and apply the recorded review conditions",
+              "Increase size solely to recover losses"
+            ],
+            "answer": 1,
+            "explanation": "A plan includes evidence that can change the decision. Reassess instead of defending the original belief."
+          }
+        ]
+      }
+    ]
+  },
+  {
     "id": "security-analysis",
     "number": 1,
     "title": "Classical value investing",
@@ -107,6 +1020,86 @@
         },
         "code": "eps = 4\ngrowth = 5\nbond_yield = 4.4\nvalue = eps * (8.5 + 2 * growth) * 4.4 / bond_yield\nprint(\"Graham value:\", round(value, 2))\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
         "kind": "graham"
+      }
+    ],
+    "exams": [
+      {
+        "id": "security-analysis-final",
+        "title": "Classical value investing final exam",
+        "kind": "final",
+        "passingScore": 80,
+        "minutes": 15,
+        "version": 1,
+        "description": "Apply each module to a new scenario. Untimed and open-book; review explanations after submission and retake whenever you are ready.",
+        "moduleIds": [
+          "1.1",
+          "1.2",
+          "1.3",
+          "1.4",
+          "1.5"
+        ],
+        "questions": [
+          {
+            "id": "security-analysis-final-q1",
+            "lessonId": "1.1",
+            "question": "A stock costs $72 and conservative value is $90. Does it meet a 25% required margin of safety?",
+            "options": [
+              "Yes: 25%",
+              "No: the margin is 20%",
+              "Yes: 80%"
+            ],
+            "answer": 1,
+            "explanation": "1 − 72/90 = 20%, below the assumed 25% requirement."
+          },
+          {
+            "id": "security-analysis-final-q2",
+            "lessonId": "1.2",
+            "question": "EBIT falls from $100m to $40m while interest stays $20m. How does coverage change?",
+            "options": [
+              "5× to 2×",
+              "2× to 5×",
+              "It stays at 5×"
+            ],
+            "answer": 0,
+            "explanation": "Divide EBIT by interest for each scenario. Fixed interest leaves less coverage when EBIT falls."
+          },
+          {
+            "id": "security-analysis-final-q3",
+            "lessonId": "1.3",
+            "question": "Reported EPS is $7, including a nonrecurring $3 disposal gain. Ignoring other adjustments, recurring EPS is:",
+            "options": [
+              "$10",
+              "$7",
+              "$4"
+            ],
+            "answer": 2,
+            "explanation": "Subtract the disposal gain: $7 − $3 = $4. Check whether other adjustments are needed."
+          },
+          {
+            "id": "security-analysis-final-q4",
+            "lessonId": "1.4",
+            "question": "Current assets are $150m, total liabilities $90m, preferred claims $10m, and diluted shares 5m. NCAV per share is:",
+            "options": [
+              "$12",
+              "$10",
+              "$30"
+            ],
+            "answer": 1,
+            "explanation": "($150m − $90m − $10m) / 5m = $10; fixed assets receive no credit in NCAV."
+          },
+          {
+            "id": "security-analysis-final-q5",
+            "lessonId": "1.5",
+            "question": "In the Graham heuristic, EPS is $2, g is 3, and Y is 4.4. What value follows?",
+            "options": [
+              "$29",
+              "$17.12",
+              "$58"
+            ],
+            "answer": 0,
+            "explanation": "2 × (8.5 + 2×3) × 4.4 / 4.4 = $29. Growth and yield inputs use percentage points."
+          }
+        ]
       }
     ]
   },
@@ -219,6 +1212,86 @@
         "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
         "kind": "trend"
       }
+    ],
+    "exams": [
+      {
+        "id": "statistical-foundations-final",
+        "title": "Statistical foundations final exam",
+        "kind": "final",
+        "passingScore": 80,
+        "minutes": 15,
+        "version": 1,
+        "description": "Apply each module to a new scenario. Untimed and open-book; review explanations after submission and retake whenever you are ready.",
+        "moduleIds": [
+          "2.1",
+          "2.2",
+          "2.3",
+          "2.4",
+          "2.5"
+        ],
+        "questions": [
+          {
+            "id": "statistical-foundations-final-q1",
+            "lessonId": "2.1",
+            "question": "$121 arrives in two years. At a 10% annual discount rate, present value is:",
+            "options": [
+              "$110",
+              "$121",
+              "$100"
+            ],
+            "answer": 2,
+            "explanation": "$121 / 1.1² = $100, using consistent annual timing."
+          },
+          {
+            "id": "statistical-foundations-final-q2",
+            "lessonId": "2.2",
+            "question": "A normal-return model repeatedly underpredicts extreme losses. Which change merits investigation?",
+            "options": [
+              "Set the loss probability to zero",
+              "Evaluate heavier tails and changing volatility",
+              "Assume prices cannot change"
+            ],
+            "answer": 1,
+            "explanation": "Heavy tails and varying volatility can change tail probabilities. A model needs empirical checks."
+          },
+          {
+            "id": "statistical-foundations-final-q3",
+            "lessonId": "2.3",
+            "question": "With independent observations and unchanged dispersion, increasing sample size from 36 to 144 makes standard error:",
+            "options": [
+              "Half as large",
+              "Four times as large",
+              "Unchanged"
+            ],
+            "answer": 0,
+            "explanation": "Standard error scales with 1/√n; √36/√144 = 1/2."
+          },
+          {
+            "id": "statistical-foundations-final-q4",
+            "lessonId": "2.4",
+            "question": "A strategy has p = 0.03. Which interpretation is valid under the null model?",
+            "options": [
+              "There is a 97% chance the strategy will profit",
+              "The null has 3% probability of being true",
+              "Outcomes at least as extreme have 3% probability under the null assumptions"
+            ],
+            "answer": 2,
+            "explanation": "A p-value is calculated under the null; it is not a posterior probability or a profit forecast."
+          },
+          {
+            "id": "statistical-foundations-final-q5",
+            "lessonId": "2.5",
+            "question": "A fitted beta is 0.8. A +1 percentage point market excess return contributes what fitted component, holding other terms fixed?",
+            "options": [
+              "+80 percentage points",
+              "+0.8 percentage points",
+              "A guaranteed +0.8% total return"
+            ],
+            "answer": 1,
+            "explanation": "The slope contribution is 0.8 × 1 percentage point. Alpha and residuals remain separate."
+          }
+        ]
+      }
     ]
   },
   {
@@ -330,6 +1403,86 @@
         "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
         "kind": "trend"
       }
+    ],
+    "exams": [
+      {
+        "id": "econometrics-final",
+        "title": "Econometrics & factor models final exam",
+        "kind": "final",
+        "passingScore": 80,
+        "minutes": 15,
+        "version": 1,
+        "description": "Apply each module to a new scenario. Untimed and open-book; review explanations after submission and retake whenever you are ready.",
+        "moduleIds": [
+          "3.1",
+          "3.2",
+          "3.3",
+          "3.4",
+          "3.5"
+        ],
+        "questions": [
+          {
+            "id": "econometrics-final-q1",
+            "lessonId": "3.1",
+            "question": "Daily regression residuals show heteroskedasticity and autocorrelation. Which inference adjustment is relevant?",
+            "options": [
+              "HAC standard errors",
+              "Discard every negative return",
+              "Interpret R² as causality"
+            ],
+            "answer": 0,
+            "explanation": "HAC addresses heteroskedasticity and autocorrelation in uncertainty estimates under its assumptions."
+          },
+          {
+            "id": "econometrics-final-q2",
+            "lessonId": "3.2",
+            "question": "Two trending price series have high correlation. What additional evidence supports a mean-reverting spread?",
+            "options": [
+              "A shared chart color",
+              "A high price level",
+              "Evidence of a stationary combination under a cointegration analysis"
+            ],
+            "answer": 2,
+            "explanation": "Correlation of levels is insufficient; cointegration examines a stationary linear combination of nonstationary series."
+          },
+          {
+            "id": "econometrics-final-q3",
+            "lessonId": "3.3",
+            "question": "A portfolio optimizer returns low estimated variance. What still needs examination?",
+            "options": [
+              "Nothing: future variance is guaranteed",
+              "Estimation error, constraints, and concentration",
+              "Only the portfolio name"
+            ],
+            "answer": 1,
+            "explanation": "Optimization depends on estimated inputs and constraints, which can be unstable out of sample."
+          },
+          {
+            "id": "econometrics-final-q4",
+            "lessonId": "3.4",
+            "question": "A daily 95% VaR estimate is 2%. Which claim is incorrect?",
+            "options": [
+              "The model allows losses beyond the threshold",
+              "Tail observations inform CVaR",
+              "A daily loss cannot exceed 2%"
+            ],
+            "answer": 2,
+            "explanation": "VaR is a quantile estimate, not a maximum-loss bound."
+          },
+          {
+            "id": "econometrics-final-q5",
+            "lessonId": "3.5",
+            "question": "A backtest chooses companies from today's surviving listings for a test twenty years ago. What problem arises?",
+            "options": [
+              "Survivorship bias",
+              "Guaranteed excess return",
+              "More accurate historical availability"
+            ],
+            "answer": 0,
+            "explanation": "Companies that disappeared may be omitted; a current universe can distort the historical opportunity set."
+          }
+        ]
+      }
     ]
   },
   {
@@ -420,6 +1573,73 @@
         },
         "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
         "kind": "trend"
+      }
+    ],
+    "exams": [
+      {
+        "id": "strategy-lab-final",
+        "title": "The strategy lab final exam",
+        "kind": "final",
+        "passingScore": 80,
+        "minutes": 12,
+        "version": 1,
+        "description": "Apply each module to a new scenario. Untimed and open-book; review explanations after submission and retake whenever you are ready.",
+        "moduleIds": [
+          "4.1",
+          "4.2",
+          "4.3",
+          "4.4"
+        ],
+        "questions": [
+          {
+            "id": "strategy-lab-final-q1",
+            "lessonId": "4.1",
+            "question": "A net-net screen uses last year's statements released after its simulated purchase date. What must change?",
+            "options": [
+              "Increase leverage",
+              "Use statements available by the purchase date",
+              "Ignore the publication date"
+            ],
+            "answer": 1,
+            "explanation": "A point-in-time screen must respect public availability, not just the accounting period."
+          },
+          {
+            "id": "strategy-lab-final-q2",
+            "lessonId": "4.2",
+            "question": "An apparently cheap company has recurring cash burn and deteriorating returns on capital. What is a useful next test?",
+            "options": [
+              "Assume the low multiple proves value",
+              "Remove costs from the backtest",
+              "Test business quality and whether cash burn erodes estimated value"
+            ],
+            "answer": 2,
+            "explanation": "A low multiple can reflect deterioration; valuation and quality assumptions need joint examination."
+          },
+          {
+            "id": "strategy-lab-final-q3",
+            "lessonId": "4.3",
+            "question": "A pairs strategy's historical relationship breaks after a merger. What should the research process consider?",
+            "options": [
+              "Regime change and invalidation of the old spread model",
+              "A guaranteed return to the old mean",
+              "Unlimited averaging down"
+            ],
+            "answer": 0,
+            "explanation": "A structural event can invalidate historical relationships; mean reversion is a hypothesis."
+          },
+          {
+            "id": "strategy-lab-final-q4",
+            "lessonId": "4.4",
+            "question": "A scaler is fitted on all observations before a chronological train/test split. What is wrong?",
+            "options": [
+              "Scaling is never allowed",
+              "The test period influenced preprocessing",
+              "There are too few chart types"
+            ],
+            "answer": 1,
+            "explanation": "Fit preprocessing on training data only, then apply it to later observations without refitting on the test set."
+          }
+        ]
       }
     ]
   },
@@ -532,6 +1752,86 @@
         "code": "def strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
         "kind": "trend"
       }
+    ],
+    "exams": [
+      {
+        "id": "stock-bots-final",
+        "title": "Algorithmic & AI stock bots final exam",
+        "kind": "final",
+        "passingScore": 80,
+        "minutes": 15,
+        "version": 1,
+        "description": "Apply each module to a new scenario. Untimed and open-book; review explanations after submission and retake whenever you are ready.",
+        "moduleIds": [
+          "5.1",
+          "5.2",
+          "5.3",
+          "5.4",
+          "5.5"
+        ],
+        "questions": [
+          {
+            "id": "stock-bots-final-q1",
+            "lessonId": "5.1",
+            "question": "A broker acknowledgment is retried after a network interruption. What helps avoid placing the same economic order twice?",
+            "options": [
+              "A new random order every retry",
+              "Ignoring acknowledgments",
+              "An idempotency key and reconciliation of order state"
+            ],
+            "answer": 2,
+            "explanation": "Stable identifiers and reconciliation distinguish a retry from a genuinely new order."
+          },
+          {
+            "id": "stock-bots-final-q2",
+            "lessonId": "5.2",
+            "question": "A rule uses the current day's closing price. In Quanta's backtest, when can its resulting order first fill?",
+            "options": [
+              "At the next bar's open",
+              "At the previous day's close",
+              "Earlier in the same day"
+            ],
+            "answer": 0,
+            "explanation": "The close signal is not available earlier; the modeled fill occurs at the next open."
+          },
+          {
+            "id": "stock-bots-final-q3",
+            "lessonId": "5.3",
+            "question": "An AI response suggests buying but omits the required risk fields. What should an execution layer do?",
+            "options": [
+              "Infer a larger quantity",
+              "Reject the invalid proposal before execution",
+              "Treat confident wording as validation"
+            ],
+            "answer": 1,
+            "explanation": "Validate a structured proposal and its limits before it can affect orders."
+          },
+          {
+            "id": "stock-bots-final-q4",
+            "lessonId": "5.4",
+            "question": "Price data exceeds the configured freshness limit. Which behavior follows a stale-data guard?",
+            "options": [
+              "Double position size",
+              "Reuse the price without a check",
+              "Reject or pause new orders until acceptable data is available"
+            ],
+            "answer": 2,
+            "explanation": "A freshness guard stops decisions based on data outside its configured age constraint."
+          },
+          {
+            "id": "stock-bots-final-q5",
+            "lessonId": "5.5",
+            "question": "A request for 120 shares fills 75. What should the position ledger reflect immediately?",
+            "options": [
+              "75 executed shares and 45 remaining unfilled",
+              "120 executed shares",
+              "No position until all shares fill"
+            ],
+            "answer": 0,
+            "explanation": "Execution events determine positions; requested and unfilled quantities are separate."
+          }
+        ]
+      }
     ]
   },
   {
@@ -642,6 +1942,86 @@
         },
         "code": "collateral = 10000\nthreshold = 0.8\ndebt = 5000\ncrash = 0.5\nprint(\"Initial health:\", collateral * threshold / debt)\nprint(\"Stressed health:\", collateral * (1 - crash) * threshold / debt)\n\ndef strategy(data):\n    # Signal at the close; execution at the next open.\n    return data[\"close\"] > data[\"sma_50\"]\n",
         "kind": "liquidation"
+      }
+    ],
+    "exams": [
+      {
+        "id": "web3-final",
+        "title": "Web3 & crypto economics final exam",
+        "kind": "final",
+        "passingScore": 80,
+        "minutes": 15,
+        "version": 1,
+        "description": "Apply each module to a new scenario. Untimed and open-book; review explanations after submission and retake whenever you are ready.",
+        "moduleIds": [
+          "6.1",
+          "6.2",
+          "6.3",
+          "6.4",
+          "6.5"
+        ],
+        "questions": [
+          {
+            "id": "web3-final-q1",
+            "lessonId": "6.1",
+            "question": "Token issuance grows while demand stays weak. Which question is most relevant to holders?",
+            "options": [
+              "Whether the ticker is short",
+              "How dilution and actual token utility affect value capture",
+              "Whether issuance guarantees a higher price"
+            ],
+            "answer": 1,
+            "explanation": "Supply mechanics and demand for economic utility matter; issuance alone does not create holder value."
+          },
+          {
+            "id": "web3-final-q2",
+            "lessonId": "6.2",
+            "question": "Ignoring fees, a constant-product pool receives more of token X. What happens to its token Y reserve during the swap?",
+            "options": [
+              "It must rise by the same amount",
+              "It never changes",
+              "It falls so the reserve product is maintained"
+            ],
+            "answer": 2,
+            "explanation": "Under x·y = k, increasing x reduces y; the difference is paid out."
+          },
+          {
+            "id": "web3-final-q3",
+            "lessonId": "6.3",
+            "question": "A long spot / short perpetual position collects funding. Why is its return not guaranteed?",
+            "options": [
+              "Funding can change and basis, financing, and liquidation risks remain",
+              "A hedge removes every operational risk",
+              "The spot price never moves"
+            ],
+            "answer": 0,
+            "explanation": "Directionally offsetting legs do not remove funding, basis, collateral, counterparty, or execution risks."
+          },
+          {
+            "id": "web3-final-q4",
+            "lessonId": "6.4",
+            "question": "An on-chain transaction was broadcast but the receipt is missing. What should be checked before a replacement?",
+            "options": [
+              "Only the price chart",
+              "Nonce and transaction status under the chain's confirmation rules",
+              "Assume the first transaction never existed"
+            ],
+            "answer": 1,
+            "explanation": "Reconcile transaction and nonce state to avoid conflicting or duplicate economic actions."
+          },
+          {
+            "id": "web3-final-q5",
+            "lessonId": "6.5",
+            "question": "Collateral is $8,000, liquidation threshold 0.75, and debt $5,000. After collateral falls 25%, what is the simplified health factor?",
+            "options": [
+              "1.2",
+              "1.5",
+              "0.9"
+            ],
+            "answer": 2,
+            "explanation": "Collateral becomes $6,000; $6,000 × 0.75 / $5,000 = 0.9, below one in this simplified model."
+          }
+        ]
       }
     ]
   }

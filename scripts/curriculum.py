@@ -3,6 +3,9 @@
 import json
 from pathlib import Path
 
+from foundations import build_foundations
+from track_exams import attach_exams
+
 tracks = [
     (
         "security-analysis",
@@ -570,7 +573,8 @@ for index, (slug, title, description, source, level, icon, lessons) in enumerate
             "modules": modules,
         }
     )
-Path("src/data").mkdir(exist_ok=True)
-Path("src/data/curriculum.json").write_text(
-    json.dumps(catalog, indent=2, ensure_ascii=False) + "\n"
-)
+attach_exams(catalog)
+catalog.insert(0, build_foundations())
+output = Path(__file__).resolve().parents[1] / "src/data/curriculum.json"
+output.parent.mkdir(exist_ok=True)
+output.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n")

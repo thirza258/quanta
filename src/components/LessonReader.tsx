@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -6,7 +6,6 @@ import {
   BookmarkPlus,
   BookOpen,
   Check,
-  CheckCircle2,
   ChevronRight,
   Clock3,
   Code2,
@@ -18,17 +17,19 @@ import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
-import { findLesson, lessons, lessonTrack } from "../lib/catalog";
+import { findLesson, lessons, lessonTrack, trackLabel } from "../lib/catalog";
+import { practiceComplete } from "../lib/learning";
 import { useWorkspace } from "../lib/workspace";
-import { post } from "../lib/api";
-import { Modal } from "./ui";
-import Sandbox from "./Sandbox";
+import { Loading, Modal } from "./ui";
+import PracticeQuestions from "./PracticeQuestions";
+const Sandbox = lazy(() => import("./Sandbox"));
 import type { Lesson } from "../lib/types";
 export default function LessonReader() {
+  const { user } = useWorkspace();
   const { lessonId } = useParams(),
     lesson = findLesson(lessonId || "");
   return lesson ? (
-    <Reader key={lesson.id} lesson={lesson} />
+    <Reader key={`${user?.id ?? "guest"}:${lesson.id}`} lesson={lesson} />
   ) : (
     <div className="page">
       <h1>Lesson not found</h1>
@@ -37,62 +38,22 @@ export default function LessonReader() {
   );
 }
 function Reader({ lesson }: { lesson: Lesson }) {
-  const { state, update, online } = useWorkspace(),
+  const { state, update } = useWorkspace(),
     navigate = useNavigate(),
     track = lessonTrack(lesson.id)!,
-    [view, setView] = useState<"split" | "reader" | "sandbox">("split"),
-    [answer, setAnswer] = useState<number | null>(
-      state.submissions[lesson.id]?.answer ?? null,
+    [view, setView] = useState<"split" | "reader" | "sandbox">(
+      lesson.kind === "fundamentals" ? "reader" : "split",
     ),
-    [feedback, setFeedback] = useState<{
-      correct: boolean;
-      explanation: string;
-    } | null>(
-      state.submissions[lesson.id]
-        ? {
-            correct: state.submissions[lesson.id].correct,
-            explanation: lesson.exercise.explanation,
-          }
-        : null,
-    ),
-    [submitting, setSubmitting] = useState(false),
-    [error, setError] = useState(""),
     [noteOpen, setNoteOpen] = useState(false),
     [note, setNote] = useState(""),
     [templateVersion, setTemplateVersion] = useState(0);
   const completed = state.completed.includes(lesson.id),
+    practicePassed = practiceComplete(lesson, state),
+    exam = track.exams.find((exam) => exam.moduleIds.at(-1) === lesson.id),
     next = lessons[lessons.findIndex((l) => l.id === lesson.id) + 1];
   useEffect(() => {
     update((s) => ({ ...s, lastLesson: lesson.id }));
   }, [lesson.id, update]);
-  const submit = async () => {
-    if (answer === null) return;
-    setSubmitting(true);
-    setError("");
-    try {
-      const result = online
-        ? await post<{ correct: boolean; explanation: string }>(
-            `/exercises/${lesson.id}/submit`,
-            { answer },
-          )
-        : {
-            correct: answer === lesson.exercise.answer,
-            explanation: lesson.exercise.explanation,
-          };
-      setFeedback(result);
-      update((s) => ({
-        ...s,
-        submissions: {
-          ...s.submissions,
-          [lesson.id]: { answer, correct: result.correct },
-        },
-      }));
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
   return (
     <div className={`learning-room view-${view}`}>
       <div className="lesson-toolbar">
@@ -142,7 +103,7 @@ function Reader({ lesson }: { lesson: Lesson }) {
       <div className="learning-panes">
         <article className="lesson-article">
           <div className="page-eyebrow">
-            TRACK {String(track.number).padStart(2, "0")}
+            {trackLabel(track)}
             <ChevronRight size={12} />
             MODULE {lesson.id}
           </div>
@@ -165,8 +126,8 @@ function Reader({ lesson }: { lesson: Lesson }) {
           <div className="lesson-objective">
             <span className="eyebrow">YOUR OBJECTIVE</span>
             <p>
-              Explain the principle, reproduce the worked example, and identify
-              an assumption that could change the result.
+              {lesson.objective ??
+                "Explain the principle, reproduce the worked example, and identify an assumption that could change the result."}
             </p>
           </div>
           <div className="prose">
@@ -200,64 +161,24 @@ function Reader({ lesson }: { lesson: Lesson }) {
               <ArrowRight size={14} />
             </button>
           </div>
-          <section className="exercise-card">
-            <div className="eyebrow">
-              <CheckCircle2 size={15} />
-              CHECK YOUR UNDERSTANDING
-            </div>
-            <h3>{lesson.exercise.question}</h3>
-            <fieldset>
-              <legend className="sr-only">Choose your answer</legend>
-              {lesson.exercise.options.map((option, i) => (
-                <label
-                  key={option}
-                  className={`answer-option ${answer === i ? "selected" : ""}`}
-                >
-                  <input
-                    type="radio"
-                    name={`answer-${lesson.id}`}
-                    checked={answer === i}
-                    onChange={() => {
-                      setAnswer(i);
-                      setFeedback(null);
-                    }}
-                  />
-                  <span className="answer-letter">
-                    {String.fromCharCode(65 + i)}
-                  </span>
-                  {option}
-                </label>
-              ))}
-            </fieldset>
-            <button
-              className="button secondary small"
-              disabled={answer === null || submitting}
-              onClick={() => void submit()}
-            >
-              {submitting ? "Checking…" : "Check answer"}
-              <ArrowRight size={14} />
-            </button>
-            {feedback ? (
-              <div
-                className={`quiz-feedback ${feedback.correct ? "correct" : "incorrect"}`}
-                role="status"
-              >
-                <strong>
-                  {feedback.correct ? "That’s right." : "Take another look."}
-                </strong>{" "}
-                {feedback.explanation}
-              </div>
-            ) : null}
-            {error ? (
-              <p className="error-message" role="alert">
-                {error}
-              </p>
-            ) : null}
-          </section>
+          {lesson.terms ? (
+            <section className="lesson-glossary" aria-label="Key terms">
+              <h2>Key terms to remember</h2>
+              <dl>
+                {lesson.terms.map(({ term, definition }) => (
+                  <div key={term}>
+                    <dt>{term}</dt>
+                    <dd>{definition}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ) : null}
+          <PracticeQuestions lesson={lesson} />
           <div className="lesson-completion">
             <button
               className={`button ${completed ? "secondary" : "primary"}`}
-              disabled={!completed && !feedback?.correct}
+              disabled={!completed && !practicePassed}
               onClick={() =>
                 update((s) => ({
                   ...s,
@@ -270,12 +191,19 @@ function Reader({ lesson }: { lesson: Lesson }) {
               <Check size={16} />
               {completed ? "Completed · undo" : "Mark module complete"}
             </button>
-            {!completed && !feedback?.correct ? (
+            {!completed && !practicePassed ? (
               <span>
-                Answer the exercise correctly to complete this module.
+                Answer all practice questions correctly to complete this module.
               </span>
             ) : null}
-            {next ? (
+            {exam ? (
+              <Link to={`/exams/${exam.id}`} className="text-link">
+                {exam.kind === "checkpoint"
+                  ? "Take checkpoint"
+                  : "Take final exam"}
+                <ArrowRight size={15} />
+              </Link>
+            ) : next ? (
               <Link to={`/learn/${next.id}`} className="text-link">
                 Next module
                 <ArrowRight size={15} />
@@ -284,13 +212,19 @@ function Reader({ lesson }: { lesson: Lesson }) {
           </div>
         </article>
         <div className="lesson-sandbox-pane">
-          <Sandbox
-            key={`${lesson.id}-${templateVersion}`}
-            lessonId={lesson.id}
-            initialCode={lesson.code}
-            onExpand={() => setView(view === "sandbox" ? "split" : "sandbox")}
-            expanded={view === "sandbox"}
-          />
+          {view !== "reader" ? (
+            <Suspense fallback={<Loading label="Opening sandbox…" />}>
+              <Sandbox
+                key={`${lesson.id}-${templateVersion}`}
+                lessonId={lesson.id}
+                initialCode={lesson.code}
+                onExpand={() =>
+                  setView(view === "sandbox" ? "split" : "sandbox")
+                }
+                expanded={view === "sandbox"}
+              />
+            </Suspense>
+          ) : null}
         </div>
       </div>
       <Modal

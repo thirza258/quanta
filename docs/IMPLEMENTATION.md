@@ -6,6 +6,8 @@ The user selected a usable local platform across all tracks. The 18-week product
 | --- | --- | --- |
 | LMS foundation | React/TypeScript/Vite, Tailwind, Radix dialogs, local fonts, Monaco, KaTeX, responsive dual-pane reader, search, themes | Formal accessibility audit and broader device/performance targets |
 | Accounts & learning state | Email/password, Argon2, signed/revocable HttpOnly sessions, SQLite/PostgreSQL, notes, exercises, progress, experiments, local recovery | GitHub/Google OAuth, account recovery/email delivery, account deletion/export policy, migration tooling |
+| Beginner course | Eight original market/trading modules, 24 practice questions, glossary, optional code, checkpoint and final exam, guidance into later tracks | Broader question banks and localized exchange-specific content |
+| Assessments across all tracks | Eight exams with 53 original scenario questions, exact score thresholds, drafts, review, topic links, retakes, course completion, account-owned logs and idempotent submissions | Proctored or tamper-proof credentials, randomized question banks, teacher authoring and analytics |
 | Track 1 | Five original modules with runnable arithmetic templates, NCAV/haircuts/Graham worksheet | Complete textbook-length instruction, automated SEC normalization and provenance |
 | Track 2 | Five modules with probability/estimation/testing/regression worked examples; synthetic paths | Interactive distribution and bootstrap tools, richer code completion |
 | Track 3 | Five modules; factor studio, HAC inference, risk metrics, portfolio optimization API | Historical factor ingestion, GARCH/ARIMA/cointegration-specific interfaces, efficient-frontier UI |
@@ -36,3 +38,17 @@ The user selected a usable local platform across all tracks. The 18-week product
 Guest data remains in a versioned browser-storage namespace. Registering copies guest progress into a new account. Signing in loads that account’s remote state. Local pending edits include their base server revision. A same-revision reconnect retries them; a divergent revision preserves the local copy and stops sync instead of silently overwriting either version. Export the local workspace from the profile menu before resolving conflicting versions. Resolve sync conflict → Use account copy explicitly replaces local edits with the latest server copy after confirmation. Passwords and JWTs are never stored in browser storage.
 
 Workspace snapshots store code, parameters, summary metrics, notes, and progress. Full time series are recreated by rerunning the saved seed/configuration. API snapshots are limited to 1.2 MB; local exports provide an escape hatch when retaining many experiments.
+
+## Beginner entry and assessment progression
+
+The ordered catalog now starts with `trading-fundamentals` (displayed as “Start here”), followed by the original six tracks. Its IDs `0.1`–`0.8` preserve existing IDs and stored progress. New workspaces start at `0.1`; existing last-lesson pointers are retained. Beginner lessons initially load reading view; the sandbox is loaded on demand.
+
+Practice uses the existing submission route with an optional zero-based `question` index. Question zero retains the original workspace key. Subsequent questions use `lessonId:q2`, `lessonId:q3`, and so on. Completing a beginner module requires all three practice answers to have passed.
+
+A course's progress denominator includes modules and exams, with equal weight per completed item. A pass for the current exam version remains valid after a failed retake. Exam access and later tracks are open so learners may use them as readiness checks. Exams have no enforced time limit. The displayed duration is an estimate, and the required answer count uses the ceiling of the percentage threshold.
+
+`ExamSubmission` is an additive SQLModel table created during normal API initialization for SQLite or PostgreSQL. Authenticated submissions are graded from the server catalog, stored by account, and deduplicated by attempt UUID. Reusing a UUID with another account, exam, version, or answers fails. Invalid or incomplete answers fail validation. Guest online results and device grading remain in workspace storage; offline scores retain their provenance when later synced.
+
+Exam history in a workspace keeps at most 20 results per exam, retaining the best current-version attempt. The authenticated history endpoint returns the latest 50 online submissions. Missing results can be merged into the workspace without rewriting an identical snapshot. Exam versions protect against resuming incompatible drafts. This is a self-study system whose catalog intentionally exposes answer keys; it does not claim academic integrity guarantees against a learner editing their own workspace.
+
+History recovery also reconciles a draft with an already-recorded submission after a lost response. Matching identifiers, versions, and answers retire the draft automatically. Later answer edits remain saved until the learner explicitly carries them into a new attempt or discards them to review the recorded result. A conflicting submission refreshes account history so the learner can recover without reloading; the original submission remains immutable.

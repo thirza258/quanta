@@ -1,5 +1,66 @@
 # Verification results
 
+## Final beginner-course and exam review — September 14, 2026
+
+The final review covered the eight beginner lessons, their worked arithmetic, checkpoint and final answer keys, and the six specialist exams. The beginner references resolve to the intended [Investor.gov stock overview](https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks), [order types](https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-14), [diversification](https://www.investor.gov/introduction-investing/getting-started/asset-allocation), [FINRA stock overview](https://www.finra.org/investors/investing/investment-products/stocks), and [stock evaluation](https://www.finra.org/investors/investing/investment-products/stocks/evaluating-stocks) pages. Catalog regeneration from `/tmp` remains byte-for-byte identical, and Ruff passes across the backend and scripts.
+
+The review found and fixed one remaining course-filter regression: a learner who submitted only the second or third practice question was incorrectly listed under **Not started**. Course activity now includes every practice-question key. The existing beginner browser story first reproduced the failure, then verified **In progress**, **Not started**, reload persistence, and module completion after the fix.
+
+The web image rebuilt successfully with TypeScript and Vite, and all **15 browser stories passed in 50.4 seconds** against the updated Docker app at **http://127.0.0.1:8088**. Prettier and diff whitespace checks pass; all four services are healthy. The latest frontend and backend unit-suite results remain **14 passed** and **96 passed**, respectively, as recorded in the recovery follow-up below.
+
+## Assessment recovery follow-up — September 14, 2026
+
+A new browser regression reproduced a lost-response bug: the API had recorded a passing exam, but reloading left the submitted draft open and hid the result. History recovery now retires matching drafts and preserves later edits for an explicitly chosen new attempt. Submission conflicts refresh account history automatically.
+
+| Check | Result |
+| --- | --- |
+| TypeScript and Vite production build in the rebuilt Docker web image | Passed |
+| Vitest curriculum, grading, progression, and recovery tests | 14 passed |
+| Pytest backend suite | 96 passed |
+| Playwright stories through Docker/Nginx/PostgreSQL/Redis | 15 passed in 51.2 seconds |
+| Changed TypeScript files: Prettier and diff whitespace checks | Passed |
+
+The two added browser stories drop the response only after the real API has saved the attempt. They verify automatic recovery after reload and preservation of subsequent edits across a rejected retry, reload, and successful new submission. The original score remains unchanged, with exactly one or two account submissions as appropriate. Unit tests additionally check recovery when history was already merged, preservation of later retakes, version filtering, and unchanged-state handling.
+
+Agent-browser inspected the recovery notice on desktop and at 390 pixels, then exercised **Review submitted attempt** and confirmed the original 100% score with no draft remaining. Neither viewport overflowed, and there were no page errors or error overlays. Screenshots are in `artifacts/exam-recovery-desktop.png` and `artifacts/exam-recovery-mobile.png`.
+
+The web container at **http://127.0.0.1:8088** was rebuilt and updated. The API, PostgreSQL, Redis, and persistent volumes were retained.
+
+## Trading fundamentals and assessment release — September 14, 2026
+
+Verified locally with the running React/Vite client and FastAPI service:
+
+| Check | Result |
+| --- | --- |
+| TypeScript and Vite production build | Passed |
+| Vitest curriculum, grading, progression, migration, and history tests | 11 passed |
+| Pytest API, financial models, execution, accounts, and assessments | 96 passed |
+| Playwright browser stories against the local development app | 13 passed |
+| Playwright browser stories through Docker/Nginx/PostgreSQL/Redis | 13 passed |
+| Docker web/API image builds and four-service readiness | Passed; all services healthy |
+| Ruff checks across backend and scripts | Passed |
+| Catalog regeneration from a different working directory | Deterministic; identical output |
+
+The catalog contains 37 modules, 53 practice questions, and 53 exam questions across eight assessments. The API tests run every Python lesson template and validate exact passing boundaries (12/16 fails, 13/16 passes; 6/8 passes the checkpoint). They reject incomplete, extraneous, invalid, non-integer, and stale-version answers. Account tests verify ownership, retry deduplication, score calculation independent of caller-supplied score/pass fields, and workspace round trips.
+
+The seven added browser stories verify:
+
+1. Beginner entry in reading view, incorrect-answer feedback, all-question completion requirements, reload persistence, and optional Python execution.
+2. Exam draft recovery, incomplete-submission prevention, incorrect-answer review, topic links, retakes, attempt history, and a passing checkpoint's link to the next lesson.
+3. All eight beginner lessons → checkpoint → final → 100% course completion → next specialist track, including the Completed curriculum filter.
+4. Account grading and history in a fresh browser context, deduplicated request retries, recovery from a workspace missing its result, and guest isolation after sign-out.
+5. A failed submission preserves the complete draft and can be retried after reload.
+6. Device grading with every API route unavailable, plus 390-pixel exam navigation, dark theme persistence, and no horizontal overflow.
+7. A delayed grading response after sign-out does not copy an account result into the guest workspace.
+
+All six original browser stories also pass, covering research notes, saved experiments, account sync conflicts/recovery, finance tools, and mobile navigation. Agent-browser independently inspected the overview, beginner course, and exam room; desktop and mobile screenshots are in local `artifacts/`. No browser errors or Vite overlay appeared.
+
+The existing Docker deployment was updated at **http://127.0.0.1:8088**, retaining its database and data volumes. PostgreSQL contains the additive `examsubmission` table. A transient registry metadata timeout interrupted the first web build; retrying the normal build succeeded. All 13 browser stories then passed through the rebuilt deployment in 41.7 seconds.
+
+Known nonblocking output remains the existing large Monaco/chart chunk warning and upstream Starlette test-client deprecations. The new beginner reading view loads the editor only when a sandbox view is requested.
+
+## Initial platform release — September 13, 2026
+
 Verified on September 13, 2026, on an Apple Silicon Mac with Node 25.9.0, Python 3.14.4, Chrome, and Docker Engine 29.7.2. Docker builds use Node 22 Alpine and Python 3.14 slim.
 
 ## Automated checks

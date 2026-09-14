@@ -1,6 +1,6 @@
 # Quanta
 
-A focused investment learning workspace built from [PRD.md](PRD.md). This implementation prioritizes a **usable local platform across all six tracks**, with a Docker deployment that includes the web app, API, PostgreSQL, and Redis.
+A focused investment learning workspace built from [PRD.md](PRD.md). This implementation prioritizes a **usable local platform with a beginner course and all six specialist tracks**, with a Docker deployment that includes the web app, API, PostgreSQL, and Redis.
 
 ## Run with Docker
 
@@ -26,7 +26,7 @@ Persistent volumes:
 
 | Volume | Contents |
 | --- | --- |
-| `postgres_data` | Accounts, revoked/active sessions, exercise submissions, workspace state |
+| `postgres_data` | Accounts, revoked/active sessions, exercise and exam submissions, workspace state |
 | `api_storage` | Automatically generated signing secret |
 | `market_data` | Imported Parquet datasets |
 | `redis_data` | Shared request counters |
@@ -50,7 +50,10 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 
 ## What works
 
-- Six curriculum tracks, 29 original reading modules, mathematical typesetting, worked examples, graded exercises, and lesson completion.
+- Seven courses and 37 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
+- An eight-question market essentials checkpoint, a 16-question fundamentals final, and a distinct final exam for each specialist track: 53 exam questions in total.
+- Untimed, open-book exams with exact pass thresholds, saved drafts, answer navigation, pre-submission review, explanations, topic-specific lesson links, retakes, and attempt history. Course progress includes both lesson completion and exam passes.
+- Online grading, account-owned submission logs, idempotent retries, and device grading when the API is unavailable. Existing lesson IDs and workspace progress remain compatible.
 - Reading, split-pane, and full sandbox views; locally bundled Monaco Python editor with Cmd/Ctrl+Enter execution.
 - Guest persistence and email/password accounts with Argon2 hashing, HttpOnly JWT session cookies, revocation, version-checked workspace sync, and recovery of unsynced drafts.
 - Research notes, search, experiment snapshots, JSON/Markdown exports, responsive navigation, and persistent dark/light themes.
@@ -62,6 +65,18 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 - CSV validation and Parquet/DuckDB historical OHLCV import. Historical data is never silently replaced with generated data.
 
 See [implementation scope](docs/IMPLEMENTATION.md) for the PRD mapping and boundaries.
+
+## Start with market fundamentals
+
+Choose **Start learning** on a fresh workspace, or open `/curriculum/trading-fundamentals`. The course covers investing versus trading, stock ownership, market participants, indexes and funds, quotes and orders, returns and costs, financial statements, diversification, leverage, and a written paper-trading plan. Lessons include Investor.gov and FINRA references and original fictional examples.
+
+Complete all three practice questions in each beginner lesson. After lesson 0.4, the checkpoint requires **6 of 8 correct (75%)**. After lesson 0.8, the final requires **13 of 16 correct (at least 80%)**. Specialist finals require at least 80%; the four-question strategy exam therefore requires all four correct. Each exam displays its exact required count.
+
+Course completion requires all its modules and exams. Later tracks stay available for experienced learners. New lessons use IDs `0.1`–`0.8`; existing `1.1`–`6.5` links, code drafts, and progress retain their original meanings.
+
+Exam drafts and up to 20 attempts per exam (recent attempts plus the best result for the current version) travel with workspace sync/export. A failed retake preserves a prior pass for that exam version. Account submission logs can restore missing online results from the latest 50 submissions. Device-graded attempts sync as workspace data, but are not retroactively added to the online submission log. These are open-book learning assessments: the shared catalog includes answer explanations and keys, and workspace completion is not a tamper-proof credential.
+
+If grading saves a result but the response is lost, reopening the exam restores the submitted result and clears its unchanged draft. Answers edited afterward stay saved; choose **Continue as a new attempt** to submit those edits separately, or **Review submitted attempt** to discard the edits and view the recorded answers.
 
 ## Python execution
 
@@ -121,11 +136,13 @@ Interactive API documentation is at `/docs` on the development API URL. The publ
 | Method | Route | Purpose |
 | --- | --- | --- |
 | GET | `/api/v1/health` | API/database/Redis readiness |
-| GET | `/api/v1/courses` | Six-track catalog |
+| GET | `/api/v1/courses` | Beginner course and six specialist tracks, including exams |
 | POST | `/api/v1/auth/register`, `/login`, `/logout` | Account lifecycle (same `/auth` prefix) |
 | GET | `/api/v1/auth/me` | Current session profile |
 | GET / PUT | `/api/v1/workspace` | Account-owned, versioned state |
-| POST | `/api/v1/exercises/{lesson_id}/submit` | Exercise checking and account submission log |
+| POST | `/api/v1/exercises/{lesson_id}/submit` | Check `{answer, question}`; question defaults to zero for existing clients |
+| POST | `/api/v1/exams/{exam_id}/submit` | Grade a complete versioned attempt; persist account submissions with retry deduplication |
+| GET | `/api/v1/exams/{exam_id}/attempts` | Latest 50 submissions belonging to the signed-in account |
 | GET | `/api/v1/data/catalog` | Installed historical datasets |
 | POST | `/api/v1/data/synthetic/generate` | Seeded OHLCV bars |
 | POST | `/api/v1/sandbox/execute` | Code, dataset config, metrics, series, trades, output |
@@ -155,7 +172,7 @@ See [verification results](docs/VERIFICATION.md) for the checks performed during
 - `src/components/`: reading room, dashboard, notebook, sandbox and research tools.
 - `src/lib/`: typed API, curriculum lookup, and persistent workspace state.
 - `src/data/curriculum.json`: shared course catalog.
-- `scripts/curriculum.py`: source for the original lesson catalog; regenerate with `python3 scripts/curriculum.py`.
+- `scripts/curriculum.py`, `scripts/foundations.py`, `scripts/track_exams.py`: original curriculum sources; regenerate with `python3 scripts/curriculum.py` (works from any working directory).
 - `backend/quanta/`: API, account/database state, analytics, execution workers, data import support, and mock broker.
 - `backend/tests/`, `e2e/`: numerical/API and browser integration tests.
 - `compose.yaml`, `Dockerfile`, `backend/Dockerfile`, `deploy/nginx.conf`: deployment.

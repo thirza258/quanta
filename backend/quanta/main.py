@@ -10,18 +10,20 @@ from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, StrictInt
 from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from . import analytics, auth, broker, data_store, runner
-from .database import Submission, User, Workspace, get_session, initialize
+from .assessments import ExamAnswers, grade
+from .database import ExamSubmission, Submission, User, Workspace, get_session, initialize
 from .econometrics import FactorRequest, PortfolioRequest, factor_model, portfolio
 from .limits import limiter
 
 CATALOG = json.loads((Path(__file__).resolve().parents[2] / "src/data/curriculum.json").read_text())
 LESSONS = {m["id"]: m for c in CATALOG for m in c["modules"]}
+EXAMS = {exam["id"]: exam for course in CATALOG for exam in course["exams"]}
 
 
 @asynccontextmanager
@@ -53,9 +55,7 @@ async def request_guards(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "same-origin"
-    if request.url.path.startswith("/api/v1/auth") or request.url.path.startswith(
-        "/api/v1/workspace"
-    ):
+    if request.url.path.startswith(("/api/v1/auth", "/api/v1/workspace", "/api/v1/exams")):
         response.headers["Cache-Control"] = "no-store"
     return response
 
@@ -196,7 +196,8 @@ def save_workspace(
 
 
 class Answer(BaseModel):
-    answer: int = Field(ge=0, le=20)
+    answer: StrictInt = Field(ge=0, le=20)
+    question: StrictInt = Field(default=0, ge=0, le=20)
 
 
 @app.post("/api/v1/exercises/{lesson_id}/submit")
@@ -208,7 +209,11 @@ def submit(
 ):
     if lesson_id not in LESSONS:
         raise HTTPException(404, "Exercise not found.")
-    exercise = LESSONS[lesson_id]["exercise"]
+    lesson = LESSONS[lesson_id]
+    exercises = lesson.get("exercises", [lesson["exercise"]])
+    if payload.question >= len(exercises):
+        raise HTTPException(422, "Invalid exercise question.")
+    exercise = exercises[payload.question]
     if payload.answer >= len(exercise["options"]):
         raise HTTPException(422, "Invalid answer option.")
     correct = payload.answer == exercise["answer"]
@@ -216,13 +221,74 @@ def submit(
         db.add(
             Submission(
                 user_id=user.id,
-                lesson_id=lesson_id,
+                lesson_id=lesson_id
+                if payload.question == 0
+                else f"{lesson_id}:q{payload.question + 1}",
                 answer=payload.answer,
                 correct=correct,
             )
         )
         db.commit()
     return {"correct": correct, "explanation": exercise["explanation"]}
+
+
+@app.post("/api/v1/exams/{exam_id}/submit")
+def submit_exam(
+    exam_id: str,
+    payload: ExamAnswers,
+    request: Request,
+    user: User | None = Depends(auth.optional_user),
+    db: Session = Depends(get_session),
+):
+    if exam_id not in EXAMS:
+        raise HTTPException(404, "Exam not found.")
+    limiter.check(key(request, "assessment", user), 60, 60)
+    result = grade(EXAMS[exam_id], payload)
+    if not user:
+        return result
+
+    def existing_result(existing):
+        if (
+            existing.user_id != user.id
+            or existing.exam_id != exam_id
+            or existing.result["answers"] != payload.answers
+            or existing.result["version"] != payload.version
+        ):
+            raise HTTPException(
+                409, "This attempt identifier has already been used. Start a new attempt."
+            )
+        return existing.result
+
+    existing = db.get(ExamSubmission, str(payload.id))
+    if existing:
+        return existing_result(existing)
+    db.add(ExamSubmission(id=str(payload.id), user_id=user.id, exam_id=exam_id, result=result))
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        existing = db.get(ExamSubmission, str(payload.id))
+        if existing:
+            return existing_result(existing)
+        raise
+    return result
+
+
+@app.get("/api/v1/exams/{exam_id}/attempts")
+def exam_attempts(
+    exam_id: str,
+    user: User = Depends(auth.require_user),
+    db: Session = Depends(get_session),
+):
+    if exam_id not in EXAMS:
+        raise HTTPException(404, "Exam not found.")
+    attempts = db.exec(
+        select(ExamSubmission)
+        .where(ExamSubmission.user_id == user.id, ExamSubmission.exam_id == exam_id)
+        .order_by(ExamSubmission.created_at.desc())
+        .limit(50)
+    ).all()
+    return {"attempts": [attempt.result for attempt in attempts]}
 
 
 @app.get("/api/v1/data/catalog")

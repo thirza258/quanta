@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./assessments.css";
 :root {
   font-family: "Inter Variable", Inter, sans-serif;
   color: #28342f;

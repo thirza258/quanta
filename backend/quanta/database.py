@@ -46,6 +46,14 @@ class Submission(SQLModel, table=True):
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
+class ExamSubmission(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    user_id: str = Field(foreign_key="user.id", index=True)
+    exam_id: str = Field(index=True)
+    result: dict = Field(sa_column=Column(JSON, nullable=False))
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
 def get_session():
     with Session(engine) as session:
         yield session

@@ -20,7 +20,7 @@ import {
   CircleHelp,
 } from "lucide-react";
 import { useWorkspace } from "../lib/workspace";
-import { lessons, lessonTrack } from "../lib/catalog";
+import { lessons, lessonTrack, tracks } from "../lib/catalog";
 import { Loading, Modal } from "./ui";
 import AuthModal from "./AuthModal";
 const nav = [
@@ -70,7 +70,9 @@ export default function Layout() {
     )?.label ||
     (location.pathname.startsWith("/learn")
       ? "Learning room"
-      : "Reference library");
+      : location.pathname.startsWith("/exams")
+        ? "Assessment room"
+        : "Reference library");
   const filtered = lessons.filter((l) =>
     `${l.title} ${l.subtitle} ${lessonTrack(l.id)?.title}`
       .toLowerCase()
@@ -253,7 +255,7 @@ export default function Layout() {
         open={searchOpen}
         onOpenChange={setSearchOpen}
         title="Find your next idea"
-        description="Search all 29 lessons across the six learning tracks."
+        description={`Search all ${lessons.length} lessons across ${tracks.length} courses.`}
         wide
       >
         <label className="search-input">

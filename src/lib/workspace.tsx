@@ -12,21 +12,23 @@ import type { User, WorkspaceState } from "./types";
 
 export const emptyWorkspace = (): WorkspaceState => ({
   completed: [],
-  lastLesson: "1.1",
+  lastLesson: "0.1",
   drafts: {},
   notes: [],
   experiments: [],
   submissions: {},
+  examDrafts: {},
+  examAttempts: {},
   runs: 0,
 });
-function normalize(raw: Partial<WorkspaceState> | null): WorkspaceState {
+export function normalize(raw: Partial<WorkspaceState> | null): WorkspaceState {
   const base = emptyWorkspace();
   if (!raw || typeof raw !== "object") return base;
   return {
     completed: Array.isArray(raw.completed)
       ? raw.completed.filter((x) => typeof x === "string")
       : [],
-    lastLesson: typeof raw.lastLesson === "string" ? raw.lastLesson : "1.1",
+    lastLesson: typeof raw.lastLesson === "string" ? raw.lastLesson : "0.1",
     drafts: raw.drafts && typeof raw.drafts === "object" ? raw.drafts : {},
     notes: Array.isArray(raw.notes) ? raw.notes : [],
     experiments: Array.isArray(raw.experiments) ? raw.experiments : [],
@@ -35,6 +37,22 @@ function normalize(raw: Partial<WorkspaceState> | null): WorkspaceState {
         ? raw.submissions
         : {},
     runs: typeof raw.runs === "number" ? raw.runs : 0,
+    examDrafts:
+      raw.examDrafts &&
+      typeof raw.examDrafts === "object" &&
+      !Array.isArray(raw.examDrafts)
+        ? raw.examDrafts
+        : {},
+    examAttempts:
+      raw.examAttempts &&
+      typeof raw.examAttempts === "object" &&
+      !Array.isArray(raw.examAttempts)
+        ? Object.fromEntries(
+            Object.entries(raw.examAttempts).filter(([, attempts]) =>
+              Array.isArray(attempts),
+            ),
+          )
+        : {},
   };
 }
 function storageKey(id?: string) {
@@ -206,6 +224,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, [state, user, ready, flush]);
   const update = useCallback((fn: (old: WorkspaceState) => WorkspaceState) => {
     const next = fn(current.current);
+    if (next === current.current) return;
     current.current = next;
     dirty.current = true;
     // Persist the mutation synchronously so immediate navigation/sign-out cannot

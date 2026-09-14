@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowRight, Download, LoaderCircle, LogOut } from "lucide-react";
 import { Modal } from "./ui";
 import { useWorkspace } from "../lib/workspace";
+import { lessons } from "../lib/catalog";
 import { download } from "../lib/api";
 export default function AuthModal({
   open,
@@ -88,7 +89,9 @@ export default function AuthModal({
         <div className="valuation-metrics">
           <div>
             <span>Completed modules</span>
-            <strong>{state.completed.length} / 29</strong>
+            <strong>
+              {state.completed.length} / {lessons.length}
+            </strong>
           </div>
           <div>
             <span>Saved experiments</span>
