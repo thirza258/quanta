@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from quanta.api.routes import accounts, catalog, health, learning, research, simulator, workspace
+from quanta.api.routes import accounts, assistant, catalog, health, learning, research, simulator, workspace
 from quanta.core.http import request_guards
 from quanta.db.session import initialize
 from quanta.domain.errors import DomainError
@@ -19,7 +19,7 @@ async def lifespan(app):
 
 app = FastAPI(title="Quanta API", version="0.1.0", lifespan=lifespan)
 app.middleware("http")(request_guards)
-for routes in (health, accounts, catalog, learning, workspace, research, simulator):
+for routes in (health, accounts, catalog, learning, workspace, research, simulator, assistant):
     app.include_router(routes.router)
 
 

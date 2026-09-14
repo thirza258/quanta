@@ -12,6 +12,7 @@ from foundations import build_foundations
 from intelligent_investor import build_intelligent_investor
 from news_to_markets import build_news_to_markets
 from quantitative_analysis import build_quantitative_analysis
+from real_world_cases import attach_real_world_cases
 from security_analysis import build_security_analysis
 from stock_bots import build_stock_bots
 from stock_ml_course import build_stock_ml
@@ -616,6 +617,7 @@ catalog.insert(
 )
 catalog.append(build_algorithm_evaluation())
 attach_references(catalog)
+attach_real_world_cases(catalog)
 output = Path(__file__).resolve().parents[2] / "content/catalog/curriculum.json"
 output.parent.mkdir(exist_ok=True)
 # Dev reloaders and image builders must see either the old or complete new catalog.

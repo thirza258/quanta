@@ -51,6 +51,7 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 ## What works
 
 - Twelve courses and 300 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
+- **[Real-world applications in every lesson](docs/REAL_WORLD_CASES.md)**: 300 distinct tasks and worked explanations built around 35 Indonesian and global cases, with primary references, dated event context, unit links, and notebook prompts. Documented events and illustrative exercise data are clearly distinguished.
 - Seventy-seven open-book assessments with 572 original exam questions, including four checkpoints and a new final for each expanded book course.
 - **[The intelligent & careful investor](docs/INTELLIGENT_INVESTOR.md)**: 16 lessons / 8 hours directly before Security Analysis, inspired by Graham’s *The Intelligent Investor*. Covers temperament, speculation, liquidity, diversification, margin of safety, allocation, costs and independent judgment, with 32 practice questions, four checkpoints, a final and an original investor-plan workbook.
 - **[Security Analysis](docs/BOOK_COURSES.md)**: 24 lessons following the 1940 book’s seven parts, separate modern extensions, 48 practice questions, and an investment committee capstone.
@@ -67,6 +68,7 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 - Untimed, open-book exams with exact pass thresholds, saved drafts, answer navigation, pre-submission review, explanations, topic-specific lesson links, retakes, and attempt history. Course progress includes both lesson completion and exam passes.
 - Online grading, account-owned submission logs, idempotent retries, and device grading when the API is unavailable. Existing lesson IDs and workspace progress remain compatible.
 - Reading, split-pane, and full sandbox views; locally bundled Monaco Python editor with Cmd/Ctrl+Enter execution.
+- A course AI assistant for lesson hints, debugging, and downloadable environment/code files, using the OpenAI Python package with OpenRouter. Optional editor/error context, file previews, project ZIPs, and code replacement with undo. See [assistant setup](docs/ASSISTANT.md).
 - C lessons use a locally bundled C editor with saved drafts, reset, source download, expected-output reference and local compile commands. They do not send C to the Python runtime.
 - Guest persistence and email/password accounts with Argon2 hashing, HttpOnly JWT session cookies, revocation, version-checked workspace sync, and recovery of unsynced drafts.
 - Research notes, search, experiment snapshots, JSON/Markdown exports, responsive navigation, and persistent dark/light themes.
@@ -91,6 +93,21 @@ Course completion requires all its modules and exams. Later tracks stay availabl
 Exam drafts and up to 20 attempts per exam (recent attempts plus the best result for the current version) travel with workspace sync/export. A failed retake preserves a prior pass for that exam version. Account submission logs can restore missing online results from the latest 50 submissions. Device-graded attempts sync as workspace data, but are not retroactively added to the online submission log. These are open-book learning assessments: the shared catalog includes answer explanations and keys, and workspace completion is not a tamper-proof credential.
 
 If grading saves a result but the response is lost, reopening the exam restores the submitted result and clears its unchanged draft. Answers edited afterward stay saved; choose **Continue as a new attempt** to submit those edits separately, or **Review submitted attempt** to discard the edits and view the recorded answers.
+
+## Course AI assistant
+
+Open **Ask AI assistant** on a course or lesson. Choose help with understanding, environment setup, or code. Setup requests create downloadable project files for macOS, Windows, or Linux; compatible lesson code can be reviewed and applied to the editor with undo.
+
+Add these values to the root `.env` to enable AI responses:
+
+```dotenv
+OPENROUTER_API_KEY=your-openrouter-key
+OPENROUTER_MODEL=openai/gpt-4.1-mini
+```
+
+Run `backend/.venv/bin/python -m pip install -r backend/requirements.txt` after updating an existing local install, then restart `npm run dev`. For Docker, run `docker compose up --build -d`. The backend uses `openai.AsyncOpenAI` with `https://openrouter.ai/api/v1`; no key is sent to the browser. Choose a model with structured-output support. Without a key, lessons and course downloads remain available and the assistant shows its connection status.
+
+See [assistant configuration and behavior](docs/ASSISTANT.md) for context sharing, limits, and verification.
 
 ## Python execution
 
@@ -150,7 +167,7 @@ Interactive API documentation is at `/docs` on the development API URL. The publ
 | Method | Route | Purpose |
 | --- | --- | --- |
 | GET | `/api/v1/health` | API/database/Redis readiness |
-| GET | `/api/v1/courses` | Beginner course and eight specialist tracks, including exams |
+| GET | `/api/v1/courses` | All twelve courses, including exams and sourced real-world cases |
 | POST | `/api/v1/auth/register`, `/login`, `/logout` | Account lifecycle (same `/auth` prefix) |
 | GET/POST/PUT | `/api/v1/simulator/...` | [Persistent trading account, observed prices, orders, replay, preferences, and journals](docs/SIMULATOR.md#http-interface) |
 | GET | `/api/v1/auth/me` | Current session profile |
@@ -161,6 +178,7 @@ Interactive API documentation is at `/docs` on the development API URL. The publ
 | GET | `/api/v1/data/catalog` | Installed historical datasets |
 | POST | `/api/v1/data/synthetic/generate` | Seeded OHLCV bars |
 | POST | `/api/v1/sandbox/execute` | Code, dataset config, metrics, series, trades, output |
+| GET / POST | `/api/v1/assistant/status`, `/chat`, `/bundle` | AI connection status, course-grounded help, and generated project ZIPs (same `/assistant` prefix) |
 | POST | `/api/v1/analytics/valuation`, `/amm`, `/factors`, `/portfolio` | Financial calculations (same `/analytics` prefix) |
 | POST | `/api/v1/broker/order` | Stateless paper-account transition and fill event |
 

@@ -1,4 +1,10 @@
 import PracticeQuestions from "@/features/assessments/components/PracticeQuestions";
+import CourseAssistant from "@/features/assistant/components/CourseAssistant";
+import RealWorldCase from "@/features/learning/components/RealWorldCase";
+import {
+  caseNotebookPrompt,
+  lessonCase,
+} from "@/features/learning/model/cases";
 import {
   findLesson,
   lessons,
@@ -58,11 +64,17 @@ function Reader({ lesson }: { lesson: Lesson }) {
     ),
     [noteOpen, setNoteOpen] = useState(false),
     [note, setNote] = useState(""),
+    [executionError, setExecutionError] = useState(""),
+    [assistantEdit, setAssistantEdit] = useState<{
+      previous: string;
+      applied: string;
+    } | null>(null),
     [templateVersion, setTemplateVersion] = useState(0);
   const completed = state.completed.includes(lesson.id),
     practicePassed = practiceComplete(lesson, state),
     exam = track.exams.find((exam) => exam.moduleIds.at(-1) === lesson.id),
     next = lessons[lessons.findIndex((l) => l.id === lesson.id) + 1];
+  const caseStudy = lessonCase(track, lesson);
   useEffect(() => {
     update((s) => ({ ...s, lastLesson: lesson.id }));
   }, [lesson.id, update]);
@@ -99,6 +111,23 @@ function Reader({ lesson }: { lesson: Lesson }) {
             <Code2 size={16} />
           </button>
         </div>
+        <CourseAssistant
+          course={track}
+          lesson={lesson}
+          executionError={executionError}
+          onApply={(code) => {
+            const previous = state.drafts[lesson.id] ?? lesson.code;
+            if (previous !== code)
+              setAssistantEdit({ previous, applied: code });
+            update((s) => ({
+              ...s,
+              drafts: { ...s.drafts, [lesson.id]: code },
+            }));
+            setExecutionError("");
+            setTemplateVersion((version) => version + 1);
+            setView("split");
+          }}
+        />
         <select
           className="lesson-select"
           aria-label="Navigate to module"
@@ -112,6 +141,32 @@ function Reader({ lesson }: { lesson: Lesson }) {
           ))}
         </select>
       </div>
+      {assistantEdit ? (
+        <div className="assistant-editor-notice" role="status">
+          <span>
+            Assistant code added. Review it, then{" "}
+            {isC ? "download and compile" : "run the experiment"}.
+          </span>
+          <button
+            className="text-link"
+            disabled={state.drafts[lesson.id] !== assistantEdit.applied}
+            onClick={() => {
+              update((s) => ({
+                ...s,
+                drafts: { ...s.drafts, [lesson.id]: assistantEdit.previous },
+              }));
+              setAssistantEdit(null);
+              setExecutionError("");
+              setTemplateVersion((version) => version + 1);
+            }}
+          >
+            Undo code replacement
+          </button>
+          <button className="text-link" onClick={() => setAssistantEdit(null)}>
+            Dismiss
+          </button>
+        </div>
+      ) : null}
       <div className="learning-panes">
         <article className="lesson-article">
           <div className="page-eyebrow">
@@ -135,6 +190,11 @@ function Reader({ lesson }: { lesson: Lesson }) {
               <BookmarkPlus size={15} />
               Add a note
             </button>
+            {caseStudy ? (
+              <a className="text-link" href="#real-world-case">
+                Explore the real-world case <ArrowRight size={14} />
+              </a>
+            ) : null}
           </div>
           {lesson.reading ? (
             <aside
@@ -175,6 +235,20 @@ function Reader({ lesson }: { lesson: Lesson }) {
               {lesson.content}
             </ReactMarkdown>
           </div>
+          {caseStudy ? (
+            <RealWorldCase
+              lesson={lesson}
+              caseStudy={caseStudy}
+              onWrite={() => {
+                setNote((draft) =>
+                  [draft, caseNotebookPrompt(lesson, caseStudy)]
+                    .filter(Boolean)
+                    .join("\n\n"),
+                );
+                setNoteOpen(true);
+              }}
+            />
+          ) : null}
           {lesson.assignment ? (
             <section
               className="lesson-assignment"
@@ -302,6 +376,7 @@ function Reader({ lesson }: { lesson: Lesson }) {
                   key={`${lesson.id}-${templateVersion}`}
                   lessonId={lesson.id}
                   initialCode={lesson.code}
+                  onExecutionError={setExecutionError}
                   onExpand={() =>
                     setView(view === "sandbox" ? "split" : "sandbox")
                   }

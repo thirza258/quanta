@@ -23,6 +23,11 @@ def test_health_content_and_validation(client):
     assert len(catalog) == 12
     assert catalog[0]["id"] == "trading-fundamentals"
     assert sum(len(c["modules"]) for c in catalog) == 300
+    news = next(course for course in catalog if course["id"] == "news-to-markets")
+    lesson = client.get("/api/v1/courses/lessons/8.3").json()
+    case = next(item for item in news["caseStudies"] if item["id"] == lesson["realWorld"]["caseId"])
+    assert case["id"] == "bps_growth" and case["references"][0]["scope"]
+    assert lesson["realWorld"]["task"] and lesson["realWorld"]["walkthrough"]
     assert client.get("/api/v1/courses/lessons/missing").status_code == 404
     assert client.post("/api/v1/data/synthetic/generate", json={"years": 0}).status_code == 422
     assert client.post("/api/v1/analytics/valuation", json={"shares": 0}).status_code == 422
