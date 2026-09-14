@@ -33,7 +33,7 @@ make sanitize
 ./quanta-bot 4 200000
 ```
 
-Tests require a local C17 compiler (`cc`) and make. The normal root `npm run check` compiles all 24 C worksheets and extracts/builds/tests the learner archive, alongside the 232 Python templates. The separate sanitizer target requires a compiler with ASan/UBSan runtimes.
+Tests require a local C17 compiler (`cc`) and make. The normal root `npm run check` compiles all 24 C worksheets and extracts/builds/tests the learner archive, alongside the 276 Python templates. The separate sanitizer target requires a compiler with ASan/UBSan runtimes.
 
 Independent golden fixture: buy at 130, sell at 90, pay two five-cent fees → **999,950 cents, two fills**. Tests also cover no terminal fill, warmup, invalid bounds/data, fee affordability, rejected mutation, duplicate achieved targets, deterministic seeds, worker counts 1–32 and failed-result publication. Source-only packaging excludes binaries, installed dependencies and local state.
 

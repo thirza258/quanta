@@ -143,6 +143,8 @@ def test_workspace_round_trips_exam_draft_and_results(client):
         "econometrics",
         "web3",
         "stock-machine-learning",
+        "strategy-lab",
+        "intelligent-investor",
     ],
 )
 def test_expanded_final_rejects_old_version_and_grades_exact_threshold(client, slug):

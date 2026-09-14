@@ -1,6 +1,6 @@
 # Quanta
 
-A focused investment learning workspace built from [PRD.md](PRD.md). The local platform has **eleven courses spanning market fundamentals, investment analysis, news, econometrics, Python and C/HPC bots, Web3, stock machine learning, and a final algorithm evaluation/reporting track**, with a Docker deployment that includes the web app, API, PostgreSQL, and Redis.
+A focused investment learning workspace built from [PRD.md](PRD.md). The local platform has **twelve courses spanning market fundamentals, careful investing, security analysis, news, econometrics, strategy research, Python and C/HPC bots, Web3, stock machine learning, and a final algorithm evaluation/reporting track**, with a Docker deployment that includes the web app, API, PostgreSQL, and Redis.
 
 ## Run with Docker
 
@@ -50,11 +50,13 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 
 ## What works
 
-- Eleven courses and 256 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
-- Sixty-four open-book assessments with 480 original exam questions, including four checkpoints and a new final for each expanded book course.
+- Twelve courses and 300 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
+- Seventy-seven open-book assessments with 572 original exam questions, including four checkpoints and a new final for each expanded book course.
+- **[The intelligent & careful investor](docs/INTELLIGENT_INVESTOR.md)**: 16 lessons / 8 hours directly before Security Analysis, inspired by Graham’s *The Intelligent Investor*. Covers temperament, speculation, liquidity, diversification, margin of safety, allocation, costs and independent judgment, with 32 practice questions, four checkpoints, a final and an original investor-plan workbook.
 - **[Security Analysis](docs/BOOK_COURSES.md)**: 24 lessons following the 1940 book’s seven parts, separate modern extensions, 48 practice questions, and an investment committee capstone.
 - **[Financial news to company & stock analysis](docs/NEWS_COURSE.md)**: 24 lessons immediately after Security Analysis, 12 hours of guided study, 48 practice questions, six checkpoints, and a final. Includes earnings, macro releases, rupiah/Bank Indonesia, commodity shocks, valuation, source verification, and a downloadable research memo pack.
 - **[Quantitative Investment Analysis](docs/BOOK_COURSES.md)**: 28 lessons mapped to all 14 chapters of the fourth edition, 56 practice questions, and a reproducible research capstone. Both courses include reading plans, original worked cases, mathematical notation, executable worksheets, and notebook assignments with worked solutions.
+- **[The strategy lab](docs/STRATEGY_LAB_COURSE.md)**: 32 lessons / 16 hours across eight units, 64 practice questions, eight checkpoints and a 32-question version-2 final. Includes value/quality, momentum/reversal, pairs, ML signals, portfolio construction and validation, plus a runnable multi-asset Python project with trade/position ledgers and exports for the reporting course.
 - **[Algorithmic & AI stock bots](docs/STOCK_BOTS_COURSE.md)**: 48 lessons in twelve units, 96 practice questions, eleven checkpoints, a 48-question final, and a downloadable Python project with durable paper accounting, a small trained ridge model, and AI evidence-validation fixtures.
 - **[Algorithmic trading II: C & high-performance computing](docs/C_HPC_COURSE.md)**: 24 lessons / 12 hours after the Python bot course, with 24 compiled C worksheets, a C editor, local downloads, six checkpoints and a final. The complete C/POSIX project includes a causal integer-cent ledger, deterministic serial/parallel sweeps, repeated timing and sanitizer tests; lessons also cover cache layout, SIMD, OpenMP, GPU and distributed design.
 - **[Financial econometrics](docs/APPLIED_COURSES.md)**: 32 lessons covering OLS, robust inference, time series, volatility, factors, panel data, and causal designs, with actual local regression and cointegration projects.
@@ -82,7 +84,7 @@ See [implementation scope](docs/IMPLEMENTATION.md) for the PRD mapping and bound
 
 Choose **Start learning** on a fresh workspace, or open `/curriculum/trading-fundamentals`. The course covers investing versus trading, stock ownership, market participants, indexes and funds, quotes and orders, returns and costs, financial statements, diversification, leverage, and a written paper-trading plan. Lessons include Investor.gov and FINRA references and original fictional examples.
 
-Complete all three practice questions in each beginner lesson. After lesson 0.4, the checkpoint requires **6 of 8 correct (75%)**. After lesson 0.8, the final requires **13 of 16 correct (at least 80%)**. Specialist finals require at least 80%; the four-question strategy exam therefore requires all four correct. Each exam displays its exact required count.
+Complete all three practice questions in each beginner lesson. After lesson 0.4, the checkpoint requires **6 of 8 correct (75%)**. After lesson 0.8, the final requires **13 of 16 correct (at least 80%)**. Specialist finals require at least 80%; the expanded 32-question Strategy Lab final requires 26 correct. Each exam displays its exact required count.
 
 Course completion requires all its modules and exams. Later tracks stay available for experienced learners. New lessons use IDs `0.1`–`0.8`; existing `1.1`–`6.5` links, code drafts, and progress retain their original meanings.
 

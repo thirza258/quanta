@@ -1,5 +1,5 @@
 import type { Exam, ExamDraft } from "@/features/assessments/model/types";
-import { tracks } from "@/features/learning/model/catalog";
+import { findLesson, tracks } from "@/features/learning/model/catalog";
 import {
   examPassed,
   exerciseKey,
@@ -63,13 +63,13 @@ describe("learning progression", () => {
       examAttempts: {},
     });
     expect(normalize(null).lastLesson).toBe("0.1");
-    expect(practiceComplete(tracks[1].modules[0], normalize(previous))).toBe(
+    expect(practiceComplete(findLesson("1.1")!, normalize(previous))).toBe(
       false,
     );
     // The original completion is preserved, while the added practice remains unanswered.
     const expanded = normalize(previous);
     expanded.submissions["1.1:q2"] = { answer: 1, correct: true };
-    expect(practiceComplete(tracks[1].modules[0], expanded)).toBe(true);
+    expect(practiceComplete(findLesson("1.1")!, expanded)).toBe(true);
   });
   it("requires all beginner practice answers before lesson completion", () => {
     const state = emptyWorkspace();

@@ -16,8 +16,44 @@ const courses = catalog.filter((course) =>
     "news-to-markets",
     "c-hpc-trading",
     "algorithm-evaluation",
+    "strategy-lab",
+    "intelligent-investor",
   ].includes(course.id),
 );
+
+test("curriculum places careful investing before Security Analysis and searches its lessons", async ({
+  page,
+}) => {
+  await page.goto("/curriculum");
+  await expect(page.locator(".page-subtitle")).toContainText(
+    `${catalog.length} connected courses`,
+  );
+  const cards = page.locator(".track-grid .track-card");
+  for (const [index, slug] of [
+    "trading-fundamentals",
+    "intelligent-investor",
+    "security-analysis",
+    "news-to-markets",
+  ].entries()) {
+    await expect(cards.nth(index)).toHaveAttribute(
+      "href",
+      `/curriculum/${slug}`,
+    );
+  }
+  await page.getByLabel("Search curriculum").fill("hati-hati");
+  await expect(cards).toHaveCount(1);
+  await expect(cards.first()).toContainText(
+    "The intelligent & careful investor",
+  );
+  await cards.first().click();
+  await page
+    .getByRole("link", { name: "Start this course", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/learn\/11\.1$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Intelligent investing starts with temperament",
+  );
+});
 
 for (const course of courses) {
   test(`${course.id}: units, downloads, capstone practice, notebook, and worksheet`, async ({
@@ -114,7 +150,11 @@ for (const course of courses) {
             ? "Base value per share: 11.0625"
             : course.id === "algorithm-evaluation"
               ? "Report rubric total: 100"
-              : "Planned study hours: 12.0",
+              : course.id === "strategy-lab"
+                ? "Strategy rubric total: 100"
+                : course.id === "intelligent-investor"
+                  ? "Investor plan rubric total: 100"
+                  : "Planned study hours: 12.0",
     );
   });
 

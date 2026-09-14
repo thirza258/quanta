@@ -23,6 +23,8 @@ def test_source_archives_match_reviewed_project_and_exclude_local_state():
         ("news-to-markets", "news-analysis-pack.zip"),
         ("c-hpc-trading", "c-hpc-bot-lab.zip"),
         ("algorithm-evaluation", "algorithm-report-lab.zip"),
+        ("strategy-lab", "strategy-research-lab.zip"),
+        ("intelligent-investor", "careful-investor-workbook.zip"),
     ]:
         with ZipFile(ROOT / "frontend/public/course-assets" / slug / archive) as bundle:
             assert "README.md" in bundle.namelist()

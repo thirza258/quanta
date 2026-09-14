@@ -77,9 +77,9 @@ Edit course builders in `content/authoring/` and project originals in `content/p
 npm run content:build
 ```
 
-The catalog is generated once and consumed by both applications. Project downloads are copied or packaged into `frontend/public/course-assets/`. ZIP packaging includes only named source files, never dependencies, caches, data stores, or secrets. Generated files remain committed so a normal checkout builds without authoring tools.
+The catalog is generated once and consumed by both applications. Project downloads are copied or packaged into `frontend/public/course-assets/`. ZIP packaging includes only named source files, never dependencies, caches, data stores, or secrets. Generated files remain committed so a normal checkout builds without authoring tools. Catalog and download writers publish completed temporary files with atomic replacement, preventing readers from observing truncated files during regeneration. Complete generation before capturing a build snapshot across multiple assets.
 
-Course ordering is independent of stable lesson IDs. The news course appears after Security Analysis and uses new `8.x` IDs; the C/HPC bot course follows Python bots using `9.x` IDs. Older courses, saved exercises, and exam versions keep their existing identifiers. Displayed track labels follow catalog order.
+Course ordering is independent of stable lesson IDs. The news course appears after Security Analysis and uses new `8.x` IDs; the C/HPC bot course follows Python bots using `9.x` IDs. The careful-investor companion precedes Security Analysis with `11.x` IDs. Strategy Lab preserves `4.1`–`4.4` and their first exercise keys while expanding its final to version 2; prior attempts remain historical. Other courses and exam versions keep their existing identifiers. Displayed track labels follow catalog order.
 
 Algorithm evaluation/reporting closes the catalog with new `10.x` IDs. Its Python/Matplotlib report generator is a downloadable educational project under `content/projects/`, not a dependency of the running API or frontend. The generator accepts a language-independent valuation/timing export contract.
 

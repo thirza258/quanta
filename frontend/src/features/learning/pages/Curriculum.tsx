@@ -42,8 +42,9 @@ export default function Curriculum() {
       <div className="page-eyebrow">A CONNECTED CURRICULUM</div>
       <h1>Start with the basics. Build your perspective.</h1>
       <p className="page-subtitle">
-        One beginner course, then six specialist tracks. Learn the language of
-        markets before building your investment and research skills.
+        Explore {tracks.length} connected courses, from market fundamentals and
+        careful investing to company analysis, strategy research, and algorithm
+        evaluation.
       </p>
       <div className="catalog-toolbar">
         <div className="tabs">
@@ -85,7 +86,7 @@ export default function Curriculum() {
         <Sparkles size={20} />
         <p>
           <strong>Learning happens in the details.</strong> Each module includes
-          original reading, a worked example, a runnable Python template, and a
+          original reading, a worked example, a practical code worksheet, and a
           practice check. Course exams bring the ideas together with new
           scenarios, feedback, and retakes.
         </p>

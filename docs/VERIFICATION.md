@@ -1,3 +1,28 @@
+# Strategy Lab expansion and careful-investor prerequisite — September 14, 2026
+
+The rebuilt application at **http://127.0.0.1:8088** includes **The intelligent & careful investor** directly before Security Analysis (16 lessons, 8 planned study hours) and the expanded **Strategy Lab** (32 lessons, 16 hours). The catalog contains **12 courses, 300 lessons, 608 practice questions and 572 exam questions across 77 exams**. Algorithm Evaluation remains last. Both development and Docker API catalogs exactly match the canonical JSON.
+
+| Check | Result |
+| --- | --- |
+| TypeScript/Vite and Docker builds | Passed; all four Compose services healthy |
+| Frontend model/progression tests | 42 passed |
+| Backend API/domain/content/runtime tests | 536 passed, including all 276 Python worksheets and existing 24 C worksheets |
+| Final production browser checks | 23 passed in 1.5 minutes: course ordering/search, every new/expanded lesson, downloads, practice, notebook, completion persistence, server checkpoint/final grading, existing book courses, mobile cards and five sidebar sizes |
+| Development browser coverage | 32 of 33 applied-course scenarios passed initially; one worksheet-opening check overlapped content hot reload and passed on isolated rerun, alongside the new ordering/search scenario |
+| Strategy source archive | Eleven independent tests pass after extraction: cash/fees, next-open causality, future mutations, filings/revisions, momentum skip, liquidity, cash, ties, reconciliation, selection boundaries and malformed inputs |
+| Reporting interoperability | Actual selected test exports produce matching return/drawdown metrics through the final report project; HTML, Markdown, JSON, PNG and SVG created and the report/chart verified in a browser |
+| Compatibility | All ten other existing course objects remain identical; original Strategy Lab subjects and first-practice keys survive at 4.1–4.4; old version-1 finals remain historical and do not satisfy version 2 |
+| Content publication | All 32 catalog/download files regenerate identically from /tmp; concurrent reads observe complete files; served archives equal reviewed local bytes |
+| Authoring | Ruff and diff whitespace checks pass |
+
+An image refresh initially captured the catalog while the old generator was overwriting it, producing a truncated JSON file. Catalog and download publication now use temporary files followed by atomic replacement. Regeneration completed before the final image build; API startup and exact served-catalog equality pass. The related development hot reload interrupted one worksheet-opening test; its isolated rerun passes. No unresolved failures remain.
+
+Strategy Lab uses an original 90-session three-stock fixture and a standard-library Python engine. It implements equal-weight, value-quality and momentum portfolios; the selected rule's synthetic test export flows directly into the reporting course. Pairs/borrow execution, fitted ML, corporate actions, market impact and live adapters remain explicitly labeled extensions. Both courses have original cases, lesson references, downloadable notebooks and separate written capstone rubrics.
+
+Artifacts: `/tmp/quanta-careful-investor-mobile.png`, `/tmp/quanta-strategy-lab-mobile.png`, `/tmp/quanta-strategy-report-browser.png`, `/tmp/quanta-strategy-research-final/` and `/tmp/quanta-strategy-report-final/report.html`. Logs: `/tmp/quanta-investor-strategy-check-final.log`, `/tmp/quanta-courses-production-final.log`, `/tmp/quanta-course-recovery-browser.log`. Course scopes: [careful investor](INTELLIGENT_INVESTOR.md) and [Strategy Lab](STRATEGY_LAB_COURSE.md).
+
+---
+
 # Architecture, news analysis, C/HPC and final evaluation track — September 14, 2026
 
 The final application is available at **http://127.0.0.1:8088**, with healthy web, API, PostgreSQL and Redis services and the existing volumes retained. The development launcher is also running the reorganized applications at **http://127.0.0.1:5173**, with API port 8000. Both API catalogs exactly equal the shared generated content.

@@ -2,17 +2,20 @@
 
 import json
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 from c_hpc_course import build_c_hpc_trading
 from course_references import attach_references
 from econometrics_course import build_econometrics
 from evaluation_course import build_algorithm_evaluation
 from foundations import build_foundations
+from intelligent_investor import build_intelligent_investor
 from news_to_markets import build_news_to_markets
 from quantitative_analysis import build_quantitative_analysis
 from security_analysis import build_security_analysis
 from stock_bots import build_stock_bots
 from stock_ml_course import build_stock_ml
+from strategy_course import build_strategy_lab
 from track_exams import attach_exams
 from web3_course import build_web3
 
@@ -588,6 +591,7 @@ for index, expanded in [
     (0, build_security_analysis()),
     (1, build_quantitative_analysis()),
     (2, build_econometrics()),
+    (3, build_strategy_lab()),
     (4, build_stock_bots()),
     (5, build_web3()),
 ]:
@@ -603,6 +607,10 @@ catalog.append(build_stock_ml())
 catalog.insert(0, build_foundations())
 catalog.insert(2, build_news_to_markets())
 catalog.insert(
+    next(i for i, track in enumerate(catalog) if track["id"] == "security-analysis"),
+    build_intelligent_investor(),
+)
+catalog.insert(
     next(i for i, track in enumerate(catalog) if track["id"] == "stock-bots") + 1,
     build_c_hpc_trading(),
 )
@@ -610,4 +618,12 @@ catalog.append(build_algorithm_evaluation())
 attach_references(catalog)
 output = Path(__file__).resolve().parents[2] / "content/catalog/curriculum.json"
 output.parent.mkdir(exist_ok=True)
-output.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n")
+# Dev reloaders and image builders must see either the old or complete new catalog.
+with NamedTemporaryFile("w", encoding="utf-8", dir=output.parent, delete=False) as pending:
+    pending.write(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n")
+temporary = Path(pending.name)
+try:
+    temporary.chmod(0o644)
+    temporary.replace(output)
+finally:
+    temporary.unlink(missing_ok=True)

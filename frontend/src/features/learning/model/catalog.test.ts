@@ -87,10 +87,10 @@ describe("curriculum integrity", () => {
     }
   });
   it("resolves unique lessons to their parent tracks", () => {
-    expect(tracks).toHaveLength(11);
+    expect(tracks).toHaveLength(12);
     expect(tracks[0].id).toBe("trading-fundamentals");
-    expect(lessons).toHaveLength(256);
-    expect(new Set(lessons.map((l) => l.id)).size).toBe(256);
+    expect(lessons).toHaveLength(300);
+    expect(new Set(lessons.map((l) => l.id)).size).toBe(300);
     expect(findLesson("1.1")?.title).toBe("Foundations of Graham & Dodd");
     for (const lesson of lessons) {
       expect(findLesson(lesson.id)).toBe(lesson);
@@ -98,7 +98,7 @@ describe("curriculum integrity", () => {
     }
   });
   it("offers complete, uniquely identified exams and valid practice questions", () => {
-    expect(exams).toHaveLength(64);
+    expect(exams).toHaveLength(77);
     expect(new Set(exams.map((exam) => exam.id)).size).toBe(exams.length);
     for (const track of tracks) {
       expect(track.exams.filter((exam) => exam.kind === "final")).toHaveLength(

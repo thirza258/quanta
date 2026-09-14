@@ -266,15 +266,21 @@ class PaperBroker:
 
 ## 4. Comprehensive University & MBA Curriculum Syllabus
 
-The curriculum is structured across **6 Academic Tracks**, comprising **28 Chapters** and **114 Granular Sections**, matching the scope and depth of a two-year Master of Financial Engineering sequence.
+The current local curriculum contains **12 courses and 300 original lessons**. The detailed legacy chapter specifications below describe the original six-track roadmap; the current course expansions and implementation boundaries are recorded in this document and `docs/IMPLEMENTATION.md`. This is an educational learning sequence, not an accredited degree program.
 
 ```mermaid
-flowchart LR
-    T1["Track 1: CBS-FIN 601<br/>Security Analysis & Valuation"] --> T2["Track 2: MFE-STAT 501<br/>Statistical Foundations"]
-    T2 --> T3["Track 3: MFE-ECON 502<br/>Advanced Econometrics & Factors"]
-    T3 --> T4["Track 4: MFE-LAB 601<br/>The Quantitative Strategy Lab"]
-    T4 --> T5["Track 5: MFE-ENG 701<br/>Stock Bots & AI Systems"]
-    T5 --> T6["Track 6: MFE-CRYPTO 801<br/>Web3, DeFi & Crypto Bots"]
+flowchart TD
+    F["Trading & market fundamentals"] --> I["The intelligent & careful investor"]
+    I --> S["Security Analysis"]
+    S --> N["Financial news to company & stock analysis"]
+    N --> Q["Quantitative Investment Analysis"]
+    Q --> E["Financial econometrics & factor research"]
+    E --> L["The strategy lab"]
+    L --> B["Algorithmic & AI stock bots"]
+    B --> C["Algorithmic trading II: C & high-performance computing"]
+    C --> W["Web3, cryptography & coin creation"]
+    W --> M["Machine learning for stocks"]
+    M --> R["Algorithm evaluation & results reporting"]
 ```
 
 ---
@@ -2916,7 +2922,7 @@ $$r_{\text{borrow}, j}(t) = r_{\text{base}} + \alpha \cdot \exp\left( -\beta \fr
 
 ### Local course expansion: econometrics, coin creation, and stock ML
 
-The local learning catalog contains eleven courses, 256 lessons, 516 practice questions, and 480 exam questions across 64 assessments. This course release extends the existing platform and does not claim completion of every production capability in the broader roadmap.
+The local learning catalog contains twelve courses, 300 lessons, 608 practice questions, and 572 exam questions across 77 assessments. This course release extends the existing platform and does not claim completion of every production capability in the broader roadmap.
 
 | Course | Required implemented study scope | Assessment |
 | --- | --- | --- |
@@ -2957,3 +2963,12 @@ The last course in the learning sequence must teach learners to evaluate an algo
 Required topics: evaluation contracts, reproducible exports, aligned benchmarks, costs/flows, compounding/annualization, volatility/Sharpe/Sortino/tracking error, drawdown depth/duration, execution diagnostics, chronological holdouts, search/selection disclosure, uncertainty, parameter/regime/cost stress, C/HPC timing, readable figures, reconciled attribution, and a balanced executive decision.
 
 Ship a runnable reporting project accepting aligned dated no-flow net equity/benchmark valuations, a provenance/assumption manifest and optional paired timing CSV. Generate validated descriptive metrics as JSON, readable Markdown and printable HTML, plus standalone Matplotlib PNG/SVG wealth and drawdown charts. Include input/evaluator hashes, explicit undefined ratios, sample-size/selection/synthetic disclosures and a review-required conclusion. The report must distinguish measured analyses from proposed robustness work and computing speed from investment validity. Provide tests and a fictional independently calculated fixture; do not claim automatic deployment approval or standards certification. See [course scope](docs/ALGORITHM_EVALUATION.md).
+
+
+### Careful-investor prerequisite and expanded Strategy Lab — local learning release
+
+Add **The intelligent & careful investor** immediately before Security Analysis, after Trading Fundamentals. Provide 16 original lessons across four units (8 hours), two practice questions per lesson, four unit checkpoints, a 16-question final and a downloadable investor-policy workbook. Cover temperament, investment/speculation, defensive/enterprising approaches, market quotations, liquidity/risk capacity, inflation, diversification, margin of safety, allocation/rebalancing, fees, contribution rules, disclosures, incentives, fraud checks and a decision journal. Use original cases with book-theme attribution to Benjamin Graham’s *The Intelligent Investor*; label modern planning extensions and do not reproduce the book or publisher exercises. Use stable `11.x` lesson URLs; preserve the final algorithm-reporting track.
+
+Expand **Strategy Lab** from four short modules to 32 lessons across eight units (16 hours), 64 practice questions, eight checkpoints and a 32-question final. Cover research specifications, data availability/revisions, historical-universe and action policies, value/quality screens, momentum/reversal, pairs/cointegration, ML signals/nested validation, portfolio sizing/covariance, turnover/capacity, accounting, chronological selection, uncertainty, stress and a research dossier. Preserve subjects and first-practice keys for `4.1`–`4.4`, add `4.5`–`4.32`, and increase the expanded final to version 2 while retaining historical attempts.
+
+Provide a runnable offline standard-library Python project with an original synthetic multi-asset fixture. Implement equal-weight, value-quality and momentum candidates; available-filings selection; next-open fills; costs; whole-share/cash/prior-volume constraints; auditable signals/trades/positions; validation-only candidate selection; a later frozen test and cost/liquidity stresses. Export aligned net valuations and a manifest accepted by the final Algorithm Evaluation reporting project. Include independent arithmetic, causality, malformed-input and selection-boundary tests. Document reset boundaries, target-cap drift, benchmark conventions, synthetic evidence and every omitted execution feature. Pairs/short borrowing, trained ML, actions, impact and live market adapters remain explicit extension work rather than implied capabilities.
