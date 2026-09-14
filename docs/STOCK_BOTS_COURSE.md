@@ -29,7 +29,7 @@ The added `/course-assets/research/quant_research_lab.py` implements actual OLS/
 
 ## Source attribution and layout
 
-`scripts/course_references.py` attaches named references to every course and lesson, preserving any lesson-specific links. `PageReferences` selects the current lesson/course sources for lessons, courses, and exams, and appropriate general or tool references for other routes, including the not-found page. The library exposes all cited publications, source-use guidance, independent-project attribution, and third-party software notices. Referenced book passages and question sets are not bundled.
+`content/authoring/course_references.py` attaches named references to every course and lesson, preserving any lesson-specific links. `PageReferences` selects the current lesson/course sources for lessons, courses, and exams, and appropriate general or tool references for other routes, including the not-found page. The library exposes all cited publications, source-use guidance, independent-project attribution, and third-party software notices. Referenced book passages and question sets are not bundled.
 
 `python3 scripts/third_party_notices.py` collects installed production dependency license/notice files after `npm ci`; the chart package's release notice is included explicitly because its npm distribution omits that file. TradingView's chart logo/link remains enabled. This work provides attribution and preserves supplied notices; it is not a legal clearance of every possible future use.
 
@@ -38,7 +38,7 @@ Course cards use responsive columns, readable text, flexible descriptions, align
 ## Authoring and validation
 
 ```sh
-python3 scripts/curriculum.py
+python3 content/authoring/curriculum.py
 python3 scripts/third_party_notices.py
 python3 public/course-assets/stock-bots/paper_bot_lab.py
 npm test
@@ -46,4 +46,4 @@ npm run test:api
 TEST_URL=http://127.0.0.1:8088 npm run test:e2e
 ```
 
-The shared catalog now contains 192 lessons, 388 practice questions, and 352 exam questions across 45 assessments. See [verification evidence](VERIFICATION.md) for the checks actually run.
+The shared catalog now contains 216 lessons, 436 practice questions, and 400 exam questions across 52 assessments. See [verification evidence](VERIFICATION.md) for the checks actually run.

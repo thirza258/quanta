@@ -6,7 +6,10 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-path = Path(__file__).resolve().parents[2] / "public/course-assets/research/quant_research_lab.py"
+path = (
+    Path(__file__).resolve().parents[2]
+    / "frontend/public/course-assets/research/quant_research_lab.py"
+)
 spec = importlib.util.spec_from_file_location("research_lab", path)
 lab = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(lab)

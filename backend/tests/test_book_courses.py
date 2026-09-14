@@ -3,8 +3,8 @@
 import re
 
 import pytest
-from quanta.main import LESSONS
-from quanta.runner import run
+from quanta.domain.catalog import LESSONS
+from quanta.execution.runner import run
 
 
 def worksheet(lesson_id):

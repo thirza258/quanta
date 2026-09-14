@@ -17,3 +17,8 @@ artifacts/
 backend/storage/
 backend/data/
 *.tsbuildinfo
+content/projects/c-hpc-trading/quanta-bot
+content/projects/c-hpc-trading/quanta-test
+content/projects/c-hpc-trading/quanta-sanitize
+content/projects/algorithm-evaluation/.venv/
+content/projects/algorithm-evaluation/report-output/

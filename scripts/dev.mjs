@@ -1,6 +1,10 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { createServer } from "node:net";
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
+const root = fileURLToPath(new URL("..", import.meta.url));
+process.chdir(root);
 const python =
   process.platform === "win32"
     ? "backend/.venv/Scripts/python.exe"
@@ -47,6 +51,10 @@ const api = spawn(
     "--reload",
     "--reload-dir",
     "backend/quanta",
+    "--reload-dir",
+    "content/catalog",
+    "--reload-include",
+    "*.json",
     "--host",
     "127.0.0.1",
     "--port",
@@ -92,14 +100,14 @@ if (!healthy) {
   web = spawn(
     "node",
     [
-      "node_modules/vite/bin/vite.js",
+      resolve(root, "node_modules/vite/bin/vite.js"),
       "--host",
       "127.0.0.1",
       "--port",
       String(webPort),
       "--strictPort",
     ],
-    { stdio: "inherit", env },
+    { stdio: "inherit", env, cwd: resolve(root, "frontend") },
   );
   web.on("exit", (code) => {
     if (!closing) close(code || 0);

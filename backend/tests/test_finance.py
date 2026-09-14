@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from quanta.analytics import (
+from quanta.domain.analytics import (
     AmmRequest,
     DatasetParams,
     ValuationRequest,
@@ -15,9 +15,9 @@ from quanta.analytics import (
     summarize,
     valuation,
 )
-from quanta.broker import BrokerState, OrderRequest, place
-from quanta.econometrics import FactorRequest, PortfolioRequest, factor_model, portfolio
-from quanta.runner import ExecutionError, run
+from quanta.domain.broker import BrokerState, OrderRequest, place
+from quanta.domain.econometrics import FactorRequest, PortfolioRequest, factor_model, portfolio
+from quanta.execution.runner import ExecutionError, run
 
 
 @pytest.mark.parametrize("model", ["gbm", "merton", "heston", "regime"])
@@ -158,12 +158,14 @@ def test_portfolio_constraints():
     assert result["volatility"] > 0
 
 
-CATALOG = json.loads((Path(__file__).resolve().parents[2] / "src/data/curriculum.json").read_text())
-LESSONS = [m for t in CATALOG for m in t["modules"]]
+CATALOG = json.loads(
+    (Path(__file__).resolve().parents[2] / "content/catalog/curriculum.json").read_text()
+)
+LESSONS = [m for t in CATALOG for m in t["modules"] if m.get("codeLanguage", "python") == "python"]
 
 
 @pytest.mark.parametrize("lesson", LESSONS, ids=[lesson["id"] for lesson in LESSONS])
-def test_every_lesson_template_runs(lesson):
+def test_every_python_lesson_template_runs(lesson):
     bars = generate(DatasetParams(years=1))
     result = run(lesson["code"], strategy_data(bars, 50))
     assert len(result["signals"]) == 252

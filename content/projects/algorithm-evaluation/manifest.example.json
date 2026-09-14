@@ -1,0 +1,16 @@
+{
+  "strategy": "Fictional Cedar algorithm reporting fixture",
+  "source_version": "teaching-fixture-v1",
+  "data_source": "Original synthetic monthly valuations; no external cash flows",
+  "benchmark": "Fictional aligned benchmark, initial wealth 10000",
+  "frequency": "monthly valuations on the first of each month",
+  "periods_per_year": 12,
+  "annual_risk_free": 0.03,
+  "equity_basis": "net_of_modelled_costs",
+  "cost_model": "Equity already net of illustrative fees/slippage; impact, taxes and borrow omitted",
+  "evaluation_split": "synthetic",
+  "selection_runs": 64,
+  "test_used_for_selection": false,
+  "hardware": "Illustrative paired timing fixture; replace with actual CPU/OS/thread count",
+  "build_flags": "Illustrative -O2 C17; replace with actual compiler/version/flags"
+}

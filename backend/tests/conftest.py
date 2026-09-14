@@ -13,7 +13,7 @@ os.environ["QUANTA_DATA_DIR"] = f"{_tmp.name}/data"
 os.environ.pop("REDIS_URL", None)
 os.environ["QUANTA_SANDBOX"] = "guided"
 from fastapi.testclient import TestClient
-from quanta.limits import limiter
+from quanta.core.limits import limiter
 from quanta.main import app
 
 

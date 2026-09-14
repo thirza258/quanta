@@ -7,7 +7,7 @@ The expanded courses are available at `/curriculum/security-analysis` and `/curr
 | Security Analysis | 24 | 7 book parts + 1 extension | 48 | 4 × 4 questions | 24 |
 | Quantitative Investment Analysis | 28 | 14 book chapters | 56 | 4 × 4 questions | 28 |
 
-Both courses contain original explanations and fictional cases. Each lesson supplies an objective, reading connection, worked example, equation, runnable Python worksheet, two practice items, and a written task with a collapsible worked solution. Notebook assignments are prefilled with the task and space for evidence, assumptions, and a decision. The overall catalog now contains 192 lessons, 388 practice questions, and 352 exam questions across 45 assessments.
+Both courses contain original explanations and fictional cases. Each lesson supplies an objective, reading connection, worked example, equation, runnable Python worksheet, two practice items, and a written task with a collapsible worked solution. Notebook assignments are prefilled with the task and space for evidence, assumptions, and a decision. The overall catalog now contains 216 lessons, 436 practice questions, and 400 exam questions across 52 assessments.
 
 ## Reading references
 
@@ -35,12 +35,12 @@ The displayed minutes estimate guided in-app study. Reading the source books, co
 
 ## Authoring and verification
 
-Authoritative course sources are `scripts/security_analysis.py`, `scripts/quantitative_analysis.py`, and shared helpers in `scripts/book_courses.py`. Regenerate the client/server catalog with:
+Authoritative course sources are `content/authoring/security_analysis.py`, `content/authoring/quantitative_analysis.py`, and shared helpers in `content/authoring/book_courses.py`. Regenerate the client/server catalog with:
 
 ```sh
-python3 scripts/curriculum.py
+python3 content/authoring/curriculum.py
 ```
 
-The generator preserves legacy first questions from the original catalog definitions. Both the frontend and API consume the generated `src/data/curriculum.json`; restart or rebuild the API after catalog changes. Production Compose builds include the catalog in both images.
+The generator preserves legacy first questions from the original catalog definitions. Both the frontend and API consume the generated `content/catalog/curriculum.json`; restart or rebuild the API after catalog changes. Production Compose builds include the catalog in both images.
 
 Verification includes catalog integrity, all lesson templates in the restricted guided runtime, golden capstone arithmetic, all practice keys, exact exam thresholds, stale-version rejection, browser reading/assignment/quiz/exam persistence, unit continuation, mobile layout, and mathematical rendering across all 52 expanded lessons. See [verification results](VERIFICATION.md).

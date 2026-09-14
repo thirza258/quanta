@@ -1,6 +1,6 @@
 # Quanta
 
-A focused investment learning workspace built from [PRD.md](PRD.md). This implementation prioritizes a **usable local platform with a beginner course and all six specialist tracks**, with a Docker deployment that includes the web app, API, PostgreSQL, and Redis.
+A focused investment learning workspace built from [PRD.md](PRD.md). The local platform has **eleven courses spanning market fundamentals, investment analysis, news, econometrics, Python and C/HPC bots, Web3, stock machine learning, and a final algorithm evaluation/reporting track**, with a Docker deployment that includes the web app, API, PostgreSQL, and Redis.
 
 ## Run with Docker
 
@@ -37,7 +37,7 @@ For a public deployment, set a strong alphanumeric `POSTGRES_PASSWORD` **before 
 
 ## Run locally
 
-Node 22+ and Python 3.14 are the tested runtimes.
+Node 22+ and Python 3.14 are the tested runtimes. Course verification and the downloadable C/HPC lab also require a local C17 compiler (`cc`) and make; see the [C course build guide](content/projects/c-hpc-trading/README.md).
 
 ```sh
 npm run setup
@@ -50,18 +50,22 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 
 ## What works
 
-- Eight courses and 192 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
-- Forty-five open-book assessments with 352 original exam questions, including four checkpoints and a new final for each expanded book course.
+- Eleven courses and 256 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
+- Sixty-four open-book assessments with 480 original exam questions, including four checkpoints and a new final for each expanded book course.
 - **[Security Analysis](docs/BOOK_COURSES.md)**: 24 lessons following the 1940 book’s seven parts, separate modern extensions, 48 practice questions, and an investment committee capstone.
+- **[Financial news to company & stock analysis](docs/NEWS_COURSE.md)**: 24 lessons immediately after Security Analysis, 12 hours of guided study, 48 practice questions, six checkpoints, and a final. Includes earnings, macro releases, rupiah/Bank Indonesia, commodity shocks, valuation, source verification, and a downloadable research memo pack.
 - **[Quantitative Investment Analysis](docs/BOOK_COURSES.md)**: 28 lessons mapped to all 14 chapters of the fourth edition, 56 practice questions, and a reproducible research capstone. Both courses include reading plans, original worked cases, mathematical notation, executable worksheets, and notebook assignments with worked solutions.
 - **[Algorithmic & AI stock bots](docs/STOCK_BOTS_COURSE.md)**: 48 lessons in twelve units, 96 practice questions, eleven checkpoints, a 48-question final, and a downloadable Python project with durable paper accounting, a small trained ridge model, and AI evidence-validation fixtures.
+- **[Algorithmic trading II: C & high-performance computing](docs/C_HPC_COURSE.md)**: 24 lessons / 12 hours after the Python bot course, with 24 compiled C worksheets, a C editor, local downloads, six checkpoints and a final. The complete C/POSIX project includes a causal integer-cent ledger, deterministic serial/parallel sweeps, repeated timing and sanitizer tests; lessons also cover cache layout, SIMD, OpenMP, GPU and distributed design.
 - **[Financial econometrics](docs/APPLIED_COURSES.md)**: 32 lessons covering OLS, robust inference, time series, volatility, factors, panel data, and causal designs, with actual local regression and cointegration projects.
 - **[Web3, cryptography & coin creation](docs/APPLIED_COURSES.md)**: 24 lessons and complete downloadable native-coin and ERC-20 projects, including signatures, Merkle proofs, atomic validation, local Solidity deployment, and supply/allowance tests.
 - **[Machine learning for stocks](docs/APPLIED_COURSES.md)**: 24 thirty-minute lessons (12 hours of study and lab work) across the full data-to-monitoring lifecycle, with real ridge/forest/logistic training, held-out evaluation, saved pipelines, and batch inference.
+- **[Algorithm evaluation & results reporting](docs/ALGORITHM_EVALUATION.md)** is the final track: 16 lessons / 8 hours, 32 practice questions, four checkpoints and a final. Its downloadable project produces JSON, Markdown, HTML, PNG and SVG results with net returns, benchmark comparison, risk, descriptive block uncertainty, C/HPC timing, provenance and a separate report rubric.
 - Named references on every lesson and a shared source footer across all page types, a complete reference library, source-use guidance, and bundled dependency notices. Course cards wrap long text and use an open-book illustration.
 - Untimed, open-book exams with exact pass thresholds, saved drafts, answer navigation, pre-submission review, explanations, topic-specific lesson links, retakes, and attempt history. Course progress includes both lesson completion and exam passes.
 - Online grading, account-owned submission logs, idempotent retries, and device grading when the API is unavailable. Existing lesson IDs and workspace progress remain compatible.
 - Reading, split-pane, and full sandbox views; locally bundled Monaco Python editor with Cmd/Ctrl+Enter execution.
+- C lessons use a locally bundled C editor with saved drafts, reset, source download, expected-output reference and local compile commands. They do not send C to the Python runtime.
 - Guest persistence and email/password accounts with Argon2 hashing, HttpOnly JWT session cookies, revocation, version-checked workspace sync, and recovery of unsynced drafts.
 - Research notes, search, experiment snapshots, JSON/Markdown exports, responsive navigation, and persistent dark/light themes.
 - Seeded GBM, Merton jump-diffusion, Heston variance, and Markov regime-switching paths; crash, stagflation, liquidity-crisis, random-walk, and flash-crash scenarios.
@@ -110,7 +114,7 @@ docker build -f backend/Dockerfile.sandbox -t quanta-sandbox:local .
 QUANTA_SANDBOX=docker npm run dev
 ```
 
-Each run starts a disposable non-root container with no network, a read-only root, no host mounts, dropped capabilities, 256 MiB RAM, a PID cap, and a two-second student-code alarm. Image startup/imports have a separate 15-second outer watchdog. The worker reuses the API image’s locked scientific packages. Set the build argument `QUANTA_API_IMAGE` if your API image uses a different tag. Large scientific workloads can exceed the memory cap. The container is the isolation boundary; the import/AST checks are defense in depth. Run `backend/.venv/bin/python scripts/test_native.py` to exercise the native worker and its rejection paths. The app’s standard Compose deployment does **not** mount a Docker socket. A production unrestricted-code service needs a separately operated hardened execution host (for example gVisor), authentication, queueing, and infrastructure review.
+Each run starts a disposable non-root container with no network, a read-only root, no host mounts, dropped capabilities, 256 MiB RAM, a PID cap, and a two-second student-code alarm. Image startup/imports have a separate 15-second outer watchdog. The worker reuses the API image’s locked scientific packages. Set the build argument `QUANTA_API_IMAGE` if your API image uses a different tag. Large scientific workloads can exceed the memory cap. The container is the isolation boundary; the import/AST checks are defense in depth. Run `backend/.venv/bin/python backend/scripts/test_native.py` to exercise the native worker and its rejection paths. The app’s standard Compose deployment does **not** mount a Docker socket. A production unrestricted-code service needs a separately operated hardened execution host (for example gVisor), authentication, queueing, and infrastructure review.
 
 ## Import historical data
 
@@ -125,14 +129,14 @@ time,open,high,low,close,volume
 Locally:
 
 ```sh
-backend/.venv/bin/python scripts/import_data.py prices.csv SPY
+backend/.venv/bin/python backend/scripts/import_data.py prices.csv SPY
 ```
 
 Docker:
 
 ```sh
 docker compose cp prices.csv api:/tmp/prices.csv
-docker compose exec api python scripts/import_data.py /tmp/prices.csv SPY
+docker compose exec api python backend/scripts/import_data.py /tmp/prices.csv SPY
 ```
 
 Refresh the sandbox and choose **Historical data → SPY**. Existing symbols are not overwritten. Imported data must supply its own corporate-action treatment, historical universe, and availability timestamps. The importer does not claim to resolve survivorship bias or provide the PRD’s complete historical SEC/funding datasets.
@@ -144,7 +148,7 @@ Interactive API documentation is at `/docs` on the development API URL. The publ
 | Method | Route | Purpose |
 | --- | --- | --- |
 | GET | `/api/v1/health` | API/database/Redis readiness |
-| GET | `/api/v1/courses` | Beginner course and six specialist tracks, including exams |
+| GET | `/api/v1/courses` | Beginner course and eight specialist tracks, including exams |
 | POST | `/api/v1/auth/register`, `/login`, `/logout` | Account lifecycle (same `/auth` prefix) |
 | GET/POST/PUT | `/api/v1/simulator/...` | [Persistent trading account, observed prices, orders, replay, preferences, and journals](docs/SIMULATOR.md#http-interface) |
 | GET | `/api/v1/auth/me` | Current session profile |
@@ -178,12 +182,14 @@ See [verification results](docs/VERIFICATION.md) for the checks performed during
 
 ## Development map
 
-- `src/components/`: reading room, dashboard, notebook, sandbox and research tools.
-- `src/lib/`: typed API, curriculum lookup, and persistent workspace state.
-- `src/data/curriculum.json`: shared course catalog.
-- `scripts/curriculum.py`, `scripts/foundations.py`, `scripts/track_exams.py`: original curriculum sources; regenerate with `python3 scripts/curriculum.py` (works from any working directory).
-- `backend/quanta/`: API, account/database state, analytics, execution workers, data import support, and mock broker.
-- `backend/tests/`, `e2e/`: numerical/API and browser integration tests.
-- `compose.yaml`, `Dockerfile`, `backend/Dockerfile`, `deploy/nginx.conf`: deployment.
+```text
+frontend/  React app, feature modules, browser tests, assets, Vite, and web image
+backend/   API routes, services, domain rules, database, execution, and API tests
+content/   Original course builders, canonical catalog, and project sources
+scripts/   Root development launcher
+docs/      Architecture, course scope, and verification evidence
+```
+
+See [architecture](docs/ARCHITECTURE.md), [frontend development](frontend/README.md), and [backend development](backend/README.md). Root npm commands coordinate an npm workspace with dependencies declared in `frontend/package.json` and one root lockfile. Run `npm run content:build` after editing courses or downloadable projects. Compose builds `frontend/Dockerfile` and `backend/Dockerfile` with their shared content.
 
 Implementation references: [FastAPI authentication](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/), [Vite](https://vite.dev/guide/), and [Lightweight Charts](https://tradingview.github.io/lightweight-charts/docs/series-types). Charts retain TradingView attribution. Fonts, Monaco, and math assets are served locally; the application needs no third-party CDN at runtime.

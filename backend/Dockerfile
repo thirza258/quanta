@@ -8,8 +8,8 @@ RUN pip install --no-cache-dir -r requirements.lock \
     && useradd --uid 10001 --gid quanta --no-create-home --shell /usr/sbin/nologin quanta \
     && mkdir -p /app/storage /app/data && chown -R quanta:quanta /app/storage /app/data
 COPY --chown=quanta:quanta backend/quanta ./backend/quanta
-COPY --chown=quanta:quanta src/data/curriculum.json ./src/data/curriculum.json
-COPY --chown=quanta:quanta scripts/import_data.py ./scripts/import_data.py
+COPY --chown=quanta:quanta content/catalog/curriculum.json ./content/catalog/curriculum.json
+COPY --chown=quanta:quanta backend/scripts/import_data.py ./backend/scripts/import_data.py
 USER 10001:10001
 EXPOSE 8000
 HEALTHCHECK --interval=20s --timeout=5s CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)" || exit 1

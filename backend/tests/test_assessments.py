@@ -1,7 +1,7 @@
 import uuid
 
 import pytest
-from quanta.main import EXAMS, LESSONS
+from quanta.domain.catalog import EXAMS, LESSONS
 from test_api import signup
 
 

@@ -1,3 +1,39 @@
+# Architecture, news analysis, C/HPC and final evaluation track — September 14, 2026
+
+The final application is available at **http://127.0.0.1:8088**, with healthy web, API, PostgreSQL and Redis services and the existing volumes retained. The development launcher is also running the reorganized applications at **http://127.0.0.1:5173**, with API port 8000. Both API catalogs exactly equal the shared generated content.
+
+The repository now separates `frontend/`, `backend/` and `content/`. Frontend application composition, feature models/hooks/pages/components and shared utilities are separate. Backend HTTP routes, services, domain rules, persistence, configuration and isolated execution are separate. All eight previous course objects remain identical as JSON data, preserving their lesson URLs, first-practice keys and exam versions.
+
+Three courses were added: news-to-company/stock analysis after Security Analysis (24 lessons, 12 hours); C and high-performance algorithmic trading after Python bots (24 lessons, 12 hours); and algorithm evaluation/results reporting as the final track (16 lessons, 8 hours). The catalog now has **11 courses, 256 lessons, 516 practice questions and 480 exam questions across 64 exams**. Sources accompany every course/lesson and the shared page footer.
+
+| Check | Result |
+| --- | --- |
+| TypeScript/Vite build | Passed locally and in the final Docker web build |
+| Frontend model/progression/simulator tests | 38 passed |
+| Backend API/domain/content/runtime tests | 469 passed; subsequent reporting/download recheck: 5 passed |
+| Guided Python worksheets | All 232 templates execute in the restricted runtime |
+| C17 worksheets | All 24 compile with warnings treated as errors and reproduce their expected output |
+| C/POSIX download | Extracted, compiled and tested; golden causal ledger, risk/bounds rejection, seed identity, 1–32 requested workers and atomic result publication pass |
+| C sanitizers | AddressSanitizer + UndefinedBehaviorSanitizer project target passes |
+| C/HPC measurement | 200,000 bars × 64 windows, five paired repetitions, four workers: exact equality in every run; observed speedups approximately 3.56–3.78× on this Mac, not a portable performance guarantee |
+| Reporting download | Nine independent project checks pass; actual JSON/Markdown/HTML/PNG/SVG generation verified with Python 3.14 and Matplotlib 3.11.2 |
+| Browser regression | All 68 scenarios verified on the final app: 67 passed in the full run; both lost-response recovery variants passed twice after narrowing an ambiguous test alert selector (4 rechecks, 17.1 seconds) |
+| Sidebar and course cards | Bounds, scrollable navigation, reachable search/account controls, mobile inert state and card footer spacing verified; 375px-high landscape and 390px-wide portrait cases pass |
+| Native scientific worker | Rebuilt after relocation; numerical execution, forbidden import, timeout and memory-limit checks pass |
+| Existing ML and coin projects | Nine ML lifecycle checks, six native-chain checks and real local ERC-20 compile/deploy/transfer/allowance/conservation checks pass after relocation |
+| Content ownership | All 26 catalog/download files regenerate identically from `/tmp`; served C/report archives equal the reviewed source packages |
+| Authoring | Ruff, formatting and diff whitespace checks pass |
+
+The first full browser run exposed global CSS overriding the course card's bottom padding and a mobile test clicking the covered center of the navigation backdrop. Loading course overrides after the global baseline restores the spacing; the test now clicks the visible backdrop. Both fixes passed the 64-scenario regression run. C lessons now load a C editor with saved drafts, explicit reset, source download and local compiler instructions; no C is submitted to the Python sandbox.
+
+The final 68-scenario run found one test selecting every page alert when a workspace synchronization warning and an exam submission error were both present. The assertion now targets the exam panel. Both lost-response scenarios, including preservation of later edits and server attempt history, passed twice against the same final application. No unresolved verification failures remain.
+
+Independent reporting fixture: strategy return **10%**, benchmark **8%**, cumulative difference **2 percentage points**, maximum drawdown **6.6667%** and illustrative paired timing median **3×**. HTML shows the metrics, complete wealth/drawdown figure, assumptions, source hashes, references and a review-required conclusion. The report generator does not automatically certify strategy quality or run every proposed robustness analysis. C's optional GPU/OpenMP/distributed/gateway exercises remain explicitly distinguished from its runnable CPU/POSIX implementation.
+
+Reviewed artifacts include `/tmp/quanta-report-course-final.png`, `/tmp/quanta-c-course-production.png`, `/tmp/quanta-c-editor-production.png`, `/tmp/quanta-c-editor-mobile.png`, `/tmp/quanta-sidebar-mobile-landscape.png`, and the actual report at `/tmp/quanta-evaluation-report/report.html`. Detailed scopes: [architecture](ARCHITECTURE.md), [news](NEWS_COURSE.md), [C/HPC](C_HPC_COURSE.md), [final evaluation course](ALGORITHM_EVALUATION.md).
+
+---
+
 # Applied courses and 12-hour stock ML — September 14, 2026
 
 The rebuilt application runs at **http://127.0.0.1:8088** with healthy web, API, PostgreSQL, and Redis services. Existing data volumes were retained.
@@ -24,7 +60,7 @@ The dedicated ML course has **24 lessons × 30 minutes = 720 minutes / 12 hours*
 
 The native coin baseline reconciles balances **910/100** and supply **1,010** after its first block, with a **1,100** cap. Tests cover signatures, wrong domains, Merkle proofs, replay, insufficient funds, atomic rejection, forged headers/work/rewards, independent replay, and state isolation. The ERC-20 creates **1,000,000 whole tokens** on an in-process EVM; its main fixture gives a recipient **110 tokens** and finite remaining allowance **15**, followed by additional conservation steps. No public chain, token sale, exchange pool, or broker authority is created.
 
-Manual screenshots reviewed: `/tmp/quanta-ml-course-desktop.png`, `/tmp/quanta-ml-course-mobile.png`, `/tmp/quanta-web3-course-mobile.png`, and `/tmp/quanta-expanded-amm-final.png`. New neural-network artwork and the retained crypto illustration render; mobile course content stays within the viewport. The source footer continues across all page types. The current catalog contains **192 lessons, 388 practice questions, and 352 exam questions across 45 assessments**. See [course scope](APPLIED_COURSES.md) for exact study/project boundaries and commands.
+Manual screenshots reviewed: `/tmp/quanta-ml-course-desktop.png`, `/tmp/quanta-ml-course-mobile.png`, `/tmp/quanta-web3-course-mobile.png`, and `/tmp/quanta-expanded-amm-final.png`. New neural-network artwork and the retained crypto illustration render; mobile course content stays within the viewport. The source footer continues across all page types. At that release, the catalog contained **192 lessons, 388 practice questions, and 352 exam questions across 45 assessments**. See [course scope](APPLIED_COURSES.md) for exact study/project boundaries and commands.
 
 ---
 
@@ -128,7 +164,7 @@ Reference desktop: **Apple M2 Pro, 10 CPU cores, 16 GiB memory, Darwin 25.6.0**,
 
 Maximum acknowledgement was 114.9 ms; maximum sampled frame interval was 16.8 ms. Both targets were met for this documented local sample. Frame intervals measure browser scheduling during chart input; this is not a production concurrency test or a guarantee across devices. The headless browser reported no page errors.
 
-Reproduce with `TEST_URL=http://127.0.0.1:8088 node scripts/benchmark-simulator.mjs`. The script creates an isolated guest run and writes `artifacts/simulator-performance.json` and `artifacts/simulator-5000-bars.png`.
+Reproduce with `TEST_URL=http://127.0.0.1:8088 node frontend/scripts/benchmark-simulator.mjs`. The script creates an isolated guest run and writes `artifacts/simulator-performance.json` and `artifacts/simulator-5000-bars.png`.
 
 Historical data still requires an installed import. Corporate-action treatment is explicitly undeclared for existing imports; prices are used as supplied and no split/dividend adjustments are added by the engine. The guide documents immediate settlement, weekday-only synthetic sessions, fees, FIFO volume sharing, and replay fill timing. Live feeds, Level 2, margin/shorts, bots, and bracket/OCO orders remain the PRD’s subsequent releases.
 

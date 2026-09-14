@@ -6,10 +6,13 @@ from pathlib import Path
 from threading import Barrier
 
 import pytest
-from quanta.main import LESSONS
-from quanta.runner import run
+from quanta.domain.catalog import LESSONS
+from quanta.execution.runner import run
 
-LAB_PATH = Path(__file__).resolve().parents[2] / "public/course-assets/stock-bots/paper_bot_lab.py"
+LAB_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "frontend/public/course-assets/stock-bots/paper_bot_lab.py"
+)
 spec = importlib.util.spec_from_file_location("paper_bot_lab", LAB_PATH)
 lab = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(lab)

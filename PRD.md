@@ -2916,7 +2916,7 @@ $$r_{\text{borrow}, j}(t) = r_{\text{base}} + \alpha \cdot \exp\left( -\beta \fr
 
 ### Local course expansion: econometrics, coin creation, and stock ML
 
-The local learning catalog contains eight courses, 192 lessons, 388 practice questions, and 352 exam questions across 45 assessments. This course release extends the existing platform and does not claim completion of every production capability in the broader roadmap.
+The local learning catalog contains eleven courses, 256 lessons, 516 practice questions, and 480 exam questions across 64 assessments. This course release extends the existing platform and does not claim completion of every production capability in the broader roadmap.
 
 | Course | Required implemented study scope | Assessment |
 | --- | --- | --- |
@@ -2930,3 +2930,30 @@ Each applied lesson includes an objective, original explanation, worked case, eq
 Downloadable acceptance artifacts must include (1) actual quantitative estimation and transparent advanced execution fixtures, (2) a native coin with cryptographic signatures, Merkle commitments, nonces, atomic block acceptance, capped issuance and adverse tests, (3) a fixed-supply ERC-20 compiled/deployed/tested in a local EVM, and (4) a stock-ML lifecycle producing a cleaning audit, purged date partitions, real regression/classification fits, held-out metrics, persisted pipelines, model card, and inference without future outcomes. Source-only archives must match reviewed files and exclude installed packages, private keys, and run state.
 
 Existing module IDs and legacy first-practice keys remain valid. Expanded exam versions reject incompatible submissions while retaining historical attempts. Course completion requires the current assessments; written/project capstones remain separately self-assessed. All coin creation and model execution are local teaching exercises; public-chain launches, live brokerage authority, and unimplemented advanced ML extensions are not implied by an exam pass. See [applied course scope](docs/APPLIED_COURSES.md) and [verification evidence](docs/VERIFICATION.md).
+
+
+## News interpretation course and application organization
+
+The next course after Security Analysis is **Financial news to company & stock analysis**. It provides 24 lessons and twelve hours of guided reading, arithmetic, and written research across source verification, expectations, company disclosures, macroeconomic releases, Indonesia/rupiah exposure, industry transmission, valuation, market reactions, and a repeatable evidence-led memo workflow. It includes 48 practice questions, six checkpoints, a 24-question final, references for every lesson, and a downloadable fictional case packet, memo rubric, bilingual glossary, and Python calculation. See [detailed course scope](docs/NEWS_COURSE.md). This is an educational course; live news ingestion and automated event trading are separate roadmap capabilities.
+
+The repository separates `frontend/`, `backend/`, and shared `content/`. The frontend uses application, feature, and shared modules; the backend separates HTTP routes, use-case services, domain rules, database sessions/models, shared configuration, and isolated execution. Root development, test, and Compose commands remain available. Stable lesson IDs, API endpoints, account state, and data volumes are preserved. See [architecture](docs/ARCHITECTURE.md).
+
+The application sidebar must remain within the visible viewport on short desktop windows and mobile landscape screens. Its navigation scrolls independently while search/account controls remain reachable; closed mobile navigation must not receive keyboard focus.
+
+### Algorithmic trading II: C and high-performance computing
+
+Place this second bot course directly after the Python Algorithmic & AI stock bots course, preserving all existing lesson URLs and assessment versions. Provide 24 C17 lessons in six units, 720 minutes of planned reading/lab/assignment work, 48 practice questions, six unit checkpoints and a 24-question final. Every lesson requires original worked material, a compilable C worksheet, assignment/solution and named primary references.
+
+The six units cover C/compiler/numeric/ownership foundations; data validation, memory layout and causal event loops; profiling, distributions, speedup limits and diagnostics; POSIX parallel sweeps, synchronization, deterministic collection and OpenMP design; SIMD, GPU transfer/roofline models, distributed manifests and bounded queues; then risk, replay, operational limits and a reproducible capstone. HPC must include actual parallel CPU work with output equality checks and repeatable measurements.
+
+The downloadable reference must build with C17 and POSIX threads on macOS/Linux/WSL, use integer cents with checked bounds, fill close-based signals only at the next open, preserve rejected accounts, and compare all serial/parallel result fields. Include independent golden fixtures, invalid-input checks, an AddressSanitizer/UndefinedBehaviorSanitizer target, five paired benchmark repetitions, build documentation and a capstone rubric. No Python is required by this learner project.
+
+C lesson pages must provide an editable saved C draft, reset, `.c` download, expected template output, local compilation instructions and the full project archive. C must not be submitted to the Python-only research runtime. OpenMP/SIMD ports, GPU kernels, multi-machine deployment and live gateways are learner extensions; the provided implementation is a CPU C/POSIX research project. See [detailed scope](docs/C_HPC_COURSE.md).
+
+### Final track: algorithm evaluation and results reporting
+
+The last course in the learning sequence must teach learners to evaluate an algorithm and produce a defensible report, applicable to Python, C/HPC and ML strategies. Provide 16 thirty-minute lessons in four units, 32 practice questions, four checkpoints and a 16-question final, with a separate capstone report rubric and primary references on every lesson.
+
+Required topics: evaluation contracts, reproducible exports, aligned benchmarks, costs/flows, compounding/annualization, volatility/Sharpe/Sortino/tracking error, drawdown depth/duration, execution diagnostics, chronological holdouts, search/selection disclosure, uncertainty, parameter/regime/cost stress, C/HPC timing, readable figures, reconciled attribution, and a balanced executive decision.
+
+Ship a runnable reporting project accepting aligned dated no-flow net equity/benchmark valuations, a provenance/assumption manifest and optional paired timing CSV. Generate validated descriptive metrics as JSON, readable Markdown and printable HTML, plus standalone Matplotlib PNG/SVG wealth and drawdown charts. Include input/evaluator hashes, explicit undefined ratios, sample-size/selection/synthetic disclosures and a review-required conclusion. The report must distinguish measured analyses from proposed robustness work and computing speed from investment validity. Provide tests and a fictional independently calculated fixture; do not claim automatic deployment approval or standards certification. See [course scope](docs/ALGORITHM_EVALUATION.md).

@@ -1,6 +1,6 @@
 import uuid
 
-from quanta.analytics import DatasetParams, generate
+from quanta.domain.analytics import DatasetParams, generate
 
 
 def signup(client):
@@ -20,9 +20,9 @@ def signup(client):
 def test_health_content_and_validation(client):
     assert client.get("/api/v1/health").json()["status"] == "ok"
     catalog = client.get("/api/v1/courses").json()
-    assert len(catalog) == 8
+    assert len(catalog) == 11
     assert catalog[0]["id"] == "trading-fundamentals"
-    assert sum(len(c["modules"]) for c in catalog) == 192
+    assert sum(len(c["modules"]) for c in catalog) == 256
     assert client.get("/api/v1/courses/lessons/missing").status_code == 404
     assert client.post("/api/v1/data/synthetic/generate", json={"years": 0}).status_code == 422
     assert client.post("/api/v1/analytics/valuation", json={"shares": 0}).status_code == 422
@@ -118,7 +118,7 @@ def test_compute_rate_limit(client):
 def test_historical_import_reader(client, tmp_path):
     import duckdb
     import pandas as pd
-    from quanta.data_store import DATA_DIR
+    from quanta.services.data_store import DATA_DIR
 
     DATA_DIR.mkdir(exist_ok=True, parents=True)
     df = pd.DataFrame(generate(DatasetParams(years=1)))

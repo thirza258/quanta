@@ -1,8 +1,8 @@
 from uuid import uuid4
 
 import pytest
-from fastapi import HTTPException
-from quanta.simulator import advance_state, reservations, validate_order
+from quanta.domain.errors import DomainError
+from quanta.domain.simulator import advance_state, reservations, validate_order
 from test_api import signup
 
 
@@ -115,13 +115,13 @@ def test_cash_and_share_reservations_prevent_overspending_and_overselling():
     s = state()
     data = bars([100] * 3)
     order(s, data, quantity=999)
-    with pytest.raises(HTTPException):
+    with pytest.raises(DomainError):
         order(s, data, quantity=2)
-    with pytest.raises(HTTPException):
+    with pytest.raises(DomainError):
         order(s, data, side="sell")
     advance_state(s, data, 1)
     order(s, data, side="sell", quantity=999)
-    with pytest.raises(HTTPException):
+    with pytest.raises(DomainError):
         order(s, data, side="sell", quantity=1)
 
 
@@ -277,7 +277,7 @@ def test_sell_commission_cannot_create_borrowing():
 
 def test_historical_snapshot_daily_only_next_session_and_immutable(client, monkeypatch, tmp_path):
     import duckdb
-    from quanta import data_store
+    from quanta.services import data_store
 
     monkeypatch.setattr(data_store, "DATA_DIR", tmp_path)
     path = tmp_path / "TEST.parquet"
