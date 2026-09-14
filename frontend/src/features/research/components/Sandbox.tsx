@@ -40,6 +40,7 @@ export default function Sandbox({
   experimentId,
   onExpand,
   expanded = false,
+  onExecutionError,
 }: {
   lessonId?: string;
   initialCode?: string;
@@ -47,6 +48,7 @@ export default function Sandbox({
   experimentId?: string;
   onExpand?: () => void;
   expanded?: boolean;
+  onExecutionError?: (error: string) => void;
 }) {
   const { state, update } = useWorkspace(),
     draftKey = experimentId || lessonId || "free-lab";
@@ -105,6 +107,7 @@ export default function Sandbox({
     lock.current = true;
     setBusy(true);
     setError("");
+    onExecutionError?.("");
     setSaved(false);
     const input = { code, config: structuredClone(config) },
       runVersion = inputVersion.current;
@@ -121,7 +124,10 @@ export default function Sandbox({
       }
       update((s) => ({ ...s, runs: s.runs + 1 }));
     } catch (err) {
-      if (mounted.current) setError((err as Error).message);
+      if (mounted.current) {
+        setError((err as Error).message);
+        onExecutionError?.((err as Error).message);
+      }
     } finally {
       lock.current = false;
       if (mounted.current) setBusy(false);

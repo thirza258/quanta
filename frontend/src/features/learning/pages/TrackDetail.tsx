@@ -1,4 +1,5 @@
 import ExamCard from "@/features/assessments/components/ExamCard";
+import CourseAssistant from "@/features/assistant/components/CourseAssistant";
 import { TrackArt } from "@/features/learning/components/TrackVisuals";
 import { trackLabel, tracks } from "@/features/learning/model/catalog";
 import {
@@ -97,6 +98,19 @@ export default function TrackDetail() {
         </div>
         <TrackArt kind={track.icon} large />
       </div>
+      <section
+        className="course-assistant-callout"
+        aria-label="Course AI assistance"
+      >
+        <div>
+          <h2>A helping hand, whenever you get stuck</h2>
+          <p>
+            Ask about the course, prepare your environment, or build a code
+            example.
+          </p>
+        </div>
+        <CourseAssistant course={track} />
+      </section>
       {track.outcomes ? (
         <section className="course-outcomes">
           <h2>What you will learn</h2>

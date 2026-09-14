@@ -9,6 +9,16 @@ RUN pip install --no-cache-dir -r requirements.lock \
     && mkdir -p /app/storage /app/data && chown -R quanta:quanta /app/storage /app/data
 COPY --chown=quanta:quanta backend/quanta ./backend/quanta
 COPY --chown=quanta:quanta content/catalog/curriculum.json ./content/catalog/curriculum.json
+# Authored setup guides ground the assistant without shipping project build artifacts.
+COPY --chown=quanta:quanta content/projects/algorithm-evaluation/README.md content/projects/algorithm-evaluation/requirements.txt ./content/projects/algorithm-evaluation/
+COPY --chown=quanta:quanta content/projects/c-hpc-trading/README.md ./content/projects/c-hpc-trading/
+COPY --chown=quanta:quanta content/projects/intelligent-investor/README.md ./content/projects/intelligent-investor/
+COPY --chown=quanta:quanta content/projects/news-to-markets/README.md ./content/projects/news-to-markets/
+COPY --chown=quanta:quanta content/projects/research/README.md content/projects/research/requirements.txt ./content/projects/research/
+COPY --chown=quanta:quanta content/projects/stock-bots/README.md ./content/projects/stock-bots/
+COPY --chown=quanta:quanta content/projects/stock-ml/README.md content/projects/stock-ml/requirements.txt ./content/projects/stock-ml/
+COPY --chown=quanta:quanta content/projects/strategy-lab/README.md ./content/projects/strategy-lab/
+COPY --chown=quanta:quanta content/projects/web3/README.md content/projects/web3/package.json ./content/projects/web3/
 COPY --chown=quanta:quanta backend/scripts/import_data.py ./backend/scripts/import_data.py
 USER 10001:10001
 EXPOSE 8000

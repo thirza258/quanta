@@ -3,8 +3,10 @@ import { existsSync } from "node:fs";
 import { createServer } from "node:net";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { loadEnvFile } from "node:process";
 const root = fileURLToPath(new URL("..", import.meta.url));
 process.chdir(root);
+if (existsSync(resolve(root, ".env"))) loadEnvFile(resolve(root, ".env"));
 const python =
   process.platform === "win32"
     ? "backend/.venv/Scripts/python.exe"
@@ -36,9 +38,13 @@ const webPort = await available(
 const env = {
   ...process.env,
   API_TARGET: `http://127.0.0.1:${apiPort}`,
-  ALLOWED_ORIGINS:
-    process.env.ALLOWED_ORIGINS ||
-    `http://127.0.0.1:${webPort},http://localhost:${webPort}`,
+  ALLOWED_ORIGINS: [
+    ...new Set([
+      ...(process.env.ALLOWED_ORIGINS || "").split(",").filter(Boolean),
+      `http://127.0.0.1:${webPort}`,
+      `http://localhost:${webPort}`,
+    ]),
+  ].join(","),
 };
 const api = spawn(
   python,
