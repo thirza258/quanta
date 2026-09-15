@@ -10,6 +10,7 @@ from econometrics_course import build_econometrics
 from evaluation_course import build_algorithm_evaluation
 from foundations import build_foundations
 from intelligent_investor import build_intelligent_investor
+from learning_guidance import attach_learning_guidance
 from news_to_markets import build_news_to_markets
 from quantitative_analysis import build_quantitative_analysis
 from real_world_cases import attach_real_world_cases
@@ -616,6 +617,7 @@ catalog.insert(
     build_c_hpc_trading(),
 )
 catalog.append(build_algorithm_evaluation())
+attach_learning_guidance(catalog)
 attach_references(catalog)
 attach_real_world_cases(catalog)
 output = Path(__file__).resolve().parents[2] / "content/catalog/curriculum.json"

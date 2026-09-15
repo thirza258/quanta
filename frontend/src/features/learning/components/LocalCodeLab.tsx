@@ -17,13 +17,18 @@ export default function LocalCodeLab({ lesson }: { lesson: Lesson }) {
           <p>Edit here. Compile and run on your computer.</p>
         </div>
       </div>
-      <CodeEditor
-        code={code}
-        language="c"
-        onChange={(draft) =>
-          update((s) => ({ ...s, drafts: { ...s.drafts, [lesson.id]: draft } }))
-        }
-      />
+      <div className="local-code-editor">
+        <CodeEditor
+          code={code}
+          language="c"
+          onChange={(draft) =>
+            update((s) => ({
+              ...s,
+              drafts: { ...s.drafts, [lesson.id]: draft },
+            }))
+          }
+        />
+      </div>
       <div className="local-code-actions">
         <button
           className="button primary small"

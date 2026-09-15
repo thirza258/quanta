@@ -125,9 +125,9 @@ test("every bot lesson renders equations, assignment, practice, and its named so
       name: "Sources and attribution",
     });
     for (const reference of lesson.references!) {
-      await expect(
-        footer.getByRole("link", { name: reference.title, exact: true }),
-      ).toHaveAttribute("href", reference.url);
+      await expect(footer.locator(`a[href="${reference.url}"]`)).toHaveText(
+        reference.title,
+      );
     }
   }
   expect(errors).toEqual([]);

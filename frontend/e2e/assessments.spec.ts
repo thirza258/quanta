@@ -186,7 +186,7 @@ test("full fundamentals course finishes only after practice, checkpoint, and fin
     "All lessons and exams in this course are complete.",
   );
   await page.getByRole("link", { name: "Next course", exact: true }).click();
-  await expect(page).toHaveURL(/\/curriculum\/security-analysis$/);
+  await expect(page).toHaveURL(/\/curriculum\/intelligent-investor$/);
   await page.goto("/curriculum/trading-fundamentals");
   await expect(page.locator(".track-progress-row")).toContainText("100%");
   await expect(page.locator(".track-progress-row")).toContainText(

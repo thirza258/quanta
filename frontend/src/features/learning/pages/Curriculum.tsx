@@ -5,9 +5,24 @@ import {
   trackProgress,
 } from "@/features/learning/model/progress";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import TrackCard from "../components/TrackCard";
+const courseSearchText = new Map(
+  tracks.map((track) => [
+    track.id,
+    [
+      track.title,
+      track.description,
+      track.readingGuide,
+      ...track.modules.map(
+        (lesson) => `${lesson.title} ${lesson.subtitle} ${lesson.content}`,
+      ),
+    ]
+      .join(" ")
+      .toLowerCase(),
+  ]),
+);
 export default function Curriculum() {
   const [query, setQuery] = useState(""),
     [filter, setFilter] = useState("All tracks");
@@ -28,9 +43,7 @@ export default function Curriculum() {
           state.examDrafts[exam.id] || state.examAttempts[exam.id]?.length,
       );
     return (
-      `${track.title} ${track.description} ${track.modules.map((module) => module.title).join(" ")}`
-        .toLowerCase()
-        .includes(query.toLowerCase()) &&
+      courseSearchText.get(track.id)!.includes(query.trim().toLowerCase()) &&
       (filter === "All tracks" ||
         (filter === "In progress" && started && !progress.complete) ||
         (filter === "Not started" && !started) ||
@@ -38,7 +51,7 @@ export default function Curriculum() {
     );
   });
   return (
-    <div className="page">
+    <div className="page curriculum-page">
       <div className="page-eyebrow">A CONNECTED CURRICULUM</div>
       <h1>Start with the basics. Build your perspective.</h1>
       <p className="page-subtitle">
@@ -53,6 +66,7 @@ export default function Curriculum() {
               <button
                 key={f}
                 className={filter === f ? "active" : ""}
+                aria-pressed={filter === f}
                 onClick={() => setFilter(f)}
               >
                 {f}
@@ -60,7 +74,7 @@ export default function Curriculum() {
             ),
           )}
         </div>
-        <label className="search-input compact">
+        <div className="search-input compact">
           <Search size={16} />
           <input
             aria-label="Search curriculum"
@@ -68,8 +82,22 @@ export default function Curriculum() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search curriculum…"
           />
-        </label>
+          {query ? (
+            <button
+              className="icon-button"
+              aria-label="Clear curriculum search"
+              onClick={() => setQuery("")}
+            >
+              <X size={16} />
+            </button>
+          ) : null}
+        </div>
       </div>
+      <p className="catalog-results" role="status">
+        {filtered.length} {filtered.length === 1 ? "course" : "courses"}
+        {filter !== "All tracks" ? ` · ${filter.toLowerCase()}` : " to explore"}
+        {query.trim() ? ` matching “${query.trim()}”` : ""}
+      </p>
       <div className="track-grid">
         {filtered.map((t) => (
           <TrackCard key={t.id} track={t} />
@@ -80,6 +108,15 @@ export default function Curriculum() {
           <Search size={28} />
           <h3>No matching tracks</h3>
           <p>Try another topic or switch to all tracks.</p>
+          <button
+            className="button secondary"
+            onClick={() => {
+              setQuery("");
+              setFilter("All tracks");
+            }}
+          >
+            Show all courses
+          </button>
         </div>
       ) : null}
       <div className="curriculum-note">

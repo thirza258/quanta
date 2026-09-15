@@ -36,6 +36,9 @@ export default function TrackDetail() {
       </div>
     );
   const progress = trackProgress(track, state);
+  const bookStudy = track.modules.some(
+    (lesson) => lesson.kind === "book-study",
+  );
   const completed = progress.modules;
   const next = track.modules.find(
     (module) => !state.completed.includes(module.id),
@@ -86,18 +89,23 @@ export default function TrackDetail() {
               {track.exams.length} {track.exams.length === 1 ? "exam" : "exams"}
             </span>
           </div>
-          <Link className="button primary" to={nextPath}>
-            {progress.complete
-              ? nextTrack
-                ? "Continue to next course"
-                : "Browse curriculum"
-              : next
-                ? completed
-                  ? "Continue course"
-                  : "Start this course"
-                : "Continue to exam"}
-            <ArrowRight size={16} />
-          </Link>
+          <div className="course-hero-actions">
+            <Link className="button primary" to={nextPath}>
+              {progress.complete
+                ? nextTrack
+                  ? "Continue to next course"
+                  : "Browse curriculum"
+                : next
+                  ? completed
+                    ? "Continue course"
+                    : "Start this course"
+                  : "Continue to exam"}
+              <ArrowRight size={16} />
+            </Link>
+            <a className="button secondary" href="#course-outline">
+              View course outline <BookOpen size={16} />
+            </a>
+          </div>
         </div>
         <TrackArt kind={track.icon} large />
       </div>
@@ -146,16 +154,14 @@ export default function TrackDetail() {
           aria-labelledby="reading-guide-title"
         >
           <span className="eyebrow">
-            {track.studyType === "applied"
-              ? "BUILD, TEST, AND REVIEW"
-              : "READ ALONG WITH THE BOOK"}
+            {bookStudy ? "READ ALONG WITH THE BOOK" : "LEARN AT YOUR OWN PACE"}
           </span>
           <h2 id="reading-guide-title">
-            {track.studyType === "applied"
-              ? "Your course plan"
-              : "Your reading plan"}
+            {bookStudy ? "Your reading plan" : "Your course plan"}
           </h2>
-          <p>{track.readingGuide}</p>
+          {track.readingGuide.split("\n\n").map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
           <div className="course-references">
             {track.references?.map((reference) => (
               <a
@@ -169,19 +175,19 @@ export default function TrackDetail() {
               </a>
             ))}
           </div>
-          <nav
-            className="course-unit-links"
-            aria-label={
-              track.studyType === "applied" ? "Course units" : "Book units"
-            }
-          >
-            {track.parts?.map((part) => (
-              <a key={part.id} href={`#unit-${part.id}`}>
-                <span>{part.id}</span>
-                {part.title}
-              </a>
-            ))}
-          </nav>
+          {track.parts?.length ? (
+            <nav
+              className="course-unit-links"
+              aria-label={bookStudy ? "Book units" : "Course units"}
+            >
+              {track.parts?.map((part) => (
+                <a key={part.id} href={`#unit-${part.id}`}>
+                  <span>{part.id}</span>
+                  {part.title}
+                </a>
+              ))}
+            </nav>
+          ) : null}
         </section>
       ) : null}
       {track.resources?.length ? (
@@ -209,7 +215,7 @@ export default function TrackDetail() {
       <div className="progress-track">
         <span style={{ width: `${progress.percent}%` }} />
       </div>
-      <div className="section-heading">
+      <div className="section-heading" id="course-outline">
         <div>
           <h2>Inside this course</h2>
           <p>

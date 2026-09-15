@@ -74,9 +74,9 @@ for (const course of courses) {
       await expect(page.locator(".inline-meta")).toContainText(
         "720 minutes of guided study",
       );
-      await expect(
-        page.getByText(course.readingGuide!, { exact: true }),
-      ).toBeVisible();
+      for (const paragraph of course.readingGuide!.split("\n\n")) {
+        await expect(page.getByText(paragraph, { exact: true })).toBeVisible();
+      }
     }
     for (const resource of course.resources!) {
       const waiting = page.waitForEvent("download");

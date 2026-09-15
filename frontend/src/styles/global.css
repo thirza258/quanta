@@ -1,6 +1,16 @@
 @import "tailwindcss";
 @import "../features/assessments/assessments.css";
 :root {
+  /* Shared type scale: metadata, interface copy, reading text, and headings. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-display: 2.75rem;
+  --text-title: clamp(1.75rem, 1.35rem + 1vw, 2rem);
   font-family: "Inter Variable", Inter, sans-serif;
   color: #28342f;
   background: #fff;
@@ -45,6 +55,8 @@
 }
 body {
   margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.6;
 }
 button,
 input,
@@ -113,24 +125,25 @@ p {
   margin: 0;
 }
 h1 {
-  font-size: 30px;
+  font-size: var(--text-title);
   letter-spacing: -1.15px;
-  font-weight: 550;
+  font-weight: 600;
   line-height: 1.3;
 }
 h2 {
-  font-size: 19px;
-  font-weight: 550;
+  font-size: var(--text-xl);
+  font-weight: 600;
   letter-spacing: -0.55px;
   line-height: 1.5;
 }
 h3 {
-  font-size: 15px;
-  font-weight: 560;
+  font-size: var(--text-lg);
+  font-weight: 600;
   letter-spacing: -0.25px;
+  line-height: 1.45;
 }
 p {
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.8;
   color: var(--secondary);
 }
@@ -220,9 +233,9 @@ kbd {
   border-radius: 9px;
 }
 .brand > span {
-  font-size: 31px;
+  font-size: var(--text-3xl);
   letter-spacing: -1.6px;
-  font-weight: 610;
+  font-weight: 600;
   line-height: 1;
 }
 .brand-dot {
@@ -233,11 +246,12 @@ kbd {
   gap: 10px;
   align-items: center;
   padding: 27px 11px 28px;
-  font-size: 11px;
-  font-weight: 550;
+  font-size: var(--text-xs);
+  font-weight: 600;
   white-space: nowrap;
 }
 .workspace-square {
+  flex-shrink: 0;
   height: 27px;
   width: 27px;
   display: grid;
@@ -245,22 +259,24 @@ kbd {
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--secondary);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 500;
   background: var(--bg);
 }
 .workspace-label small {
   display: block;
-  font-size: 8.5px;
+  font-size: var(--text-xs);
   color: var(--muted);
   font-weight: 400;
   margin-top: 5px;
+  white-space: normal;
+  line-height: 1.6;
 }
 .nav-section-label {
-  font-size: 9px;
+  font-size: var(--text-xs);
   letter-spacing: 1.4px;
   color: var(--muted);
-  font-weight: 550;
+  font-weight: 600;
   padding: 0 13px;
   margin-bottom: 11px;
 }
@@ -274,7 +290,7 @@ kbd {
   height: 42px;
   padding: 0 12px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--secondary);
   margin-bottom: 4px;
   transition: background 0.15s;
@@ -293,7 +309,7 @@ kbd {
   border-radius: 4px;
   background: var(--bg);
   padding: 2px 5px;
-  font-size: 9px;
+  font-size: var(--text-xs);
 }
 .trailing-icon {
   margin-left: auto;
@@ -329,15 +345,15 @@ kbd {
   margin-bottom: 16px;
 }
 .learning-note p {
-  font-size: 12px;
+  font-size: var(--text-sm);
   line-height: 1.8;
   color: var(--secondary);
-  font-weight: 450;
+  font-weight: 400;
   letter-spacing: -0.2px;
 }
 .learning-note > span {
   display: block;
-  font-size: 7.5px;
+  font-size: var(--text-xs);
   letter-spacing: 1.3px;
   color: var(--muted);
   margin-top: 13px;
@@ -351,12 +367,12 @@ kbd {
   background: var(--bg);
   width: 100%;
   padding: 10px 11px;
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--muted);
   margin-bottom: 12px;
 }
 .quick-search kbd {
-  font-size: 9px;
+  font-size: var(--text-xs);
   border: 1px solid var(--border);
   border-radius: 3px;
   padding: 2px 3px;
@@ -383,8 +399,8 @@ kbd {
   place-items: center;
   background: #e9e9df;
   color: #686c55;
-  font-size: 11px;
-  font-weight: 550;
+  font-size: var(--text-xs);
+  font-weight: 600;
   border: 1px solid #dce0d4;
 }
 .avatar {
@@ -394,7 +410,7 @@ kbd {
   flex-shrink: 0;
 }
 .profile-button > span:last-child {
-  font-size: 10px;
+  font-size: var(--text-xs);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -403,7 +419,7 @@ kbd {
 .profile-button small {
   display: block;
   margin-top: 5px;
-  font-size: 8.5px;
+  font-size: var(--text-xs);
   color: var(--muted);
   font-weight: 400;
 }
@@ -470,7 +486,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 14px;
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 .breadcrumbs .desktop-menu {
@@ -478,7 +494,7 @@ kbd {
 }
 .breadcrumbs strong {
   color: var(--secondary);
-  font-weight: 450;
+  font-weight: 400;
 }
 .breadcrumb-divider,
 .topbar-divider {
@@ -496,7 +512,7 @@ kbd {
   align-items: center;
   gap: 7px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
   margin-right: 8px;
 }
 .connection-status > span {
@@ -512,7 +528,7 @@ kbd {
   height: 27px;
   width: 27px;
   border-radius: 50%;
-  font-size: 10px;
+  font-size: var(--text-xs);
 }
 .icon-button {
   display: inline-flex;
@@ -537,10 +553,10 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 9px;
+  font-size: var(--text-xs);
   letter-spacing: 1.65px;
   color: var(--muted);
-  font-weight: 550;
+  font-weight: 600;
   margin-bottom: 12px;
   line-height: 1.5;
 }
@@ -563,10 +579,11 @@ kbd {
   align-self: center;
 }
 .page-subtitle {
-  font-size: 12px;
+  font-size: var(--text-base);
   margin-top: 10px;
   line-height: 1.8;
   color: var(--muted);
+  max-width: 72ch;
 }
 .button {
   display: inline-flex;
@@ -575,9 +592,11 @@ kbd {
   gap: 9px;
   padding: 11px 15px;
   border-radius: 6px;
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   line-height: 1.4;
-  font-weight: 520;
+  font-weight: 500;
+  min-height: 42px;
+  max-width: 100%;
   border: 1px solid transparent;
   white-space: nowrap;
   transition:
@@ -605,7 +624,8 @@ kbd {
   background: var(--surface);
 }
 .button.small {
-  font-size: 10px;
+  min-height: 36px;
+  font-size: var(--text-xs);
   padding: 8px 12px;
 }
 .button.danger {
@@ -619,10 +639,11 @@ kbd {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--secondary);
   padding: 0;
+  line-height: 1.6;
 }
 .text-link:hover {
   color: var(--accent);
@@ -659,20 +680,20 @@ kbd {
 }
 .stats-strip strong {
   display: block;
-  font-size: 22px;
+  font-size: var(--text-2xl);
   line-height: 1.2;
   font-weight: 500;
   letter-spacing: -0.5px;
 }
 .stats-strip strong small {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 400;
   color: var(--muted);
   letter-spacing: 0;
 }
 .stats-strip label {
   display: block;
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: var(--muted);
   margin-top: 6px;
 }
@@ -715,9 +736,9 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 8px;
+  font-size: var(--text-xs);
   letter-spacing: 1.3px;
-  font-weight: 560;
+  font-weight: 600;
   color: var(--muted);
   line-height: 1.5;
 }
@@ -737,24 +758,24 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 8.5px;
-  color: #8b9481;
+  font-size: var(--text-xs);
+  color: var(--secondary);
   margin-top: 23px;
 }
 .continue-track > span {
   color: #b7bfae;
 }
 .continue-card h2 {
-  font-size: 22px;
-  font-weight: 530;
+  font-size: var(--text-2xl);
+  font-weight: 500;
   letter-spacing: -0.65px;
   margin-top: 9px;
   line-height: 1.3;
   color: #31462e;
 }
 .continue-card p {
-  font-size: 10px;
-  color: #8b9581;
+  font-size: var(--text-sm);
+  color: var(--secondary);
   max-width: 325px;
   margin-top: 10px;
   line-height: 1.8;
@@ -769,11 +790,11 @@ kbd {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: #8c9685;
 }
 .continue-bottom .button {
-  font-size: 10px;
+  font-size: var(--text-sm);
   padding: 10px 14px;
   background: #355f41;
   border-color: #355f41;
@@ -819,7 +840,7 @@ kbd {
   padding: 6px 10px;
   border-radius: 4px;
   font-family: "JetBrains Mono", monospace;
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: #859473;
   transform: rotate(-5deg);
 }
@@ -830,13 +851,13 @@ kbd {
   background: var(--bg);
 }
 .toolkit-card h3 {
-  font-size: 16px;
+  font-size: var(--text-base);
   margin-top: 13px;
   font-weight: 500;
   letter-spacing: -0.4px;
 }
 .toolkit-card > p {
-  font-size: 10px;
+  font-size: var(--text-sm);
   line-height: 1.8;
   color: var(--muted);
   margin-top: 7px;
@@ -864,12 +885,12 @@ kbd {
 }
 .toolkit-links strong {
   display: block;
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 .toolkit-links small {
   display: block;
-  font-size: 8.5px;
+  font-size: var(--text-xs);
   color: var(--muted);
   margin-top: 4px;
 }
@@ -885,7 +906,7 @@ kbd {
   margin: 32px 0 18px;
 }
 .section-heading h2 {
-  font-size: 18px;
+  font-size: var(--text-xl);
   display: flex;
   align-items: center;
   gap: 11px;
@@ -896,13 +917,13 @@ kbd {
   border: 1px solid var(--border);
   border-radius: 5px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
   letter-spacing: 0;
-  font-weight: 450;
+  font-weight: 400;
   line-height: 1.5;
 }
 .section-heading p {
-  font-size: 10px;
+  font-size: var(--text-sm);
   margin-top: 4px;
   color: var(--muted);
 }
@@ -935,19 +956,19 @@ kbd {
   gap: 7px;
 }
 .track-number {
-  font-size: 8px;
+  font-size: var(--text-xs);
   letter-spacing: 1.3px;
   color: var(--muted);
   font-family: "JetBrains Mono", monospace;
 }
 .level-badge {
-  font-size: 7px;
+  font-size: var(--text-xs);
   padding: 3px 6px;
   border-radius: 4px;
   color: #8c957e;
   background: #f2f4eb;
   border: 1px solid #e9eddf;
-  font-weight: 450;
+  font-weight: 400;
   letter-spacing: 0;
 }
 .level-badge.intermediate {
@@ -1008,13 +1029,13 @@ kbd {
   color: #a89d88;
 }
 .track-card h3 {
-  font-size: 14px;
+  font-size: var(--text-lg);
   line-height: 1.4;
-  font-weight: 530;
+  font-weight: 500;
   letter-spacing: -0.35px;
 }
 .track-card > p {
-  font-size: 9.5px;
+  font-size: var(--text-sm);
   color: var(--muted);
   margin-top: 7px;
   line-height: 1.7;
@@ -1033,7 +1054,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 8.5px;
+  font-size: var(--text-xs);
 }
 .dot-separator {
   margin: 0 4px;
@@ -1054,7 +1075,7 @@ kbd {
   justify-content: space-between;
   gap: 15px;
   padding: 23px 0 3px;
-  font-size: 8px;
+  font-size: var(--text-xs);
   color: #9aa296;
 }
 .overview-footer > span:first-child {
@@ -1073,7 +1094,7 @@ kbd {
   border-bottom: 1px solid var(--border);
   margin: 30px 0 24px;
   padding-bottom: 14px;
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 .tabs {
   display: flex;
@@ -1084,7 +1105,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 11px;
+  font-size: var(--text-sm);
   position: relative;
   padding: 12px 0;
   color: var(--muted);
@@ -1092,7 +1113,7 @@ kbd {
 }
 .tabs > button.active {
   color: var(--accent);
-  font-weight: 550;
+  font-weight: 600;
 }
 .tabs > button.active:after {
   content: "";
@@ -1120,14 +1141,14 @@ kbd {
   box-shadow: none;
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 .search-input.compact {
   padding: 10px 12px;
   width: 245px;
 }
 .search-input.compact input {
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 .curriculum-note {
   display: flex;
@@ -1141,11 +1162,11 @@ kbd {
   color: var(--accent);
 }
 .curriculum-note p {
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 .curriculum-note strong {
   color: var(--text);
-  font-weight: 550;
+  font-weight: 600;
   margin-right: 6px;
 }
 .back-link {
@@ -1163,18 +1184,18 @@ kbd {
   margin-right: 25px;
 }
 .track-detail-hero h1 {
-  font-size: 34px;
+  font-size: var(--text-title);
 }
 .track-detail-hero .source-line {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
   margin-top: 12px;
 }
 .inline-meta {
   display: flex;
   gap: 22px;
   align-items: center;
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--muted);
   margin: 24px 0;
 }
@@ -1186,7 +1207,7 @@ kbd {
 .track-progress-row {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--muted);
   margin: 35px 0 12px;
 }
@@ -1230,7 +1251,7 @@ kbd {
   height: 38px;
   border: 1px solid var(--border);
   border-radius: 50%;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--muted);
   font-family: "JetBrains Mono", monospace;
 }
@@ -1240,10 +1261,10 @@ kbd {
 }
 .module-row h3 {
   margin: 7px 0 6px;
-  font-size: 15px;
+  font-size: var(--text-base);
 }
 .module-row p {
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--muted);
 }
 .module-row > div {
@@ -1255,7 +1276,7 @@ kbd {
   align-items: center;
   gap: 6px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-xs);
   white-space: nowrap;
 }
 .module-type {
@@ -1280,7 +1301,7 @@ kbd {
   padding: 17px 0;
 }
 .lesson-toolbar .text-link {
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 .view-controls {
   display: flex;
@@ -1302,7 +1323,7 @@ kbd {
   color: var(--accent);
 }
 .lesson-select {
-  font-size: 9px;
+  font-size: var(--text-sm);
   max-width: 210px;
   padding: 8px;
 }
@@ -1317,14 +1338,14 @@ kbd {
   min-width: 0;
 }
 .lesson-article h1 {
-  font-size: 28px;
-  font-weight: 540;
+  font-size: var(--text-title);
+  font-weight: 600;
   letter-spacing: -0.8px;
   line-height: 1.25;
   margin-top: 12px;
 }
 .lesson-subtitle {
-  font-size: 13px;
+  font-size: var(--text-base);
   line-height: 1.7;
   margin-top: 13px;
   color: var(--muted);
@@ -1336,7 +1357,7 @@ kbd {
   flex-wrap: wrap;
   padding: 18px 0;
   border-bottom: 1px solid var(--border);
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 .lesson-meta > span {
@@ -1345,7 +1366,7 @@ kbd {
   gap: 5px;
 }
 .lesson-meta button {
-  font-size: 9px;
+  font-size: var(--text-xs);
   margin-left: auto;
 }
 .lesson-objective {
@@ -1357,22 +1378,22 @@ kbd {
   margin: 24px 0;
 }
 .lesson-objective p {
-  font-size: 11px;
+  font-size: var(--text-base);
   line-height: 1.9;
   margin-top: 8px;
 }
 .prose h2 {
-  font-size: 18px;
-  margin: 27px 0 13px;
+  font-size: var(--text-2xl);
+  margin: 36px 0 16px;
 }
 .prose h3 {
-  font-size: 15px;
+  font-size: var(--text-xl);
   margin: 25px 0 12px;
 }
 .prose p {
-  font-size: 12px;
-  line-height: 2;
-  margin: 13px 0;
+  font-size: var(--text-base);
+  line-height: 1.8;
+  margin: 16px 0;
   color: var(--secondary);
 }
 .prose .katex-display {
@@ -1383,7 +1404,7 @@ kbd {
   overflow-x: auto;
   overflow-y: hidden;
   margin: 22px 0;
-  font-size: 0.82em;
+  font-size: 1em;
 }
 .prose .katex-display > .katex {
   white-space: nowrap;
@@ -1400,7 +1421,7 @@ kbd {
   gap: 8px;
   padding: 12px 15px;
   background: var(--surface);
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--secondary);
 }
 .lesson-code-card strong {
@@ -1408,15 +1429,15 @@ kbd {
 }
 .lesson-code-card > div > span {
   margin-left: auto;
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 .lesson-code-card pre {
   padding: 16px;
-  font-size: 10px;
+  font-size: var(--text-xs);
   line-height: 1.8;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  white-space: pre;
+  overflow-x: auto;
   color: var(--secondary);
   margin: 0;
 }
@@ -1425,7 +1446,7 @@ kbd {
   border-top: 1px solid var(--border);
   padding: 12px 15px;
   width: 100%;
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--accent);
 }
 .lesson-code-card > button > svg:last-child {
@@ -1438,7 +1459,7 @@ kbd {
   margin-top: 28px;
 }
 .exercise-card h3 {
-  font-size: 14px;
+  font-size: var(--text-base);
   line-height: 1.7;
   margin: 17px 0;
 }
@@ -1446,15 +1467,16 @@ kbd {
   border: 0;
   padding: 0;
   margin: 0 0 17px;
+  min-width: 0;
 }
 .answer-option {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 10px;
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 5px;
-  font-size: 11px;
+  font-size: var(--text-sm);
   line-height: 1.5;
   margin-top: 8px;
   cursor: pointer;
@@ -1470,13 +1492,13 @@ kbd {
   flex-shrink: 0;
 }
 .answer-letter {
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: var(--muted);
   font-family: "JetBrains Mono", monospace;
 }
 .quiz-feedback {
   padding: 13px;
-  font-size: 11px;
+  font-size: var(--text-sm);
   line-height: 1.8;
   border-radius: 5px;
   margin-top: 15px;
@@ -1497,7 +1519,7 @@ kbd {
   padding: 28px 0;
 }
 .lesson-completion > span {
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--muted);
   line-height: 1.8;
 }
@@ -1558,12 +1580,12 @@ kbd {
   color: var(--accent);
 }
 .sandbox-header strong {
-  font-size: 11px;
-  font-weight: 550;
+  font-size: var(--text-xs);
+  font-weight: 600;
 }
 .sandbox-label {
   border: 1px solid var(--border);
-  font-size: 6px;
+  font-size: var(--text-xs);
   letter-spacing: 0.8px;
   border-radius: 3px;
   padding: 3px 4px;
@@ -1579,7 +1601,7 @@ kbd {
   border-bottom: 1px solid var(--border);
 }
 .sandbox-config > label {
-  font-size: 7px;
+  font-size: var(--text-xs);
   letter-spacing: 1px;
   color: var(--muted);
   font-weight: 500;
@@ -1588,7 +1610,7 @@ kbd {
 .sandbox-config select {
   display: block;
   width: 100%;
-  font-size: 9px;
+  font-size: var(--text-xs);
   letter-spacing: 0;
   padding: 8px 7px;
   margin-top: 7px;
@@ -1607,7 +1629,7 @@ kbd {
 }
 .execution-settings input {
   padding: 8px;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 .editor-tabs {
   display: flex;
@@ -1621,7 +1643,7 @@ kbd {
   gap: 20px;
 }
 .editor-tabs .tabs > button {
-  font-size: 9px;
+  font-size: var(--text-xs);
   padding: 12px 3px;
 }
 .parameter-panel {
@@ -1633,10 +1655,10 @@ kbd {
   gap: 12px;
 }
 .parameter-panel .field {
-  font-size: 10px;
+  font-size: var(--text-xs);
 }
 .parameter-panel select {
-  font-size: 10px;
+  font-size: var(--text-xs);
   padding: 8px;
   width: 100%;
 }
@@ -1648,7 +1670,7 @@ kbd {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--secondary);
   margin-bottom: 10px;
 }
@@ -1656,7 +1678,7 @@ kbd {
   font-family: "JetBrains Mono", monospace;
   font-weight: 400;
   color: var(--accent);
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 .slider-field input {
   width: 100%;
@@ -1675,7 +1697,7 @@ kbd {
 }
 .strategy-presets > span {
   width: 100%;
-  font-size: 8px;
+  font-size: var(--text-xs);
   color: var(--muted);
   letter-spacing: 1px;
   margin-bottom: 4px;
@@ -1683,7 +1705,7 @@ kbd {
 .chip {
   border: 1px solid var(--border);
   border-radius: 4px;
-  font-size: 8px;
+  font-size: var(--text-xs);
   padding: 5px 7px;
   color: var(--secondary);
 }
@@ -1709,19 +1731,19 @@ kbd {
   border-bottom: 1px solid var(--border);
 }
 .run-bar > span {
-  font-size: 8px;
+  font-size: var(--text-xs);
   display: flex;
   align-items: center;
   gap: 5px;
   color: var(--muted);
 }
 .run-bar .button {
-  font-size: 8px;
+  font-size: var(--text-xs);
   padding: 8px 10px;
   gap: 6px;
 }
 .run-bar kbd {
-  font-size: 8px;
+  font-size: var(--text-xs);
   opacity: 0.6;
   padding-left: 5px;
 }
@@ -1733,13 +1755,13 @@ kbd {
   gap: 8px;
 }
 .output-header .eyebrow {
-  font-size: 7px;
+  font-size: var(--text-xs);
 }
 .output-header > .muted {
-  font-size: 8px;
+  font-size: var(--text-xs);
 }
 .run-timing {
-  font-size: 7px;
+  font-size: var(--text-xs);
   color: var(--accent);
   display: flex;
   align-items: center;
@@ -1763,7 +1785,7 @@ kbd {
 }
 .metrics-grid span {
   display: block;
-  font-size: 6px;
+  font-size: var(--text-xs);
   letter-spacing: 0.5px;
   color: var(--muted);
   white-space: nowrap;
@@ -1771,7 +1793,7 @@ kbd {
 .metrics-grid strong {
   display: block;
   font-family: "JetBrains Mono", monospace;
-  font-size: 16px;
+  font-size: var(--text-base);
   font-weight: 400;
   letter-spacing: -0.7px;
   margin-top: 8px;
@@ -1785,7 +1807,7 @@ kbd {
   scrollbar-width: thin;
 }
 .output-tabs > button {
-  font-size: 8px;
+  font-size: var(--text-xs);
   padding: 12px 0;
 }
 .chart-legend {
@@ -1793,7 +1815,7 @@ kbd {
   align-items: center;
   gap: 13px;
   padding: 15px 17px 5px;
-  font-size: 8px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 .chart-legend > span {
@@ -1812,7 +1834,7 @@ kbd {
 }
 .chart-legend small {
   margin-left: auto;
-  font-size: 6px;
+  font-size: var(--text-xs);
   letter-spacing: 1px;
 }
 .financial-chart {
@@ -1843,12 +1865,12 @@ kbd {
   stroke-width: 1;
 }
 .output-empty h4 {
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--secondary);
 }
 .output-empty p {
-  font-size: 9px;
+  font-size: var(--text-xs);
   margin-top: 7px;
   color: var(--muted);
 }
@@ -1858,7 +1880,7 @@ kbd {
   justify-content: space-between;
   border-top: 1px solid var(--border);
   padding: 10px 13px;
-  font-size: 8px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 .sandbox-footer > div {
@@ -1867,7 +1889,7 @@ kbd {
   align-items: center;
 }
 .sandbox-footer .text-link {
-  font-size: 9px;
+  font-size: var(--text-xs);
 }
 .runtime-notes {
   border-top: 1px solid var(--border);
@@ -1875,7 +1897,7 @@ kbd {
   background: var(--surface);
 }
 .runtime-notes summary {
-  font-size: 8px;
+  font-size: var(--text-xs);
   color: var(--muted);
   display: flex;
   align-items: center;
@@ -1883,13 +1905,13 @@ kbd {
   cursor: pointer;
 }
 .runtime-notes p {
-  font-size: 9px;
+  font-size: var(--text-xs);
   margin-top: 10px;
 }
 .console-output {
   background: var(--surface);
   padding: 18px;
-  font-size: 10px;
+  font-size: var(--text-xs);
   min-height: 220px;
   line-height: 1.9;
   margin: 0;
@@ -1898,7 +1920,7 @@ kbd {
 }
 .console-summary {
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
 }
 .table-scroll {
   overflow: auto;
@@ -1907,12 +1929,12 @@ kbd {
 .table-scroll table {
   border-collapse: collapse;
   width: 100%;
-  font-size: 9px;
+  font-size: var(--text-xs);
   font-family: "JetBrains Mono", monospace;
 }
 .table-scroll th {
   text-align: left;
-  font-size: 8px;
+  font-size: var(--text-xs);
   background: var(--surface);
   color: var(--muted);
   font-weight: 400;
@@ -1941,7 +1963,7 @@ kbd {
   gap: 3px;
   margin-bottom: 4px;
   font-family: "JetBrains Mono", monospace;
-  font-size: 7px;
+  font-size: var(--text-xs);
   min-width: 335px;
 }
 .heatmap-labels {
@@ -1970,22 +1992,22 @@ kbd {
   display: flex;
   justify-content: space-between;
   gap: 5px;
-  font-size: 9px;
+  font-size: var(--text-xs);
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
   text-transform: capitalize;
 }
 .all-metrics strong {
   font-family: "JetBrains Mono", monospace;
-  font-size: 9px;
-  font-weight: 450;
+  font-size: var(--text-xs);
+  font-weight: 400;
 }
 .all-metrics p {
   grid-column: 1/-1;
 }
 .inline-notice {
   padding: 12px 14px;
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--secondary);
   line-height: 1.8;
   background: var(--accent-light);
@@ -1998,7 +2020,7 @@ kbd {
   overflow-x: auto;
 }
 .lab-tabs > button {
-  font-size: 11px;
+  font-size: var(--text-sm);
   padding: 15px 0;
 }
 .market-lab-layout {
@@ -2011,42 +2033,42 @@ kbd {
   padding: 14px 17px;
 }
 .market-lab-layout .sandbox-header strong {
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 .market-lab-layout .sandbox-config {
   padding: 17px;
 }
 .market-lab-layout .sandbox-config select {
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 .market-lab-layout .editor-tabs .tabs > button {
-  font-size: 10px;
+  font-size: var(--text-xs);
 }
 .market-lab-layout .run-bar .button {
-  font-size: 10px;
+  font-size: var(--text-xs);
 }
 .market-lab-layout .run-bar > span {
-  font-size: 9px;
+  font-size: var(--text-xs);
 }
 .market-lab-layout .metrics-grid span {
-  font-size: 7px;
+  font-size: var(--text-xs);
 }
 .market-lab-layout .metrics-grid strong {
-  font-size: 21px;
+  font-size: var(--text-xl);
 }
 .market-lab-layout .output-tabs > button {
-  font-size: 9px;
+  font-size: var(--text-xs);
 }
 .lab-guide {
   padding: 22px 9px 25px;
 }
 .lab-guide > h2 {
-  font-size: 24px;
+  font-size: var(--text-2xl);
   margin-top: 13px;
   letter-spacing: -0.9px;
 }
 .lab-guide > p {
-  font-size: 11px;
+  font-size: var(--text-xs);
   margin-top: 10px;
   color: var(--muted);
 }
@@ -2058,15 +2080,15 @@ kbd {
 .research-step > span {
   font-family: "JetBrains Mono", monospace;
   color: #a0ad96;
-  font-size: 10px;
+  font-size: var(--text-xs);
   margin-top: 3px;
 }
 .research-step h3 {
-  font-size: 12px;
-  font-weight: 540;
+  font-size: var(--text-sm);
+  font-weight: 600;
 }
 .research-step p {
-  font-size: 10px;
+  font-size: var(--text-xs);
   line-height: 1.9;
   margin-top: 8px;
   color: var(--muted);
@@ -2082,7 +2104,7 @@ kbd {
   color: #87997d;
 }
 .guide-note p {
-  font-size: 10px;
+  font-size: var(--text-xs);
   line-height: 1.8;
 }
 .guide-note a {
@@ -2090,20 +2112,20 @@ kbd {
   align-items: center;
   gap: 5px;
   margin-top: 7px;
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: var(--accent);
 }
 .lab-guide-data {
   display: flex;
   gap: 8px;
   align-items: baseline;
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: var(--secondary);
   margin-top: 22px;
 }
 .lab-guide-data small {
   display: block;
-  font-size: 8px;
+  font-size: var(--text-xs);
   color: var(--muted);
   margin-top: 6px;
 }
@@ -2121,12 +2143,12 @@ kbd {
   background: var(--bg);
 }
 .tool-card h2 {
-  font-size: 21px;
+  font-size: var(--text-xl);
   letter-spacing: -0.65px;
   margin-top: 12px;
 }
 .tool-card-heading > p {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--muted);
   margin-top: 9px;
 }
@@ -2149,8 +2171,8 @@ kbd {
   gap: 10px;
 }
 .small-heading {
-  font-size: 12px;
-  font-weight: 550;
+  font-size: var(--text-sm);
+  font-weight: 600;
   margin: 22px 0 15px;
 }
 .valuation-hero-number {
@@ -2163,21 +2185,21 @@ kbd {
 }
 .valuation-hero-number > span {
   display: block;
-  font-size: 8px;
+  font-size: var(--text-xs);
   letter-spacing: 1.5px;
   color: var(--muted);
 }
 .valuation-hero-number strong {
   display: block;
   font-family: "JetBrains Mono", monospace;
-  font-size: 44px;
+  font-size: var(--text-display);
   color: var(--accent);
   font-weight: 400;
   letter-spacing: -2px;
   margin: 15px 0;
 }
 .valuation-hero-number small {
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 .value-comparison {
@@ -2199,12 +2221,12 @@ kbd {
   justify-content: space-between;
   gap: 10px;
   margin-top: 10px;
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 .value-comparison strong {
   font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 400;
   color: var(--secondary);
 }
@@ -2218,12 +2240,12 @@ kbd {
   gap: 15px;
   border-bottom: 1px solid var(--border);
   padding: 15px 0;
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--secondary);
 }
 .valuation-metrics strong {
   font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 400;
   text-align: right;
 }
@@ -2234,7 +2256,7 @@ kbd {
   padding: 15px;
   background: #b86b7410;
   color: var(--negative);
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.7;
   margin: 22px 0;
   border-radius: 6px;
@@ -2254,20 +2276,20 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 .swap-output strong {
   display: block;
   font-family: "JetBrains Mono", monospace;
-  font-size: 24px;
+  font-size: var(--text-2xl);
   font-weight: 400;
   color: var(--accent);
   margin-top: 13px;
   letter-spacing: -0.8px;
 }
 .swap-output strong small {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--muted);
   letter-spacing: 0;
 }
@@ -2293,13 +2315,13 @@ kbd {
 }
 .paper-stats label {
   display: block;
-  font-size: 8px;
+  font-size: var(--text-xs);
   letter-spacing: 1px;
   color: var(--muted);
 }
 .paper-stats strong {
   font-family: "JetBrains Mono", monospace;
-  font-size: 21px;
+  font-size: var(--text-xl);
   letter-spacing: -0.6px;
   font-weight: 400;
   display: block;
@@ -2320,10 +2342,10 @@ kbd {
   display: flex;
   align-items: center;
   gap: 11px;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 .order-side {
-  font-size: 8px;
+  font-size: var(--text-xs);
   padding: 5px 8px;
   border-radius: 4px;
   background: var(--accent-light);
@@ -2336,21 +2358,21 @@ kbd {
 }
 .order-log strong {
   text-transform: capitalize;
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 500;
 }
 .order-log > article > div > .mono {
   margin-left: auto;
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 .order-log p {
-  font-size: 10px;
+  font-size: var(--text-xs);
   margin-top: 10px;
 }
 .order-log small {
   display: block;
-  font-size: 7px;
+  font-size: var(--text-xs);
   color: var(--muted);
   margin-top: 10px;
 }
@@ -2359,10 +2381,10 @@ kbd {
   margin: 24px 0;
 }
 .factor-metrics span {
-  font-size: 7px;
+  font-size: var(--text-xs);
 }
 .factor-metrics strong {
-  font-size: 23px;
+  font-size: var(--text-2xl);
 }
 .notes-grid {
   display: grid;
@@ -2387,7 +2409,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 8px;
+  font-size: var(--text-xs);
   letter-spacing: 1px;
   color: var(--muted);
 }
@@ -2398,7 +2420,7 @@ kbd {
   flex: 1;
 }
 .note-edit h3 {
-  font-size: 16px;
+  font-size: var(--text-base);
   line-height: 1.5;
 }
 .note-edit p {
@@ -2407,7 +2429,7 @@ kbd {
   -webkit-box-orient: vertical;
   overflow: hidden;
   white-space: pre-wrap;
-  font-size: 12px;
+  font-size: var(--text-sm);
   margin-top: 12px;
   min-height: 100px;
   line-height: 1.9;
@@ -2421,10 +2443,10 @@ kbd {
   padding-top: 15px;
   border-top: 1px solid var(--border);
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
 }
 .note-card footer .text-link {
-  font-size: 8px;
+  font-size: var(--text-xs);
 }
 .experiment-card {
   display: flex;
@@ -2450,7 +2472,7 @@ kbd {
   min-width: 0;
 }
 .experiment-info h3 {
-  font-size: 14px;
+  font-size: var(--text-sm);
   display: flex;
   align-items: center;
   gap: 9px;
@@ -2461,7 +2483,7 @@ kbd {
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 10px;
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 .tag {
@@ -2469,20 +2491,20 @@ kbd {
   border-radius: 3px;
   background: var(--accent-light);
   color: var(--accent);
-  font-size: 8px;
+  font-size: var(--text-xs);
 }
 .experiment-metric {
   margin: 0 8px;
 }
 .experiment-metric > label {
   display: block;
-  font-size: 7px;
+  font-size: var(--text-xs);
   letter-spacing: 0.7px;
   color: var(--muted);
 }
 .experiment-metric strong {
   display: block;
-  font-size: 15px;
+  font-size: var(--text-base);
   font-family: "JetBrains Mono", monospace;
   font-weight: 400;
   margin-top: 9px;
@@ -2515,17 +2537,17 @@ kbd {
   flex: 1;
 }
 .reference-card h2 {
-  font-size: 19px;
+  font-size: var(--text-lg);
   margin-top: 7px;
 }
 .reference-author {
   display: block;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--muted);
   margin-top: 5px;
 }
 .reference-card p {
-  font-size: 12px;
+  font-size: var(--text-sm);
   max-width: 650px;
   margin-top: 12px;
 }
@@ -2543,7 +2565,7 @@ kbd {
   color: var(--accent);
 }
 .methodology-grid p {
-  font-size: 12px;
+  font-size: var(--text-sm);
   margin-top: 14px;
 }
 .methodology-grid .text-link {
@@ -2553,7 +2575,7 @@ kbd {
   font-family: "JetBrains Mono", monospace;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 10px;
+  font-size: var(--text-xs);
   line-height: 1.8;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -2567,7 +2589,7 @@ kbd {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--secondary);
   margin-bottom: 18px;
   min-width: 0;
@@ -2577,7 +2599,7 @@ kbd {
 .field select {
   padding: 11px 12px;
   width: 100%;
-  font-size: 12px;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 .field textarea {
@@ -2585,7 +2607,7 @@ kbd {
   min-height: 100px;
 }
 .fine-print {
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--muted);
   line-height: 1.9;
   margin-top: 17px;
@@ -2614,13 +2636,13 @@ kbd {
   margin-bottom: 20px;
 }
 .empty-state h3 {
-  font-size: 18px;
+  font-size: var(--text-lg);
   color: var(--secondary);
   font-weight: 500;
   margin-top: 14px;
 }
 .empty-state p {
-  font-size: 12px;
+  font-size: var(--text-sm);
   max-width: 370px;
   margin: 13px auto 23px;
   color: var(--muted);
@@ -2636,7 +2658,7 @@ kbd {
   justify-content: center;
   gap: 10px;
   padding: 65px 25px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--muted);
   min-height: 180px;
 }
@@ -2688,7 +2710,7 @@ kbd {
   gap: 15px;
 }
 .modal-heading h2 {
-  font-size: 22px;
+  font-size: var(--text-2xl);
   line-height: 1.35;
 }
 .modal-heading .icon-button {
@@ -2696,7 +2718,7 @@ kbd {
   align-self: flex-start;
 }
 .modal-description {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--muted);
   line-height: 1.8;
   margin: 14px 0 24px;
@@ -2712,7 +2734,7 @@ kbd {
 }
 .segmented > button {
   flex: 1;
-  font-size: 11px;
+  font-size: var(--text-xs);
   padding: 9px 12px;
   border-radius: 4px;
   color: var(--muted);
@@ -2733,7 +2755,7 @@ kbd {
   padding: 12px 14px;
   border-radius: 5px;
   color: var(--negative);
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.8;
   margin: 15px 0;
 }
@@ -2752,7 +2774,7 @@ kbd {
   border-bottom: 1px solid #bf697630;
   background: #bf697610;
   color: var(--negative);
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.8;
 }
 .search-results {
@@ -2773,15 +2795,15 @@ kbd {
   background: var(--surface);
 }
 .search-results > button > .mono {
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 .search-results > button strong {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 .search-results > button small {
   display: block;
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--muted);
   margin-top: 5px;
 }
@@ -2847,17 +2869,8 @@ kbd {
     width: 165px;
     height: 99px;
   }
-  .track-card h3 {
-    font-size: 16px;
-  }
-  .track-card > p {
-    font-size: 11px;
-  }
   .track-card-footer {
     padding: 18px 0;
-  }
-  .track-card-footer > span {
-    font-size: 10px;
   }
   .continue-card {
     min-height: 270px;
@@ -2865,32 +2878,17 @@ kbd {
   .continue-copy {
     padding: 32px;
   }
-  .continue-card h2 {
-    font-size: 25px;
-  }
-  .continue-card p {
-    font-size: 12px;
-  }
   .continue-track {
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
   .toolkit-card {
     padding: 30px;
   }
   .toolkit-card h3 {
-    font-size: 19px;
-  }
-  .toolkit-card > p {
-    font-size: 12px;
-  }
-  .toolkit-links strong {
-    font-size: 12px;
-  }
-  .toolkit-links small {
-    font-size: 10px;
+    font-size: var(--text-lg);
   }
   .track-card-top .level-badge {
-    font-size: 8px;
+    font-size: var(--text-xs);
   }
   .sidebar {
     width: 248px;
@@ -2899,14 +2897,11 @@ kbd {
     margin-left: 248px;
     width: calc(100% - 248px);
   }
-  .nav-item {
-    font-size: 12px;
-  }
   .workspace-label {
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
   .workspace-label small {
-    font-size: 9px;
+    font-size: var(--text-xs);
   }
 }
 @media (max-width: 1200px) {
@@ -2922,9 +2917,6 @@ kbd {
   .page {
     padding: 32px 27px 20px;
   }
-  h1 {
-    font-size: 26px;
-  }
   .topbar {
     padding: 0 27px;
   }
@@ -2936,9 +2928,6 @@ kbd {
     padding: 23px;
     max-width: 78%;
   }
-  .continue-card h2 {
-    font-size: 20px;
-  }
   .continue-art {
     right: 0;
     opacity: 0.7;
@@ -2947,22 +2936,10 @@ kbd {
     padding: 23px 18px;
   }
   .toolkit-card h3 {
-    font-size: 15px;
-  }
-  .toolkit-card > p {
-    font-size: 9px;
-  }
-  .toolkit-links strong {
-    font-size: 9px;
+    font-size: var(--text-base);
   }
   .track-card {
     padding: 17px 16px 0;
-  }
-  .track-card h3 {
-    font-size: 12px;
-  }
-  .track-card > p {
-    font-size: 8.5px;
   }
   .track-grid {
     gap: 14px;
@@ -2975,7 +2952,6 @@ kbd {
     height: 82px;
   }
   .track-card-footer > span {
-    font-size: 7px;
     gap: 4px;
   }
   .stats-strip > div {
@@ -2987,7 +2963,7 @@ kbd {
     height: 32px;
   }
   .stats-strip label {
-    font-size: 8px;
+    font-size: var(--text-xs);
   }
   .mini-progress {
     display: none;
@@ -2998,9 +2974,6 @@ kbd {
   .learning-panes {
     gap: 22px;
     grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  }
-  .lesson-article h1 {
-    font-size: 24px;
   }
   .lesson-toolbar .text-link {
     max-width: 210px;
@@ -3017,7 +2990,7 @@ kbd {
     display: none;
   }
   .run-bar > span {
-    font-size: 7px;
+    font-size: var(--text-xs);
   }
   .run-bar kbd {
     display: none;
@@ -3026,10 +2999,10 @@ kbd {
     padding: 0 7px;
   }
   .metrics-grid strong {
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
   .metrics-grid span {
-    font-size: 5.5px;
+    font-size: var(--text-xs);
   }
   .market-lab-layout {
     gap: 22px;
@@ -3039,10 +3012,10 @@ kbd {
     padding: 23px;
   }
   .tool-card h2 {
-    font-size: 19px;
+    font-size: var(--text-lg);
   }
   .paper-stats strong {
-    font-size: 18px;
+    font-size: var(--text-lg);
   }
   .paper-stats > div {
     padding: 0 19px;
@@ -3058,13 +3031,10 @@ kbd {
     margin: 0;
   }
   .experiment-metric > label {
-    font-size: 6px;
+    font-size: var(--text-xs);
   }
   .lab-tabs {
     gap: 22px;
-  }
-  .lab-tabs > button {
-    font-size: 10px;
   }
 }
 @media (max-width: 1000px) {
@@ -3080,22 +3050,21 @@ kbd {
   .workspace-label {
     padding-left: 6px;
     gap: 7px;
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
   .workspace-label small {
-    font-size: 7.5px;
+    font-size: var(--text-xs);
   }
   .nav-item {
-    font-size: 10px;
     gap: 9px;
     padding: 0 11px;
   }
   .profile-button > span:last-child {
-    font-size: 9px;
+    font-size: var(--text-xs);
     max-width: 104px;
   }
   .quick-search {
-    font-size: 9px;
+    font-size: var(--text-xs);
     gap: 6px;
   }
   .learning-note {
@@ -3108,14 +3077,7 @@ kbd {
     align-items: flex-start;
   }
   .page-title-row > .button {
-    font-size: 9px;
     padding: 10px 12px;
-  }
-  h1 {
-    font-size: 24px;
-  }
-  .page-subtitle {
-    font-size: 11px;
   }
   .feature-row {
     grid-template-columns: 1fr;
@@ -3134,12 +3096,6 @@ kbd {
   .continue-card {
     min-height: 245px;
   }
-  .continue-card h2 {
-    font-size: 24px;
-  }
-  .continue-card p {
-    font-size: 11px;
-  }
   .stats-strip > div {
     padding: 0 15px;
     gap: 8px;
@@ -3154,24 +3110,12 @@ kbd {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
   }
-  .track-card h3 {
-    font-size: 14px;
-  }
-  .track-card > p {
-    font-size: 10px;
-  }
-  .track-card-footer > span {
-    font-size: 8px;
-  }
   .track-art-wrap {
     height: 90px;
   }
   .track-art {
     width: 147px;
     height: 88px;
-  }
-  .level-badge {
-    font-size: 7.5px;
   }
   .learning-panes {
     grid-template-columns: 1fr;
@@ -3187,12 +3131,6 @@ kbd {
     max-width: 720px;
     margin: auto;
   }
-  .lesson-article h1 {
-    font-size: 30px;
-  }
-  .lesson-article .prose p {
-    font-size: 13px;
-  }
   .lesson-select {
     max-width: 140px;
   }
@@ -3200,28 +3138,28 @@ kbd {
     max-width: 200px;
   }
   .metrics-grid span {
-    font-size: 7px;
+    font-size: var(--text-xs);
   }
   .metrics-grid strong {
-    font-size: 19px;
+    font-size: var(--text-lg);
   }
   .run-bar > span {
-    font-size: 9px;
+    font-size: var(--text-xs);
   }
   .run-bar .button {
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
   .sandbox-label {
     display: inline;
   }
   .sandbox-config select {
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
   .sandbox-header strong {
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
   .output-tabs > button {
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
   .market-lab-layout {
     grid-template-columns: 1fr;
@@ -3233,7 +3171,6 @@ kbd {
     gap: 19px;
   }
   .lab-tabs > button {
-    font-size: 9px;
     gap: 6px;
   }
   .tool-layout {
@@ -3243,7 +3180,7 @@ kbd {
     padding: 20px;
   }
   .tool-card h2 {
-    font-size: 17px;
+    font-size: var(--text-base);
   }
   .tool-card .input-grid {
     grid-template-columns: 1fr;
@@ -3255,16 +3192,16 @@ kbd {
     padding: 9px 10px;
   }
   .valuation-hero-number strong {
-    font-size: 37px;
+    font-size: var(--text-display);
   }
   .valuation-metrics > div {
-    font-size: 9px;
+    font-size: var(--text-xs);
   }
   .valuation-metrics strong {
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
   .tool-card .slider-field > span {
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
   .paper-stats {
     grid-template-columns: 1fr 1fr;
@@ -3283,7 +3220,7 @@ kbd {
     border: 0;
   }
   .factor-metrics strong {
-    font-size: 20px;
+    font-size: var(--text-xl);
   }
   .module-type {
     display: none;
@@ -3292,9 +3229,6 @@ kbd {
     width: 170px;
     height: 110px;
     margin-right: 0;
-  }
-  .track-detail-hero h1 {
-    font-size: 29px;
   }
   .experiment-metric {
     display: none;
@@ -3329,6 +3263,7 @@ kbd {
   .main-shell {
     margin-left: 0;
     width: 100%;
+    transition: none;
   }
   .mobile-menu,
   .sidebar-close {
@@ -3341,7 +3276,7 @@ kbd {
     gap: 10px;
   }
   .breadcrumbs {
-    font-size: 9px;
+    font-size: var(--text-xs);
     gap: 8px;
   }
   .breadcrumbs .desktop-menu,
@@ -3370,20 +3305,13 @@ kbd {
     gap: 15px;
     flex-wrap: wrap;
   }
-  .page-title-row > .button {
-    font-size: 10px;
-  }
   .page-eyebrow {
-    font-size: 8px;
+    font-size: var(--text-xs);
     letter-spacing: 1.3px;
     margin-bottom: 11px;
   }
   h1 {
-    font-size: 26px;
     letter-spacing: -0.9px;
-  }
-  .page-subtitle {
-    font-size: 11px;
   }
   .overview-page .page-title-row > .button {
     display: none;
@@ -3396,14 +3324,11 @@ kbd {
   .stats-strip > div {
     padding: 0 15px;
   }
-  .stats-strip strong {
-    font-size: 23px;
-  }
   .stats-strip strong small {
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
   .stats-strip label {
-    font-size: 7.5px;
+    font-size: var(--text-xs);
     line-height: 1.5;
   }
   .continue-card {
@@ -3413,14 +3338,8 @@ kbd {
     padding: 23px;
     max-width: 72%;
   }
-  .continue-card h2 {
-    font-size: 22px;
-  }
-  .continue-card p {
-    font-size: 10px;
-  }
   .continue-track {
-    font-size: 8px;
+    font-size: var(--text-xs);
     margin-top: 21px;
   }
   .continue-art {
@@ -3435,30 +3354,19 @@ kbd {
     gap: 10px;
   }
   .continue-bottom > span {
-    font-size: 8px;
+    font-size: var(--text-xs);
   }
   .section-heading {
     margin: 28px 0 17px;
   }
   .section-heading h2 {
-    font-size: 18px;
     gap: 8px;
   }
-  .section-heading p {
-    font-size: 10px;
-  }
   .section-heading > .text-link {
-    font-size: 9px;
     white-space: nowrap;
   }
   .track-card {
     padding: 18px 18px 0;
-  }
-  .track-card h3 {
-    font-size: 14px;
-  }
-  .track-card-footer > span {
-    font-size: 8px;
   }
   .track-art-wrap {
     height: 85px;
@@ -3468,7 +3376,7 @@ kbd {
     height: 86px;
   }
   .overview-footer {
-    font-size: 7px;
+    font-size: var(--text-xs);
     line-height: 1.8;
   }
   .overview-footer > span:last-child {
@@ -3476,23 +3384,22 @@ kbd {
   }
   .workspace-label {
     padding: 27px 11px;
-    font-size: 11px;
+    font-size: var(--text-xs);
     gap: 10px;
   }
   .workspace-label small {
-    font-size: 8.5px;
+    font-size: var(--text-xs);
   }
   .nav-item {
-    font-size: 11px;
     gap: 12px;
     padding: 0 12px;
   }
   .profile-button > span:last-child {
-    font-size: 10px;
+    font-size: var(--text-xs);
     max-width: 125px;
   }
   .quick-search {
-    font-size: 10px;
+    font-size: var(--text-xs);
     gap: 9px;
   }
   .sidebar-bottom {
@@ -3509,9 +3416,6 @@ kbd {
   .tabs {
     gap: 20px;
   }
-  .tabs > button {
-    font-size: 10px;
-  }
   .search-input.compact {
     width: 220px;
   }
@@ -3522,12 +3426,8 @@ kbd {
     width: 130px;
     height: 90px;
   }
-  .track-detail-hero h1 {
-    font-size: 27px;
-  }
   .inline-meta {
     gap: 12px;
-    font-size: 9px;
   }
   .module-row {
     gap: 14px;
@@ -3536,22 +3436,16 @@ kbd {
   .module-state {
     height: 32px;
     width: 32px;
-    font-size: 9px;
-  }
-  .module-row h3 {
-    font-size: 13px;
-  }
-  .module-row p {
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
   .module-minutes {
-    font-size: 8px;
+    font-size: var(--text-xs);
   }
   .module-row > svg {
     width: 15px;
   }
   .module-row .eyebrow {
-    font-size: 7px;
+    font-size: var(--text-xs);
   }
   .lesson-toolbar {
     gap: 10px;
@@ -3571,24 +3465,14 @@ kbd {
   .learning-room {
     padding: 0 22px 20px;
   }
-  .lesson-article h1 {
-    font-size: 29px;
-  }
   .lesson-meta {
     gap: 12px;
-    font-size: 9px;
-  }
-  .lesson-meta button {
-    font-size: 9px;
-  }
-  .lesson-objective p {
-    font-size: 12px;
   }
   .sandbox-config {
     padding: 15px;
   }
   .sandbox-config > label {
-    font-size: 8px;
+    font-size: var(--text-xs);
   }
   .sandbox-header {
     padding: 12px 15px;
@@ -3597,7 +3481,7 @@ kbd {
     gap: 19px;
   }
   .output-tabs > button {
-    font-size: 9px;
+    font-size: var(--text-xs);
   }
   .run-bar {
     padding: 12px;
@@ -3610,19 +3494,19 @@ kbd {
     padding: 0 11px;
   }
   .metrics-grid span {
-    font-size: 6px;
+    font-size: var(--text-xs);
   }
   .metrics-grid strong {
-    font-size: 18px;
+    font-size: var(--text-lg);
   }
   .output-header {
     padding: 17px 15px;
   }
   .run-timing {
-    font-size: 7px;
+    font-size: var(--text-xs);
   }
   .output-header .eyebrow {
-    font-size: 8px;
+    font-size: var(--text-xs);
   }
   .tool-layout {
     grid-template-columns: 1fr;
@@ -3631,7 +3515,7 @@ kbd {
     padding: 25px;
   }
   .tool-card h2 {
-    font-size: 22px;
+    font-size: var(--text-2xl);
   }
   .tool-card .input-grid {
     grid-template-columns: 1fr 1fr;
@@ -3640,14 +3524,13 @@ kbd {
     grid-template-columns: repeat(3, 1fr);
   }
   .tool-card .field {
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
   .lab-tabs {
     gap: 24px;
     margin: 24px 0;
   }
   .lab-tabs > button {
-    font-size: 10px;
     gap: 7px;
   }
   .factor-metrics {
@@ -3660,19 +3543,19 @@ kbd {
     border-right: 1px solid var(--border);
   }
   .factor-metrics span {
-    font-size: 7px;
+    font-size: var(--text-xs);
   }
   .factor-metrics strong {
-    font-size: 21px;
+    font-size: var(--text-xl);
   }
   .valuation-metrics > div {
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
   .valuation-metrics strong {
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
   .valuation-hero-number strong {
-    font-size: 46px;
+    font-size: var(--text-display);
   }
   .notes-grid {
     grid-template-columns: 1fr 1fr;
@@ -3682,10 +3565,10 @@ kbd {
     padding: 18px;
   }
   .note-edit h3 {
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
   .note-edit p {
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
   .note-card footer {
     flex-wrap: wrap;
@@ -3696,10 +3579,10 @@ kbd {
     gap: 12px;
   }
   .experiment-info h3 {
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
   .experiment-info p {
-    font-size: 8px;
+    font-size: var(--text-xs);
     gap: 8px;
   }
   .experiment-icon {
@@ -3710,13 +3593,13 @@ kbd {
     width: 20px;
   }
   .reference-card h2 {
-    font-size: 18px;
+    font-size: var(--text-lg);
   }
   .reference-card p {
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
   .reference-card .eyebrow {
-    font-size: 7px;
+    font-size: var(--text-xs);
   }
   .reference-icon {
     width: 37px;
@@ -3729,7 +3612,7 @@ kbd {
     padding: 25px;
   }
   .modal-heading h2 {
-    font-size: 20px;
+    font-size: var(--text-xl);
   }
 }
 @media (max-width: 450px) {
@@ -3749,12 +3632,8 @@ kbd {
     display: none;
   }
   h1 {
-    font-size: 24px;
     letter-spacing: -0.8px;
     line-height: 1.4;
-  }
-  .page-subtitle {
-    font-size: 10px;
   }
   .stats-strip {
     grid-template-columns: 1fr 1fr;
@@ -3777,7 +3656,7 @@ kbd {
     width: 15px;
   }
   .stats-strip label {
-    font-size: 8px;
+    font-size: var(--text-xs);
   }
   .continue-card {
     min-height: 263px;
@@ -3797,28 +3676,23 @@ kbd {
     width: 165px;
   }
   .continue-card h2 {
-    font-size: 24px;
     max-width: 240px;
   }
   .continue-track {
     max-width: 210px;
     line-height: 1.5;
-    font-size: 7px;
+    font-size: var(--text-xs);
     gap: 5px;
     white-space: nowrap;
   }
   .continue-card p {
     max-width: 235px;
-    font-size: 10px;
   }
   .continue-bottom {
     gap: 13px;
   }
-  .continue-bottom .button {
-    font-size: 10px;
-  }
   .continue-bottom > span {
-    font-size: 8px;
+    font-size: var(--text-xs);
   }
   .formula-tag {
     display: none;
@@ -3836,12 +3710,10 @@ kbd {
     align-items: flex-start;
   }
   .track-number {
-    font-size: 6px;
     letter-spacing: 0.8px;
     margin-top: 4px;
   }
   .level-badge {
-    font-size: 6px;
     padding: 3px 4px;
   }
   .track-art-wrap {
@@ -3864,13 +3736,11 @@ kbd {
     height: 17px;
   }
   .track-card h3 {
-    font-size: 12px;
     line-height: 1.5;
     min-height: 36px;
     letter-spacing: -0.25px;
   }
   .track-card > p {
-    font-size: 8px;
     line-height: 1.8;
     min-height: 29px;
     margin-top: 6px;
@@ -3880,7 +3750,6 @@ kbd {
     padding: 12px 0;
   }
   .track-card-footer > span {
-    font-size: 6.5px;
     gap: 3px;
   }
   .track-card-footer > span > svg {
@@ -3892,18 +3761,13 @@ kbd {
   .track-card-footer .dot-separator {
     margin: 0 1px;
   }
-  .section-heading h2 {
-    font-size: 16px;
-  }
   .section-heading .count-pill {
     display: none;
   }
   .section-heading p {
-    font-size: 9px;
     max-width: 225px;
   }
   .section-heading > .text-link {
-    font-size: 8px;
     gap: 5px;
   }
   .catalog-toolbar .search-input.compact {
@@ -3918,13 +3782,10 @@ kbd {
     gap: 12px;
   }
   .curriculum-note p {
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
   .track-detail-hero .track-art {
     display: none;
-  }
-  .track-detail-hero h1 {
-    font-size: 28px;
   }
   .module-row {
     gap: 11px;
@@ -3933,12 +3794,6 @@ kbd {
   .module-state {
     width: 27px;
     height: 27px;
-  }
-  .module-row h3 {
-    font-size: 12px;
-  }
-  .module-row p {
-    font-size: 9px;
   }
   .module-minutes {
     display: none;
@@ -3949,23 +3804,15 @@ kbd {
   .learning-room {
     padding: 0 17px 20px;
   }
-  .lesson-article h1 {
-    font-size: 28px;
-  }
-  .lesson-article .prose p {
-    font-size: 12px;
-  }
   .exercise-card {
     padding: 18px;
   }
   .answer-option {
-    font-size: 10px;
     padding: 11px 9px;
     gap: 7px;
   }
   .lesson-toolbar .text-link {
     max-width: 210px;
-    font-size: 9px;
   }
   .view-controls button {
     padding: 5px;
@@ -3974,7 +3821,7 @@ kbd {
     padding: 10px 11px;
   }
   .sandbox-header strong {
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
   .sandbox-label {
     display: none;
@@ -3984,61 +3831,61 @@ kbd {
     gap: 9px;
   }
   .sandbox-config select {
-    font-size: 9px;
+    font-size: var(--text-xs);
     padding: 8px 5px;
   }
   .sandbox-config label {
-    font-size: 7px;
+    font-size: var(--text-xs);
   }
   .run-bar > span {
-    font-size: 7px;
+    font-size: var(--text-xs);
   }
   .run-bar .button {
-    font-size: 8px;
+    font-size: var(--text-xs);
     padding: 8px;
   }
   .metrics-grid > div {
     padding: 0 7px;
   }
   .metrics-grid strong {
-    font-size: 15px;
+    font-size: var(--text-base);
   }
   .metrics-grid span {
-    font-size: 5px;
+    font-size: var(--text-xs);
     letter-spacing: 0.3px;
   }
   .chart-legend {
-    font-size: 7px;
+    font-size: var(--text-xs);
     padding-left: 12px;
     gap: 9px;
   }
   .chart-legend small {
-    font-size: 5px;
+    font-size: var(--text-xs);
   }
   .output-tabs {
     gap: 16px;
     padding: 0 12px;
   }
   .output-tabs > button {
-    font-size: 8px;
+    font-size: var(--text-xs);
   }
   .market-lab-layout .sandbox-config select {
-    font-size: 9px;
+    font-size: var(--text-xs);
   }
   .market-lab-layout .metrics-grid span {
-    font-size: 5.5px;
+    font-size: var(--text-xs);
   }
   .market-lab-layout .metrics-grid strong {
-    font-size: 17px;
+    font-size: var(--text-base);
   }
   .market-lab-layout .run-bar .button {
-    font-size: 8px;
+    font-size: var(--text-xs);
   }
   .market-lab-layout .run-bar > span {
-    font-size: 7px;
+    font-size: var(--text-xs);
   }
   .market-lab-layout .output-tabs > button {
-    font-size: 8px;
+    font-size: var(--text-xs);
   }
   .tool-card {
     padding: 21px;
@@ -4047,40 +3894,40 @@ kbd {
     grid-template-columns: 1fr;
   }
   .tool-card h2 {
-    font-size: 20px;
+    font-size: var(--text-xl);
   }
   .tool-card .field {
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
   .valuation-metrics > div {
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
   .valuation-metrics strong {
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
   .paper-stats {
     padding: 20px 0;
   }
   .paper-stats label {
-    font-size: 7px;
+    font-size: var(--text-xs);
   }
   .paper-stats strong {
-    font-size: 19px;
+    font-size: var(--text-lg);
   }
   .factor-metrics span {
-    font-size: 6px;
+    font-size: var(--text-xs);
   }
   .factor-metrics strong {
-    font-size: 19px;
+    font-size: var(--text-lg);
   }
   .notes-grid {
     grid-template-columns: 1fr;
   }
   .note-edit h3 {
-    font-size: 17px;
+    font-size: var(--text-base);
   }
   .note-edit p {
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
   .experiment-card {
     gap: 10px;
@@ -4093,7 +3940,7 @@ kbd {
     display: none;
   }
   .experiment-info h3 {
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
   .reference-card {
     padding: 21px;
@@ -4106,20 +3953,20 @@ kbd {
     margin: 0;
   }
   .reference-card p {
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
   .modal {
     padding: 22px;
   }
   .modal-heading h2 {
-    font-size: 20px;
+    font-size: var(--text-xl);
   }
   .modal-description {
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
   .global-alert {
     padding: 12px 18px;
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
 }
 @media (prefers-reduced-motion: reduce) {

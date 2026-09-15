@@ -2,6 +2,8 @@
 
 `authoring/` contains original course builders and reusable authoring helpers. `catalog/curriculum.json` is the canonical generated course and exam data, imported by the frontend and read by the backend. `projects/` owns all downloadable educational source files.
 
+`authoring/learning_guidance.py` owns the plain-language introductions, step-by-step worked explanations, and shared vocabulary. The generator applies these to the lesson bodies after assembling the courses. Keep explanations tied to the actual example: define the inputs, show the intermediate calculation, and explain the conclusion. Add context before technical detail, and preserve the lesson's equations, assessment keys, and executable worksheets when editing prose. Use `$$` for Markdown equations; ordinary `$` amounts remain currency in the reader.
+
 From the repository root, run `npm run content:build` after editing course builders or projects. It regenerates the catalog and the copies/archives under `frontend/public/course-assets/`. Both scripts resolve repository paths from their own locations and can also run from another working directory.
 
 Preserve existing course IDs, lesson IDs, first-practice answer keys, and exam-version semantics when expanding courses. The array order controls the recommended learning sequence and displayed track labels. Case explanations and exercises should be original; distinguish documented events, practical implementations, and fictional scenarios, and include references at the lesson level. Project files included in archives are explicitly listed in `scripts/package_projects.py`.

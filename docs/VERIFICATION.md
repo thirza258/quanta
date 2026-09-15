@@ -1,3 +1,24 @@
+# Course readability and shared typography — September 15, 2026
+
+The course reader now uses a consistent 16px reading size, with a shared type scale for headings, controls, metadata, and course cards. Lists retain their markers, lesson tables have padded cells and keyboard-accessible horizontal scrolling, and dollar amounts remain ordinary text instead of being parsed as equations. Mobile learners can switch modules directly from the lesson toolbar. Course pages have a direct link to their outline; curriculum search includes lesson text and offers a clear reset action.
+
+The actual lesson bodies include **90 conceptual introductions and 19 expanded worked explanations**, adding approximately **9,400 words**. Each explanation connects the original example's inputs, intermediate calculation, and interpretation. All **300 lessons** have relevant plain-language glossary entries, with context-specific meanings for computing and finance. Descriptions and course plans were edited across all 12 courses. The generated catalog and the live API match exactly; lesson identities, equations, executable worksheets, assignments, assessment keys and versions, and source references match the previous catalog.
+
+| Check | Result |
+| --- | --- |
+| TypeScript and Vite production build | Passed; existing large-bundle warning remains |
+| Frontend model and progression tests | 47 passed |
+| Backend API, content, assessment, and worksheet tests | 597 passed |
+| Browser stories | 91 verified across course reading, practice, exams, notebooks, downloads, sidebar controls, and workspace flows |
+| Layout audit | 48 page/theme/viewport combinations passed at 320, 768, and 1440px; no page overflow or browser errors |
+| Authoring and formatting | Ruff, Prettier, Python compilation, and diff whitespace checks passed |
+
+The broad course browser run passed 69 of 74 scenarios initially. Rechecks passed all 19 selected scenarios after fixing curriculum search and transient C-editor overflow during mobile resizing, and updating three test assumptions: a reading plan now has multiple paragraphs, the existing next course is the careful-investor course, and two references can have the same title with distinct version URLs. The separate 17-story sidebar/workspace run also passed. Currency, table navigation, and mobile lesson navigation have dedicated regression coverage.
+
+Teaching edits live in [learning_guidance.py](../content/authoring/learning_guidance.py) and regenerate with `npm run content:build`. Local evidence: `/tmp/quanta-expanded-lesson-example.png`, `/tmp/quanta-reading-mobile.png`, `/tmp/quanta-course-detail-after.png`, `/tmp/quanta-layout-audit.json`, `/tmp/quanta-course-readability-recheck.log`, and `/tmp/quanta-ui-api.log`.
+
+---
+
 # Strategy Lab expansion and careful-investor prerequisite — September 14, 2026
 
 The rebuilt application at **http://127.0.0.1:8088** includes **The intelligent & careful investor** directly before Security Analysis (16 lessons, 8 planned study hours) and the expanded **Strategy Lab** (32 lessons, 16 hours). The catalog contains **12 courses, 300 lessons, 608 practice questions and 572 exam questions across 77 exams**. Algorithm Evaluation remains last. Both development and Docker API catalogs exactly match the canonical JSON.

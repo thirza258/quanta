@@ -35,6 +35,19 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
+// Course prose uses $ for money and $$ for equations.
+const markdownComponents = {
+  table: ({ children }: { children?: React.ReactNode }) => (
+    <div
+      className="prose-table"
+      role="region"
+      aria-label="Lesson table"
+      tabIndex={0}
+    >
+      <table>{children}</table>
+    </div>
+  ),
+};
 const Sandbox = lazy(() => import("@/features/research/components/Sandbox"));
 const LocalCodeLab = lazy(
   () => import("@/features/learning/components/LocalCodeLab"),
@@ -88,6 +101,7 @@ function Reader({ lesson }: { lesson: Lesson }) {
         <div className="view-controls">
           <button
             className={view === "reader" ? "active" : ""}
+            aria-pressed={view === "reader"}
             aria-label="Reading view"
             title="Reading view"
             onClick={() => setView("reader")}
@@ -96,6 +110,7 @@ function Reader({ lesson }: { lesson: Lesson }) {
           </button>
           <button
             className={view === "split" ? "active" : ""}
+            aria-pressed={view === "split"}
             aria-label="Split view"
             title="Split view"
             onClick={() => setView("split")}
@@ -104,6 +119,7 @@ function Reader({ lesson }: { lesson: Lesson }) {
           </button>
           <button
             className={view === "sandbox" ? "active" : ""}
+            aria-pressed={view === "sandbox"}
             aria-label={isC ? "C lab view" : "Sandbox view"}
             title={isC ? "C lab view" : "Sandbox view"}
             onClick={() => setView("sandbox")}
@@ -175,7 +191,9 @@ function Reader({ lesson }: { lesson: Lesson }) {
             MODULE {lesson.id}
           </div>
           <h1>{lesson.title}</h1>
-          <p className="lesson-subtitle">{lesson.subtitle}</p>
+          {lesson.subtitle !== lesson.objective ? (
+            <p className="lesson-subtitle">{lesson.subtitle}</p>
+          ) : null}
           <div className="lesson-meta">
             <span>
               <Clock3 size={14} />
@@ -221,7 +239,7 @@ function Reader({ lesson }: { lesson: Lesson }) {
             </aside>
           ) : null}
           <div className="lesson-objective">
-            <span className="eyebrow">YOUR OBJECTIVE</span>
+            <span className="eyebrow">WHAT YOU WILL LEARN</span>
             <p>
               {lesson.objective ??
                 "Explain the principle, reproduce the worked example, and identify an assumption that could change the result."}
@@ -229,8 +247,12 @@ function Reader({ lesson }: { lesson: Lesson }) {
           </div>
           <div className="prose">
             <ReactMarkdown
-              remarkPlugins={[remarkMath, remarkGfm]}
+              remarkPlugins={[
+                [remarkMath, { singleDollarTextMath: false }],
+                remarkGfm,
+              ]}
               rehypePlugins={[rehypeKatex]}
+              components={markdownComponents}
             >
               {lesson.content}
             </ReactMarkdown>

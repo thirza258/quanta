@@ -24,7 +24,7 @@ def study(
         str(part),
         title,
         objective,
-        f"Unit {part} applied study. Read the primary references, reproduce the worked case, and record the assignment evidence in your notebook.",
+        f"This lesson belongs to Unit {part}. Read the explanation and work through the example before trying the assignment. Use the linked sources to check the underlying method, then write your calculation and what it means in your notebook.",
         f"## Model and assumptions\n\n{principle}\n\n## A worked example\n\n{case}\n\n## Implementation and interpretation\n\n{workflow}",
         formula,
         code,
