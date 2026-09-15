@@ -11,12 +11,27 @@ import {
   Menu,
   Moon,
   PanelLeftClose,
+  PanelLeftOpen,
   Search,
   Sun,
   X,
 } from "lucide-react";
-import { Suspense, useEffect, useState } from "react";
+import {
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { Outlet, useLocation } from "react-router-dom";
+
+const mobileQuery = "(max-width: 760px)";
+function subscribeMobile(notify: () => void) {
+  const media = window.matchMedia(mobileQuery);
+  media.addEventListener("change", notify);
+  return () => media.removeEventListener("change", notify);
+}
+
 export default function Layout() {
   const { user, online, ready, saveStatus, error, setError } = useWorkspace(),
     location = useLocation();
@@ -25,7 +40,18 @@ export default function Layout() {
     ),
     [authOpen, setAuthOpen] = useState(false),
     [searchOpen, setSearchOpen] = useState(false),
-    [menuOpen, setMenuOpen] = useState(false);
+    [menuOpen, setMenuOpen] = useState(false),
+    [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const mobile = useSyncExternalStore(
+    subscribeMobile,
+    () => window.matchMedia(mobileQuery).matches,
+    () => false,
+  );
+  const mobileMenuOpen = mobile && menuOpen;
+  const sidebarOpen = !mobile || menuOpen;
+  const isSimulator = location.pathname === "/simulator";
+  const sidebarCompact = !mobile && sidebarCollapsed && !isSimulator;
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     try {
@@ -52,6 +78,43 @@ export default function Layout() {
     setMenuOpen(false);
     window.scrollTo(0, 0);
   }, [location.pathname]);
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [mobile]);
+  useEffect(() => {
+    if (!mobileMenuOpen || authOpen || searchOpen) return;
+    const sidebar = document.getElementById("workspace-sidebar");
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    sidebar?.querySelector<HTMLButtonElement>(".sidebar-close")?.focus();
+
+    function handle(event: KeyboardEvent) {
+      if (event.defaultPrevented) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMenuOpen(false);
+      } else if (event.key === "Tab") {
+        const controls = sidebar?.querySelectorAll<HTMLElement>(
+          "a[href], button:not([disabled])",
+        );
+        const first = controls?.[0];
+        const last = controls?.[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    }
+    document.addEventListener("keydown", handle);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener("keydown", handle);
+      menuButton.current?.focus();
+    };
+  }, [mobileMenuOpen, authOpen, searchOpen]);
   const current =
     nav.find((n) =>
       n.path === "/"
@@ -66,34 +129,54 @@ export default function Layout() {
   if (!ready) return <Loading label="Opening your workspace…" />;
   return (
     <div
-      className={`app-shell ${location.pathname === "/simulator" ? "simulator-shell" : ""}`}
+      className={`app-shell ${sidebarCompact ? "sidebar-collapsed" : ""} ${isSimulator ? "simulator-shell" : ""}`}
     >
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
-      {menuOpen ? (
+      {mobileMenuOpen ? (
         <button
           className="sidebar-backdrop"
-          aria-label="Close navigation"
+          aria-label="Dismiss navigation"
           onClick={() => setMenuOpen(false)}
         />
       ) : null}
       <Sidebar
-        open={menuOpen}
+        open={sidebarOpen}
+        collapsed={sidebarCompact}
+        onClose={() => setMenuOpen(false)}
         onSearch={() => setSearchOpen(true)}
         onAccount={() => setAuthOpen(true)}
       />
-      <div className="main-shell">
+      <div className="main-shell" inert={mobileMenuOpen}>
         <header className="topbar">
           <button
+            ref={menuButton}
             className="icon-button mobile-menu"
             aria-label="Open navigation"
-            onClick={() => setMenuOpen(true)}
+            aria-controls="workspace-sidebar"
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
           >
             <Menu size={20} />
           </button>
           <div className="breadcrumbs">
-            <PanelLeftClose size={16} />
+            <button
+              className="icon-button desktop-menu"
+              aria-label={
+                sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+              }
+              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-controls="workspace-sidebar"
+              aria-expanded={!sidebarCollapsed}
+              onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
+            >
+              {sidebarCollapsed ? (
+                <PanelLeftOpen size={16} />
+              ) : (
+                <PanelLeftClose size={16} />
+              )}
+            </button>
             <span className="breadcrumb-divider" />
             <span>Workspace</span>
             <ChevronRight size={13} />

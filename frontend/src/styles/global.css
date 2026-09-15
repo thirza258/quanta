@@ -195,6 +195,17 @@ kbd {
   display: flex;
   flex-direction: column;
   z-index: 40;
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition:
+    width 0.2s,
+    transform 0.2s,
+    visibility 0s 0.2s;
+}
+.sidebar.open {
+  transform: translateX(0);
+  visibility: visible;
+  transition-delay: 0s;
 }
 .brand {
   display: flex;
@@ -288,7 +299,10 @@ kbd {
   margin-left: auto;
   color: var(--muted);
 }
-.sidebar > .brand {
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex-shrink: 0;
 }
 .sidebar-scroll {
@@ -396,10 +410,51 @@ kbd {
 .profile-arrow {
   margin-left: auto;
 }
+.sidebar.collapsed {
+  width: 64px;
+  padding: 24px 10px 0;
+}
+.sidebar.collapsed .sidebar-header,
+.sidebar.collapsed .workspace-label,
+.sidebar.collapsed .nav-section-label,
+.sidebar.collapsed .learning-note,
+.sidebar.collapsed .nav-item > span,
+.sidebar.collapsed .nav-count,
+.sidebar.collapsed .trailing-icon,
+.sidebar.collapsed .quick-search > span,
+.sidebar.collapsed .quick-search kbd,
+.sidebar.collapsed .profile-button > span:last-child,
+.sidebar.collapsed .profile-arrow {
+  display: none;
+}
+.sidebar.collapsed nav {
+  margin-bottom: 20px;
+}
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+}
+.sidebar.collapsed .quick-search {
+  justify-content: center;
+  padding: 10px 0;
+}
+.sidebar.collapsed .profile-row {
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0;
+}
 .main-shell {
   width: calc(100% - 232px);
   margin-left: 232px;
   min-width: 0;
+  transition:
+    margin-left 0.2s,
+    width 0.2s;
+}
+.app-shell.sidebar-collapsed .main-shell {
+  margin-left: 64px;
+  width: calc(100% - 64px);
 }
 .topbar {
   height: 69px;
@@ -418,7 +473,7 @@ kbd {
   font-size: 10px;
   color: var(--muted);
 }
-.breadcrumbs > svg:first-child {
+.breadcrumbs .desktop-menu {
   color: #9a9f99;
 }
 .breadcrumbs strong {
@@ -2734,7 +2789,8 @@ kbd {
   margin-left: auto;
   color: var(--muted);
 }
-.mobile-menu {
+.mobile-menu,
+.sidebar-close {
   display: none;
 }
 .sidebar-backdrop {
@@ -3260,13 +3316,8 @@ kbd {
 }
 @media (max-width: 760px) {
   .sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.2s;
     width: 232px;
     padding: 30px 19px 0;
-  }
-  .sidebar.open {
-    transform: translateX(0);
   }
   .sidebar-backdrop {
     display: block;
@@ -3279,7 +3330,8 @@ kbd {
     margin-left: 0;
     width: 100%;
   }
-  .mobile-menu {
+  .mobile-menu,
+  .sidebar-close {
     display: inline-flex;
   }
   .topbar {
@@ -3292,7 +3344,7 @@ kbd {
     font-size: 9px;
     gap: 8px;
   }
-  .breadcrumbs > svg:first-child,
+  .breadcrumbs .desktop-menu,
   .breadcrumb-divider {
     display: none;
   }
