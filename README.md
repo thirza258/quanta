@@ -66,6 +66,7 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 - **[Algorithm evaluation & results reporting](docs/ALGORITHM_EVALUATION.md)** is the final track: 16 lessons / 8 hours, 32 practice questions, four checkpoints and a final. Its downloadable project produces JSON, Markdown, HTML, PNG and SVG results with net returns, benchmark comparison, risk, descriptive block uncertainty, C/HPC timing, provenance and a separate report rubric.
 - Named references on every lesson and a shared source footer across all page types, a complete reference library, source-use guidance, and bundled dependency notices. Course cards wrap long text and use an open-book illustration.
 - Untimed, open-book exams with exact pass thresholds, saved drafts, answer navigation, pre-submission review, explanations, topic-specific lesson links, retakes, and attempt history. Course progress includes both lesson completion and exam passes.
+- Course completion certificates with eligibility checklists, server issuance, public verification by ID/link, saved learner names and issue dates, and a print layout for PDF export. Find them under **Certifications**.
 - Online grading, account-owned submission logs, idempotent retries, and device grading when the API is unavailable. Existing lesson IDs and workspace progress remain compatible.
 - Reading, split-pane, and full sandbox views; locally bundled Monaco Python editor with Cmd/Ctrl+Enter execution.
 - A course AI assistant for lesson hints, debugging, and downloadable environment/code files, using the OpenAI Python package with OpenRouter. Optional editor/error context, file previews, project ZIPs, and code replacement with undo. See [assistant setup](docs/ASSISTANT.md).
@@ -93,6 +94,14 @@ Course completion requires all its modules and exams. Later tracks stay availabl
 Exam drafts and up to 20 attempts per exam (recent attempts plus the best result for the current version) travel with workspace sync/export. A failed retake preserves a prior pass for that exam version. Account submission logs can restore missing online results from the latest 50 submissions. Device-graded attempts sync as workspace data, but are not retroactively added to the online submission log. These are open-book learning assessments: the shared catalog includes answer explanations and keys, and workspace completion is not a tamper-proof credential.
 
 If grading saves a result but the response is lost, reopening the exam restores the submitted result and clears its unchanged draft. Answers edited afterward stay saved; choose **Continue as a new attempt** to submit those edits separately, or **Review submitted attempt** to discard the edits and view the recorded answers.
+
+## Certifications
+
+Open **Certifications** in the sidebar, or choose **View certificate** from a completed course or exam result. Complete every module and pass every current-version exam in a course, sign in, and enter the name to appear on its certificate. Creating an account carries over guest progress. Before issuance, the app syncs the workspace and the API checks its version, recorded module completion, and exam answers against the current catalog. Device attempts qualify after server regrading; client-supplied scores and pass flags are not trusted.
+
+Certificates are stored separately from editable workspace data in an account-owned database table, created automatically on API startup. Each record keeps its original server-generated ID, name, issue date (displayed in UTC), course title, module IDs, exam versions, and study duration. A database constraint prevents duplicate issuance for the same account and course edition. Repeating a claim returns the original record, including after a lost response or workspace reset. Changed modules or exam versions require completing the updated requirements for a new certificate; earlier records remain verifiable. Workspace JSON exports contain learning progress; certificates are recovered separately from the issuer registry after sign-in.
+
+Choose **Print / save PDF**, then **Save as PDF** in the browser print dialog to download a copy. Each certificate includes its public `/verify/{certificate-id}` link. **Copy verification link** shares that address; `/verify` also accepts a certificate ID. Public verification reads the original database record, without requiring sign-in or exposing account IDs, email addresses, or exam answers. Unknown IDs and temporarily unavailable verification have distinct states. Verification confirms issuer authenticity, not learner identity or professional accreditation: names and lesson completion are self-reported, and assessments are open book. The API must be reachable for issuance and verification; a downloaded PDF is usable offline.
 
 ## Course AI assistant
 
@@ -175,6 +184,8 @@ Interactive API documentation is at `/docs` on the development API URL. The publ
 | POST | `/api/v1/exercises/{lesson_id}/submit` | Check `{answer, question}`; question defaults to zero for existing clients |
 | POST | `/api/v1/exams/{exam_id}/submit` | Grade a complete versioned attempt; persist account submissions with retry deduplication |
 | GET | `/api/v1/exams/{exam_id}/attempts` | Latest 50 submissions belonging to the signed-in account |
+| GET / POST | `/api/v1/certificates` | List account-owned certificates / issue a certificate after checking course completion |
+| GET | `/api/v1/certificates/{certificate_id}/verify` | Public lookup of an immutable issuer record |
 | GET | `/api/v1/data/catalog` | Installed historical datasets |
 | POST | `/api/v1/data/synthetic/generate` | Seeded OHLCV bars |
 | POST | `/api/v1/sandbox/execute` | Code, dataset config, metrics, series, trades, output |

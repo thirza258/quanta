@@ -14,6 +14,7 @@ import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import {
   ArrowLeft,
   ArrowRight,
+  Award,
   BookOpen,
   Check,
   ChevronRight,
@@ -105,6 +106,15 @@ export default function TrackDetail() {
             <a className="button secondary" href="#course-outline">
               View course outline <BookOpen size={16} />
             </a>
+            <Link
+              className="button secondary"
+              to={`/certifications/course/${track.id}`}
+            >
+              <Award size={16} />
+              {progress.complete
+                ? "View certificate"
+                : "Certificate requirements"}
+            </Link>
           </div>
         </div>
         <TrackArt kind={track.icon} large />

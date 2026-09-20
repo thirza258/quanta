@@ -17,6 +17,7 @@ import { api, ApiError, post } from "@/shared/api/client";
 import {
   ArrowLeft,
   ArrowRight,
+  Award,
   BookOpen,
   Check,
   ClipboardCheck,
@@ -518,6 +519,14 @@ function Assessment({ exam }: { exam: Exam }) {
                   : `You need ${required} correct answers to pass. Use the explanations below to revisit the concepts you missed.`}
               </p>
               <div className="exam-actions">
+                {progress.complete ? (
+                  <Link
+                    className="button secondary"
+                    to={`/certifications/course/${track.id}`}
+                  >
+                    <Award size={15} /> View certificate
+                  </Link>
+                ) : null}
                 <button className="button secondary" onClick={start}>
                   <RotateCcw size={15} />
                   Retake exam

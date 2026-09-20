@@ -28,6 +28,7 @@ type WorkspaceContextType = {
   signOut: () => Promise<void>;
   retrySync: () => Promise<void>;
   useAccountCopy: () => Promise<void>;
+  syncWorkspace: () => Promise<number>;
 };
 const Context = createContext<WorkspaceContextType | null>(null);
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
@@ -219,6 +220,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setError("");
     setSaveStatus("Synced to your account");
   };
+  const syncWorkspace = async () => {
+    const owner = account.current?.id;
+    if (!owner) throw new Error("Sign in to claim a certificate.");
+    await flush();
+    if (owner !== account.current?.id)
+      throw new Error("Your account changed. Please try again.");
+    if (dirty.current || blocked.current)
+      throw new Error(
+        "Sync your workspace before claiming. Resolve the sync notification and try again.",
+      );
+    return revision.current;
+  };
   return (
     <Context.Provider
       value={{
@@ -234,6 +247,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         signOut,
         retrySync,
         useAccountCopy,
+        syncWorkspace,
       }}
     >
       {children}

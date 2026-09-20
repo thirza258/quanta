@@ -26,7 +26,14 @@ async def request_guards(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "same-origin"
     if request.url.path.startswith(
-        ("/api/v1/auth", "/api/v1/workspace", "/api/v1/exams", "/api/v1/simulator", "/api/v1/assistant")
+        (
+            "/api/v1/auth",
+            "/api/v1/workspace",
+            "/api/v1/exams",
+            "/api/v1/simulator",
+            "/api/v1/assistant",
+            "/api/v1/certificates",
+        )
     ):
         response.headers["Cache-Control"] = "no-store"
     return response

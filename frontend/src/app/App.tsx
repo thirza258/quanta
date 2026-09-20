@@ -15,6 +15,18 @@ const Notebook = lazy(() => import("@/features/notebook/pages/Notebook"));
 const Experiments = lazy(() => import("@/features/research/pages/Experiments"));
 const Library = lazy(() => import("@/features/references/pages/Library"));
 const ExamRoom = lazy(() => import("@/features/assessments/pages/ExamRoom"));
+const Certifications = lazy(
+  () => import("@/features/certifications/pages/Certifications"),
+);
+const CertificateCourse = lazy(
+  () => import("@/features/certifications/pages/CertificateCourse"),
+);
+const CertificateDetail = lazy(
+  () => import("@/features/certifications/pages/CertificateDetail"),
+);
+const VerifyCertificate = lazy(
+  () => import("@/features/certifications/pages/VerifyCertificate"),
+);
 const TradingSimulator = lazy(
   () => import("@/features/simulator/pages/TradingSimulator"),
 );
@@ -24,12 +36,26 @@ export default function App() {
       <WorkspaceProvider>
         <Suspense fallback={<Loading />}>
           <Routes>
+            <Route path="verify" element={<VerifyCertificate />} />
+            <Route
+              path="verify/:certificateId"
+              element={<VerifyCertificate />}
+            />
             <Route element={<Layout />}>
               <Route index element={<Overview />} />
               <Route path="curriculum" element={<Curriculum />} />
               <Route path="curriculum/:trackId" element={<TrackDetail />} />
               <Route path="learn/:lessonId" element={<LessonReader />} />
               <Route path="exams/:examId" element={<ExamRoom />} />
+              <Route path="certifications" element={<Certifications />} />
+              <Route
+                path="certifications/course/:trackId"
+                element={<CertificateCourse />}
+              />
+              <Route
+                path="certifications/:certificateId"
+                element={<CertificateDetail />}
+              />
               <Route path="simulator" element={<TradingSimulator />} />
               <Route path="lab" element={<StrategyLab />} />
               <Route path="notebook" element={<Notebook />} />
