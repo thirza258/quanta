@@ -19,6 +19,7 @@ from stock_bots import build_stock_bots
 from stock_ml_course import build_stock_ml
 from strategy_course import build_strategy_lab
 from track_exams import attach_exams
+from trading_ethics import build_trading_ethics
 from web3_course import build_web3
 
 tracks = [
@@ -612,6 +613,9 @@ catalog.insert(
     next(i for i, track in enumerate(catalog) if track["id"] == "security-analysis"),
     build_intelligent_investor(),
 )
+# Conduct comes straight after the fundamentals: a learner should know whose
+# interest a trade serves before learning how to value or automate one.
+catalog.insert(1, build_trading_ethics())
 catalog.insert(
     next(i for i, track in enumerate(catalog) if track["id"] == "stock-bots") + 1,
     build_c_hpc_trading(),

@@ -29,8 +29,19 @@ from quanta.domain.simulator_models import (
     RunCreate,
 )
 from quanta.services import data_store
-from quanta.services.simulator_market import SYMBOLS, markets
+from quanta.services import simulator_desk as desk
+from quanta.services.simulator_fundamentals import structure, valuation
+from quanta.services.simulator_market import SESSION_BARS, markets, newsroom
+from quanta.services.simulator_news import released, sentiment
 from quanta.services.simulator_queries import latest, run_for, snapshot
+from quanta.services.simulator_universe import (
+    BY_SYMBOL,
+    DEFAULT_WATCHLIST,
+    DISCLOSURE,
+    UNIVERSE_ID,
+    disclosure,
+    listing,
+)
 
 
 def mutate(db, run_id, account, payload, action, operation):
@@ -90,7 +101,9 @@ def bootstrap(account: str, db: Session):
             for r in runs
         ],
         "historical": data_store.catalog(),
-        "symbols": [{"symbol": s, "name": value[0]} for s, value in SYMBOLS.items()],
+        "symbols": listing(UNIVERSE_ID),
+        "watchlist": DEFAULT_WATCHLIST,
+        "disclosure": DISCLOSURE,
     }
 
 
@@ -103,6 +116,11 @@ def create_run(payload: RunCreate, account: str, db: Session):
         return snapshot(existing, db)
     requested_config = copy.deepcopy(config)
     config["execution_profile"] = "cash-whole-shares-v1"
+    if config["seed"] is None:
+        # No seed asked for: derive one from the run identifier so each new paper
+        # account gets a different market, while an idempotent retry of the same
+        # request still reproduces the same run rather than rolling a new one.
+        config["seed"] = int(hashlib.sha256(str(payload.id).encode()).hexdigest(), 16) % 1000001
     if payload.mode == "historical":
         try:
             bars = data_store.historical(payload.symbol, 40)
@@ -135,7 +153,11 @@ def create_run(payload: RunCreate, account: str, db: Session):
     else:
         config.update(
             base_interval="1m",
-            source="Seeded synthetic prices · fictional market paths · weekday-only calendar",
+            universe=UNIVERSE_ID,
+            source=(
+                "Simulated market · fictional companies and headlines · prices generated "
+                "from the run's simulated news, weekday-only calendar"
+            ),
         )
         cursor = 499
     state = {
@@ -195,6 +217,7 @@ def market(
     symbol: str,
     interval: Literal["1m", "5m", "15m", "1h", "1D"],
     cursor: int | None,
+    indicators: str | None,
     account: str,
     db: Session,
 ):
@@ -228,12 +251,24 @@ def market(
                     volume=item["volume"] + bar["volume"],
                 )
         rows = list(grouped.values())
+    # Overlays are computed here, from the same observed bars that are returned,
+    # so the client never recomputes them and no future price can reach them.
+    closes = [bar["close"] for bar in rows]
+    computed = {}
+    for spec in (indicators or "").split(",")[:8]:
+        spec = spec.strip()
+        if not spec or spec in computed:
+            continue
+        series = desk.indicator_series(closes, spec)
+        if series:
+            computed[spec] = series
     return {
         "bars": rows,
         "version": run.version,
         "cursor": cursor,
         "symbol": symbol,
         "interval": interval,
+        "indicators": computed,
     }
 
 
@@ -328,3 +363,175 @@ def journal(run_id: str, order_id: str, payload: Journal, account: str, db: Sess
                 fill.update(note=payload.note, lesson=payload.lesson)
 
     return mutate(db, run_id, account, payload, "journal:" + order_id, operation)
+
+
+def news(run_id: str, symbol: str | None, limit: int, account: str, db: Session):
+    """Simulated headlines already released by the run's clock, newest first."""
+    run = run_for(db, run_id, account)
+    state = run.state
+    config = state["config"]
+    if config["mode"] != "synthetic" or config.get("universe") != UNIVERSE_ID:
+        return {
+            "items": [],
+            "available": False,
+            "cursor": state["cursor"],
+            "version": run.version,
+            "disclosure": disclosure(config),
+            "sentiment": None,
+            "notice": (
+                "This run replays imported historical prices. No headlines are generated "
+                "for it, because invented news must never be attached to real market data."
+                if config["mode"] == "historical"
+                else "This run predates the simulator's newsroom. Start a new run to trade "
+                "a market whose prices respond to generated headlines."
+            ),
+        }
+    data = markets(state, db)
+    if symbol and symbol not in data:
+        raise HTTPException(404, "This stock is unavailable in this run.")
+    room = newsroom(config["seed"])
+    cursor = state["cursor"]
+    times = next(iter(data.values())).time
+    items = released(
+        room,
+        cursor,
+        symbol=symbol,
+        sector=BY_SYMBOL[symbol].sector if symbol in BY_SYMBOL else None,
+        limit=limit,
+    )
+    sector = BY_SYMBOL[symbol].sector if symbol in BY_SYMBOL else None
+    return {
+        "items": [{**item, "time": int(times[item["index"]])} for item in items],
+        "available": True,
+        "cursor": cursor,
+        "version": run.version,
+        "disclosure": disclosure(config),
+        "notice": "",
+        # Sentiment over the last modeled session and the last modeled week.
+        "sentiment": {
+            "session": sentiment(room, cursor, SESSION_BARS, symbol, sector),
+            "week": sentiment(room, cursor, SESSION_BARS * 5, symbol, sector),
+            "market": sentiment(room, cursor, SESSION_BARS),
+        },
+    }
+
+
+def fundamentals(run_id: str, symbol: str, account: str, db: Session):
+    """Generated statements a company has already reported by the run's clock."""
+    run = run_for(db, run_id, account)
+    state = run.state
+    config = state["config"]
+    if config["mode"] != "synthetic" or config.get("universe") != UNIVERSE_ID:
+        raise HTTPException(
+            422,
+            "This run replays imported historical prices. Financial statements are only "
+            "generated for the simulator's fictional companies."
+            if config["mode"] == "historical"
+            else "This run predates the simulator's fictional companies, so it has no "
+            "generated statements. Start a new run to read them.",
+        )
+    data = markets(state, db)
+    if symbol not in data or symbol not in BY_SYMBOL:
+        raise HTTPException(404, "This stock is unavailable in this run.")
+    company = BY_SYMBOL[symbol]
+    room = newsroom(config["seed"])
+    cursor = state["cursor"]
+    series = data[symbol]
+    book = room.books[symbol]
+    released_quarters = [q for q in book if q["index"] < 0 or q["index"] <= cursor]
+    pending = next((q for q in book if q["index"] > cursor), None)
+    times = series.time
+    return {
+        "symbol": symbol,
+        "name": company.name,
+        "sector": company.sector,
+        "business": company.business,
+        # Descriptive facts only. The margin, growth and leverage assumptions that
+        # generate a quarter stay on the server: published, they would let an
+        # unreleased result be solved for from its consensus.
+        "structure": {
+            key: structure(company)[key]
+            for key in ("shares", "employees", "fiscal_year_end", "development_stage")
+        },
+        "currency": "USD",
+        "units": "millions of USD except per-share amounts",
+        "quarters": released_quarters,
+        # Only the expectation is published ahead of a print, never the result.
+        "upcoming": (
+            {
+                "label": pending["label"],
+                "time": int(times[pending["index"]]),
+                "bars_away": pending["index"] - cursor,
+                "consensus_eps": pending["consensus_eps"],
+                "consensus_revenue": pending["consensus_revenue"],
+            }
+            if pending
+            else None
+        ),
+        "valuation": valuation(company, released_quarters, series[cursor]["close"]),
+        "peers": desk.peers(state, data, room, symbol, _peer_valuation),
+        "cursor": cursor,
+        "version": run.version,
+        "disclosure": disclosure(config),
+    }
+
+
+def _room(state):
+    """The run's newsroom, or None when the run replays imported prices."""
+    config = state["config"]
+    if config["mode"] != "synthetic" or config.get("universe") != UNIVERSE_ID:
+        return None
+    return newsroom(config["seed"])
+
+
+def desk_view(run_id: str, account: str, db: Session):
+    """Screener, sector performance and portfolio analytics, computed server-side."""
+    run = run_for(db, run_id, account)
+    state = run.state
+    data = markets(state, db)
+    return {
+        "movers": desk.movers(state, data, _room(state)),
+        "performance": desk.performance(state, data),
+        "cursor": state["cursor"],
+        "version": run.version,
+        "disclosure": disclosure(state["config"]),
+    }
+
+
+def analytics(run_id: str, symbol: str, account: str, db: Session):
+    """Indicators, risk statistics and news tone for one company."""
+    run = run_for(db, run_id, account)
+    state = run.state
+    data = markets(state, db)
+    if symbol not in data:
+        raise HTTPException(404, "This stock is unavailable in this run.")
+    return {
+        **desk.technicals(state, data, _room(state), symbol),
+        "cursor": state["cursor"],
+        "version": run.version,
+        "disclosure": disclosure(state["config"]),
+    }
+
+
+def _peer_valuation(symbol, quarters, price):
+    """Valuation for a comparable company, on the quarters it has reported."""
+    return valuation(BY_SYMBOL[symbol], quarters, price)
+
+
+def calendar(run_id: str, ahead: int | None, account: str, db: Session):
+    """Scheduled economic releases and company results either side of the cursor."""
+    run = run_for(db, run_id, account)
+    state = run.state
+    room = _room(state)
+    if not room:
+        raise HTTPException(
+            422,
+            "This run has no reporting calendar. Only the simulator's generated market "
+            "schedules economic releases and company results.",
+        )
+    return {
+        **desk.calendar(state, markets(state, db), room, ahead),
+        "cursor": state["cursor"],
+        "version": run.version,
+        "disclosure": disclosure(state["config"]),
+    }

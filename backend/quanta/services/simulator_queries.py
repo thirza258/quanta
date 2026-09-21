@@ -6,7 +6,8 @@ from sqlmodel import select
 
 from quanta.db.models import TradingRun
 from quanta.domain.simulator import bar_at, dec, money, reservations
-from quanta.services.simulator_market import SYMBOLS, markets
+from quanta.services.simulator_market import markets
+from quanta.services.simulator_universe import disclosure, profile, universe
 
 
 def run_for(db, run_id, account):
@@ -24,27 +25,31 @@ def latest(db, account):
     ).first()
 
 
+def prior_session_close(rows, cursor, bar):
+    """Close of the last bar in an earlier session, or the first opening print."""
+    if hasattr(rows, "prior_session_close"):
+        return rows.prior_session_close(cursor)
+    day = datetime.fromtimestamp(bar["time"], ZoneInfo("America/New_York")).date()
+    for index in range(cursor - 1, -1, -1):
+        row = rows[index]
+        if datetime.fromtimestamp(row["time"], ZoneInfo("America/New_York")).date() < day:
+            return row["close"]
+    return rows[0]["open"]
+
+
 def snapshot(run, db):
     state = run.state
     data = markets(state, db)
     reserved, share_reservations = reservations(state)
+    tag = universe(state["config"])
     quotes = []
     for symbol, rows in data.items():
         bar = rows[state["cursor"]]
-        # Change against the prior session close, or the first available opening.
-        day = datetime.fromtimestamp(bar["time"], ZoneInfo("America/New_York")).date()
-        prior = next(
-            (
-                row["close"]
-                for row in reversed(rows[: state["cursor"]])
-                if datetime.fromtimestamp(row["time"], ZoneInfo("America/New_York")).date() < day
-            ),
-            rows[0]["open"],
-        )
+        prior = prior_session_close(rows, state["cursor"], bar)
         quotes.append(
             {
                 "symbol": symbol,
-                "name": SYMBOLS.get(symbol, (symbol,))[0],
+                **profile(symbol, tag),
                 **bar,
                 "change": round(bar["close"] - prior, 2),
                 "change_pct": round((bar["close"] / prior - 1) * 100, 2),
@@ -89,4 +94,6 @@ def snapshot(run, db):
         "fills": state["fills"],
         "ledger": state["ledger"],
         "preferences": state.get("preferences", {}),
+        "universe": tag,
+        "disclosure": disclosure(state["config"]),
     }

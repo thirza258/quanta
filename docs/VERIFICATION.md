@@ -21,7 +21,7 @@ Teaching edits live in [learning_guidance.py](../content/authoring/learning_guid
 
 # Strategy Lab expansion and careful-investor prerequisite — September 14, 2026
 
-The rebuilt application at **http://127.0.0.1:8088** includes **The intelligent & careful investor** directly before Security Analysis (16 lessons, 8 planned study hours) and the expanded **Strategy Lab** (32 lessons, 16 hours). The catalog contains **12 courses, 300 lessons, 608 practice questions and 572 exam questions across 77 exams**. Algorithm Evaluation remains last. Both development and Docker API catalogs exactly match the canonical JSON.
+The rebuilt application at **http://127.0.0.1:8088** includes **The intelligent & careful investor** directly before Security Analysis (16 lessons, 8 planned study hours) and the expanded **Strategy Lab** (32 lessons, 16 hours). The catalog contains **13 courses, 316 lessons, 640 practice questions and 604 exam questions across 82 exams** after the trading-ethics course was added; the sentence above records the state measured at the time of that earlier review. Algorithm Evaluation remains last. Both development and Docker API catalogs exactly match the canonical JSON.
 
 | Check | Result |
 | --- | --- |
@@ -201,7 +201,7 @@ Agent-browser inspected the terminal in light and dark themes, at desktop, table
 
 ### Simulator performance sample
 
-Reference desktop: **Apple M2 Pro, 10 CPU cores, 16 GiB memory, Darwin 25.6.0**, headless **Chrome 152.0.7977.83**, 1440×900 viewport. The local deployment is the four-service Docker stack; the API is limited to two CPUs and 1 GiB. One benchmark client used seed 47 synthetic AAPL with **5,000 observed minute bars** and **Volume, SMA20, and RSI14** enabled.
+Reference desktop: **Apple M2 Pro, 10 CPU cores, 16 GiB memory, Darwin 25.6.0**, headless **Chrome 152.0.7977.83**, 1440×900 viewport. The local deployment is the four-service Docker stack; the API is limited to two CPUs and 1 GiB. One benchmark client used seed 47 synthetic AAPL with **5,000 observed minute bars** and **Volume, SMA20, and RSI14** enabled. This sample was taken against the previous six-symbol synthetic universe, before the 32-company fictional market replaced it. AAPL is not listed in new runs, and the measurement has not been re-run.
 
 | Measurement | Sample | Empirical p95 | PRD target |
 | --- | --- | --- | --- |
@@ -210,7 +210,7 @@ Reference desktop: **Apple M2 Pro, 10 CPU cores, 16 GiB memory, Darwin 25.6.0**,
 
 Maximum acknowledgement was 114.9 ms; maximum sampled frame interval was 16.8 ms. Both targets were met for this documented local sample. Frame intervals measure browser scheduling during chart input; this is not a production concurrency test or a guarantee across devices. The headless browser reported no page errors.
 
-Reproduce with `TEST_URL=http://127.0.0.1:8088 node frontend/scripts/benchmark-simulator.mjs`. The script creates an isolated guest run and writes `artifacts/simulator-performance.json` and `artifacts/simulator-5000-bars.png`.
+Reproduce with `TEST_URL=http://127.0.0.1:8088 node frontend/scripts/benchmark-simulator.mjs`. The script creates an isolated guest run and writes `artifacts/simulator-performance.json` and `artifacts/simulator-5000-bars.png`. It now requests seed 47 and NVRA from the current universe, so re-running it produces a fresh sample rather than reproducing the numbers above.
 
 Historical data still requires an installed import. Corporate-action treatment is explicitly undeclared for existing imports; prices are used as supplied and no split/dividend adjustments are added by the engine. The guide documents immediate settlement, weekday-only synthetic sessions, fees, FIFO volume sharing, and replay fill timing. Live feeds, Level 2, margin/shorts, bots, and bracket/OCO orders remain the PRD’s subsequent releases.
 

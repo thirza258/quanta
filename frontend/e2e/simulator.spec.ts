@@ -1,6 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 
+// The simulator lists fictional companies. NVRA (Novara Microsystems, ~$148) is
+// the default symbol; VLOC (Velocity Motorworks) and ZEPH (Zephyr Robotics,
+// ~$20 and the heaviest traded name) stand in for a second and a cheap company.
+type Quote = { symbol: string; name: string; close: number };
+
 async function open(page: Page) {
   await page.goto("/simulator");
   await expect(page.getByTestId("trading-terminal")).toBeVisible();
@@ -17,12 +22,21 @@ async function submit(page: Page, side = "buy") {
     .click();
   await expect(page.getByRole("dialog")).not.toBeVisible();
 }
-async function advance(page: Page) {
+// The single bar control and the jump controls post the same replay endpoint.
+async function advance(page: Page, control = "Next replay bar") {
   const response = page.waitForResponse(
     (r) => r.url().endsWith("/advance") && r.request().method() === "POST",
   );
-  await page.getByLabel("Next replay bar").click();
+  await page.getByLabel(control).click();
   expect((await response).status()).toBe(200);
+}
+async function account(page: Page) {
+  return (await (await page.request.get("/api/v1/simulator")).json()).run;
+}
+function quoteFor(run: { quotes: Quote[] }, symbol: string) {
+  const quote = run.quotes.find((q: Quote) => q.symbol === symbol);
+  expect(quote, `${symbol} is quoted in this run`).toBeTruthy();
+  return quote!;
 }
 
 test("chart workspace, indicator, drawing forms and watchlist persist by symbol", async ({
@@ -35,11 +49,15 @@ test("chart workspace, indicator, drawing forms and watchlist persist by symbol"
   const chart = await page.locator(".sim-chart-region").boundingBox();
   expect(chart!.width).toBeGreaterThan(1440 * 0.6);
   expect(chart!.height).toBeGreaterThan((900 - 48 - 49 - 42 - 30) * 0.5);
-  await page.getByRole("button", { name: "AAPL", exact: true }).click();
-  await page.getByLabel("Search stocks").fill("microsoft");
-  await page.getByRole("button", { name: /MSFT Microsoft/ }).click();
+  await page.getByRole("button", { name: "NVRA", exact: true }).click();
+  await page.getByLabel("Search stocks").fill("velocity");
+  // Scoped to the dialog: a headline in the ticker strip names companies too.
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: /VLOC Velocity Motorworks/ })
+    .click();
   await page.getByRole("button", { name: "5m", exact: true }).click();
-  await expect(page.locator(".sim-chart-readout")).toContainText("MSFT");
+  await expect(page.locator(".sim-chart-readout")).toContainText("VLOC");
   await page.getByLabel("Fullscreen chart workspace").click();
   await expect
     .poll(() => page.evaluate(() => !!document.fullscreenElement))
@@ -66,16 +84,19 @@ test("chart workspace, indicator, drawing forms and watchlist persist by symbol"
   await expect(page.locator(".sim-object-list")).toContainText("Trend thesis");
   await expect(page.locator(".sim-statusbar")).toContainText("Layout saved");
   await page.reload();
-  await expect(page.locator(".sim-chart-readout")).toContainText("MSFT");
+  await expect(page.locator(".sim-chart-readout")).toContainText("VLOC");
   await expect(page.locator(".sim-indicator-legend")).toContainText("RSI");
   await expect(
     page.getByRole("button", { name: "5m", exact: true }),
   ).toHaveClass("active");
   await page.getByRole("button", { name: "Objects", exact: true }).click();
   await expect(page.locator(".sim-object-list")).toContainText("Trend thesis");
-  await page.getByRole("button", { name: "MSFT", exact: true }).click();
-  await page.getByLabel("Search stocks").fill("AAPL");
-  await page.getByRole("button", { name: /AAPL Apple/ }).click();
+  await page.getByRole("button", { name: "VLOC", exact: true }).click();
+  await page.getByLabel("Search stocks").fill("NVRA");
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: /NVRA Novara Microsystems/ })
+    .click();
   await page.getByRole("button", { name: "Objects", exact: true }).click();
   await expect(page.locator(".sim-object-list button")).toHaveCount(0);
   expect(errors).toEqual([]);
@@ -166,18 +187,31 @@ test("nonmarketable limit, rejected amendment, partial fill and cancellation", a
 }) => {
   await open(page);
   await page.getByLabel("New simulation run").click();
+  // Every new run generates its own market unless a seed is given, and this test
+  // reads a partial fill out of one bar's volume. Pin the market so the traded
+  // size stays far above the share of volume this account may take.
+  await page.getByLabel("Market seed (optional)").fill("777");
   await page.getByLabel("Volume participation (0–1)").fill("0.001");
   await page.getByRole("button", { name: "Create new paper account" }).click();
   await expect(page.getByRole("dialog")).not.toBeVisible();
+  // ZEPH is the cheapest heavily traded company: 3000 shares cost well under the
+  // $100,000 account, and a thousandth of a bar's volume is a few dozen shares.
+  await page.getByRole("button", { name: "NVRA", exact: true }).click();
+  await page.getByLabel("Search stocks").fill("zephyr");
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: /ZEPH Zephyr Robotics/ })
+    .click();
+  await expect(page.locator(".sim-chart-readout")).toContainText("ZEPH");
   await page.locator(".sim-quick-trade .buy").click();
   await page.getByLabel("Order type").selectOption("limit");
-  await page.getByLabel("Shares", { exact: true }).fill("400");
+  await page.getByLabel("Shares", { exact: true }).fill("3000");
   await page.getByLabel("Limit price", { exact: true }).fill("1");
   await submit(page);
   await advance(page);
   await expect(
     page.getByRole("tabpanel", { name: "Open orders" }),
-  ).toContainText("400 / 0");
+  ).toContainText("3000 / 0");
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.getByLabel("New limit price").fill("100000");
   await page.getByRole("button", { name: "Confirm amendment" }).click();
@@ -185,12 +219,12 @@ test("nonmarketable limit, rejected amendment, partial fill and cancellation", a
     "Insufficient available cash",
   );
   await page.getByLabel("Close dialog").click();
-  const run = (await (await page.request.get("/api/v1/simulator")).json()).run;
+  const run = await account(page);
   expect(run.orders[0].limit_price).toBe("1");
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page
     .getByLabel("New limit price")
-    .fill((run.quotes[0].close * 1.03).toFixed(2));
+    .fill((quoteFor(run, "ZEPH").close * 1.03).toFixed(2));
   await page.getByRole("button", { name: "Confirm amendment" }).click();
   await expect(page.getByRole("dialog")).not.toBeVisible();
   await advance(page);
@@ -201,14 +235,12 @@ test("nonmarketable limit, rejected amendment, partial fill and cancellation", a
   await expect(
     page.getByRole("tabpanel", { name: "Open orders" }).locator("tbody tr"),
   ).toHaveCount(0);
-  const canceled = (await (await page.request.get("/api/v1/simulator")).json())
-    .run;
+  const canceled = await account(page);
   expect(canceled.reserved).toBe("0.00");
   expect(canceled.orders[0].filled).toBeGreaterThan(0);
-  expect(canceled.orders[0].filled).toBeLessThan(400);
+  expect(canceled.orders[0].filled).toBeLessThan(3000);
   await advance(page);
-  const after = (await (await page.request.get("/api/v1/simulator")).json())
-    .run;
+  const after = await account(page);
   expect(after.orders[0].filled).toBe(canceled.orders[0].filled);
 });
 
@@ -369,12 +401,20 @@ test("chart drawing gestures and rejected dragged order amendment preserve confi
     .locator(".sim-sidebar-tabs")
     .getByRole("button", { name: "Trade", exact: true })
     .click();
+  // Rest the order one cent under the live quote so its line always falls inside
+  // the visible price scale, and reserve all but a fraction of a share of the
+  // account so that dragging the line upward has to fail the cash check.
+  const opening = await account(page);
+  const limit = (quoteFor(opening, "NVRA").close - 0.01).toFixed(2);
+  const shares = Math.floor(
+    (Number(opening.available) - Number(opening.config.commission) - 1) /
+      Number(limit),
+  );
   await page.getByLabel("Order type").selectOption("limit");
-  await page.getByLabel("Shares", { exact: true }).fill("452");
-  await page.getByLabel("Limit price", { exact: true }).fill("220");
+  await page.getByLabel("Shares", { exact: true }).fill(String(shares));
+  await page.getByLabel("Limit price", { exact: true }).fill(limit);
   await submit(page);
-  const confirmed = (await (await page.request.get("/api/v1/simulator")).json())
-    .run;
+  const confirmed = await account(page);
   await expect(page.getByLabel("Next replay bar")).toBeEnabled();
   const order = (await page.locator("g.sim-order-line rect").boundingBox())!;
   await page.mouse.move(order.x + 50, order.y + 10);
@@ -391,8 +431,7 @@ test("chart drawing gestures and rejected dragged order amendment preserve confi
     "Insufficient available cash",
   );
   await page.getByLabel("Close dialog").click();
-  const after = (await (await page.request.get("/api/v1/simulator")).json())
-    .run;
+  const after = await account(page);
   expect(after.orders).toEqual(confirmed.orders);
   expect(after.reserved).toBe(confirmed.reserved);
 });
@@ -447,4 +486,61 @@ test("a trade waits for an in-flight layout save without losing the click", asyn
   const run = (await (await page.request.get("/api/v1/simulator")).json()).run;
   expect(run.orders).toHaveLength(1);
   expect(run.orders[0].quantity).toBe(13);
+});
+
+test("simulated newsroom, company statements and performance analytics follow the replay clock", async ({
+  page,
+}) => {
+  await open(page);
+  await page.getByLabel("New simulation run").click();
+  // A pinned market pins its news schedule and reported quarters with it.
+  await page.getByLabel("Market seed (optional)").fill("4242");
+  await page.getByRole("button", { name: "Create new paper account" }).click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await page
+    .locator(".sim-sidebar-tabs")
+    .getByRole("button", { name: "News", exact: true })
+    .click();
+  const feed = page.getByRole("region", { name: "Simulated news feed" });
+  await expect(feed.locator(".sim-sim-badge")).toHaveText("SIMULATED");
+  await expect(feed).toContainText("fictional companies, fictional headlines");
+  const headlines = feed.locator(".sim-news-headline");
+  await expect(headlines.first()).toBeVisible();
+  const latest = await headlines.first().innerText();
+  await advance(page, "Jump forward by one session");
+  // A session of replay releases new headlines, so the feed leads with another.
+  await expect
+    .poll(async () => await headlines.first().innerText())
+    .not.toBe(latest);
+  await page.getByRole("tab", { name: "Company", exact: true }).click();
+  const company = page.getByRole("region", { name: "Company financials" });
+  await expect(company).toContainText("Novara Microsystems");
+  await expect(company.locator(".sim-sim-badge")).toHaveText("SIMULATED");
+  await company
+    .getByRole("button", { name: "Income statement", exact: true })
+    .click();
+  await expect(
+    company.locator(".sim-statement thead th", { hasText: /^Q[1-4] \d{4}$/ }),
+  ).not.toHaveCount(0);
+  await expect(
+    company.getByRole("rowheader", { name: "Revenue", exact: true }),
+  ).toBeVisible();
+  await expect(company).toContainText(
+    "Generated accounts for a fictional company",
+  );
+  await page
+    .locator(".sim-sidebar-tabs")
+    .getByRole("button", { name: "Trade", exact: true })
+    .click();
+  await submit(page);
+  await advance(page);
+  await page.getByRole("tab", { name: "Performance", exact: true }).click();
+  const performance = page.getByRole("region", { name: "Account performance" });
+  await expect(performance).toContainText("Equity");
+  await expect(performance).toContainText("Win rate");
+  await expect(
+    performance.locator("tbody tr", { hasText: "NVRA" }),
+  ).toHaveCount(1);
+  const filled = await account(page);
+  expect(filled.positions[0].quantity).toBe(10);
 });

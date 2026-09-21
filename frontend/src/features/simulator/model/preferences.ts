@@ -1,4 +1,12 @@
-import type { Preferences, Ticket } from "./types";
+import type { Indicator, Preferences, Ticket } from "./types";
+
+/** The overlay request the API computes; volume is already on every bar. */
+export const indicatorSpec = (i: Indicator) =>
+  i.kind === "Volume"
+    ? ""
+    : i.kind === "MACD"
+      ? `MACD:${i.period}:${i.slow}:${i.signal}`
+      : `${i.kind}:${i.period}`;
 
 export const emptyTicket = (): Ticket => ({
   side: "buy",
@@ -12,10 +20,10 @@ export const emptyTicket = (): Ticket => ({
 });
 
 export const defaultPreferences = (): Preferences => ({
-  symbol: "AAPL",
+  symbol: "NVRA",
   interval: "1m",
   chartType: "candles",
-  watchlist: ["AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "META"],
+  watchlist: ["NVRA", "CLDS", "VLOC", "HLXB", "MRDN", "TRVT", "ZEPH", "PLSR"],
   indicators: [
     {
       id: "volume",
@@ -38,20 +46,36 @@ export function normalizePreferences(
   raw: Partial<Preferences> | undefined,
   symbols: string[],
   base: string,
+  suggested: string[] = [],
 ): Preferences {
   const defaults = defaultPreferences();
   const p = { ...defaults, ...raw };
   p.symbol = symbols.includes(p.symbol) ? p.symbol : symbols[0];
-  p.watchlist = Array.isArray(p.watchlist)
-    ? [...new Set(p.watchlist.filter((s) => symbols.includes(s)))]
-    : symbols;
-  if (!p.watchlist.length && !raw?.watchlist) p.watchlist = symbols;
+  // An empty saved list is a deliberate choice and is kept. A list that had
+  // entries but filters away to nothing was saved against another universe, so
+  // it falls back to this run's suggested names instead of staying empty.
+  const saved = Array.isArray(raw?.watchlist) ? raw.watchlist : null;
+  p.watchlist = [
+    ...new Set(
+      (saved ?? defaults.watchlist).filter((s) => symbols.includes(s)),
+    ),
+  ];
+  if (!p.watchlist.length && saved?.length !== 0) {
+    const fallback = suggested.filter((s) => symbols.includes(s));
+    p.watchlist = fallback.length ? fallback : symbols.slice(0, 8);
+  }
   p.interval =
     base === "1D"
       ? "1D"
       : ["1m", "5m", "15m", "1h", "1D"].includes(p.interval)
         ? p.interval
         : "1m";
+  p.newsScope = p.newsScope === "symbol" ? "symbol" : "all";
+  p.statement = ["income", "balance", "cash", "ratios", "peers"].includes(
+    p.statement ?? "",
+  )
+    ? p.statement
+    : "ratios";
   p.chartType = ["candles", "bars", "line"].includes(p.chartType)
     ? p.chartType
     : "candles";

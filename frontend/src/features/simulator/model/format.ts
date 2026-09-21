@@ -44,3 +44,39 @@ export function csv(rows: Record<string, unknown>[]) {
     ...rows.map((row) => keys.map((k) => cell(row[k])).join(",")),
   ].join("\r\n");
 }
+
+/** Statement figures arrive in millions of USD. */
+export const millions = (value: number | null | undefined) => {
+  if (value === null || value === undefined || !Number.isFinite(value))
+    return "—";
+  const sign = value < 0 ? "-" : "";
+  const size = Math.abs(value);
+  if (size >= 1000) return `${sign}$${(size / 1000).toFixed(2)}bn`;
+  if (size >= 1) return `${sign}$${size.toFixed(0)}m`;
+  return `${sign}$${(size * 1000).toFixed(0)}k`;
+};
+
+export const multiple = (value: number | null | undefined, digits = 1) =>
+  value === null || value === undefined || !Number.isFinite(value)
+    ? "—"
+    : `${value.toFixed(digits)}×`;
+
+export const percent = (value: number | null | undefined, digits = 1) =>
+  value === null || value === undefined || !Number.isFinite(value)
+    ? "—"
+    : `${(value * 100).toFixed(digits)}%`;
+
+export const signed = (value: number | null | undefined, digits = 1) =>
+  value === null || value === undefined || !Number.isFinite(value)
+    ? "—"
+    : `${value > 0 ? "+" : ""}${(value * 100).toFixed(digits)}%`;
+
+export const clock = (time: number) =>
+  new Date(time * 1000).toLocaleString("en-GB", {
+    timeZone: "America/New_York",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });

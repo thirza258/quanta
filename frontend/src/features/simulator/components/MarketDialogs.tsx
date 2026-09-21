@@ -23,6 +23,8 @@ export default function MarketDialogs({
     | "chooseSymbol"
     | "indicatorOpen"
     | "setIndicatorOpen"
+    | "runCommand"
+    | "commandFunctions"
   >;
 }) {
   const {
@@ -38,6 +40,8 @@ export default function MarketDialogs({
     chooseSymbol,
     indicatorOpen,
     setIndicatorOpen,
+    runCommand,
+    commandFunctions,
   } = terminal;
   return (
     <>
@@ -45,8 +49,12 @@ export default function MarketDialogs({
         container={root.current}
         open={searchOpen}
         onOpenChange={setSearchOpen}
-        title={addSymbol ? "Add to watchlist" : "Find a stock"}
-        description="Available symbols in this simulation. Prices follow the selected replay clock."
+        title={addSymbol ? "Add to watchlist" : "Command"}
+        description={
+          addSymbol
+            ? "Fictional companies listed in this simulation."
+            : "Type a ticker, a function code, or both — NVRA FA opens that company's accounts. Prices follow the replay clock."
+        }
       >
         <label className="sim-search">
           <Search size={18} />
@@ -55,7 +63,15 @@ export default function MarketDialogs({
             aria-label="Search stocks"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ticker or company name"
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" || addSymbol) return;
+              e.preventDefault();
+              if (runCommand(query)) {
+                setQuery("");
+                setSearchOpen(false);
+              }
+            }}
+            placeholder="Ticker or company name · try NVRA N"
           />
         </label>
         {!run.quotes.some((q) =>
@@ -64,6 +80,23 @@ export default function MarketDialogs({
           <p className="sim-small">
             No matching stock is available in this run.
           </p>
+        ) : null}
+        {!addSymbol ? (
+          <div className="sim-command-help">
+            {Object.entries(commandFunctions)
+              .filter(([code]) => !["NEWS", "DESK", "DES"].includes(code))
+              .map(([code, label]) => (
+                <button
+                  key={code}
+                  onClick={() => {
+                    if (runCommand(`${prefs.symbol} ${code}`))
+                      setSearchOpen(false);
+                  }}
+                >
+                  <strong>{code}</strong> {label}
+                </button>
+              ))}
+          </div>
         ) : null}
         <div className="sim-search-results">
           {run.quotes
@@ -85,7 +118,10 @@ export default function MarketDialogs({
                 }}
               >
                 <strong>{q.symbol}</strong>
-                <span>{q.name}</span>
+                <span>
+                  {q.name}
+                  {q.sector ? <small> · {q.sector}</small> : null}
+                </span>
                 <span>{price(q.close)}</span>
                 {addSymbol && prefs.watchlist.includes(q.symbol) ? (
                   <Check size={15} />

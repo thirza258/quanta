@@ -1,35 +1,23 @@
 import { csv } from "@/features/simulator/model/format";
-import { ema, macd, rsi, sma } from "@/features/simulator/model/indicators";
+import { indicatorSpec } from "@/features/simulator/model/preferences";
 import { normalizePreferences } from "@/features/simulator/model/preferences";
 import { describe, expect, it } from "vitest";
 
-describe("observed-bar indicators", () => {
-  it("warms up moving averages before returning values", () => {
-    expect(sma([1, 2, 3, 4, 5], 3)).toEqual([null, null, 2, 3, 4]);
-    expect(ema([1, 2, 3, 4, 8], 3)).toEqual([null, null, 2, 3, 5.5]);
-    expect(ema([1, 2], 3)).toEqual([null, null]);
-  });
-  it("uses Wilder smoothing and handles flat markets", () => {
-    expect(rsi([1, 2, 3, 4], 3)).toEqual([null, null, null, 100]);
-    expect(rsi([4, 3, 2, 1], 3)).toEqual([null, null, null, 0]);
-    expect(rsi([2, 2, 2, 2], 3)).toEqual([null, null, null, 50]);
-    expect(rsi([1, 3, 2, 4, 3], 3)[4]).toBeCloseTo(61.5384615385);
-  });
-  it("seeds MACD signal only after the slow line is available", () => {
-    const m = macd([1, 2, 3, 4, 5, 6], 2, 3, 2);
-    expect(m.line).toEqual([null, null, 0.5, 0.5, 0.5, 0.5]);
-    expect(m.signal).toEqual([null, null, null, 0.5, 0.5, 0.5]);
-    expect(m.histogram).toEqual([null, null, null, 0, 0, 0]);
-  });
-  it("never changes past values when future observations arrive", () => {
-    const values = [101, 103, 99, 98, 105, 104, 109, 102];
-    for (const calculate of [sma, ema, rsi])
-      expect(calculate(values, 3).slice(0, 6)).toEqual(
-        calculate(values.slice(0, 6), 3),
-      );
-    expect(macd(values, 2, 3, 2).histogram.slice(0, 6)).toEqual(
-      macd(values.slice(0, 6), 2, 3, 2).histogram,
+describe("overlay requests", () => {
+  it("asks the API for the series the chart draws", () => {
+    const base = {
+      id: "a",
+      visible: true,
+      period: 20,
+      slow: 26,
+      signal: 9,
+    } as const;
+    expect(indicatorSpec({ ...base, kind: "SMA" })).toBe("SMA:20");
+    expect(indicatorSpec({ ...base, kind: "RSI", period: 14 })).toBe("RSI:14");
+    expect(indicatorSpec({ ...base, kind: "MACD", period: 12 })).toBe(
+      "MACD:12:26:9",
     );
+    expect(indicatorSpec({ ...base, kind: "Volume" })).toBe("");
   });
 });
 it("keeps a historical workspace in the available symbol and daily interval", () => {
@@ -55,4 +43,25 @@ it("preserves negative cash flows as numbers and escapes whitespace-prefixed for
   expect(csv([{ amount: "-1001.00", realized: "98.00", note: "\t=1+1" }])).toBe(
     '"amount","realized","note"\r\n"-1001.00","98.00","\' \t=1+1"',
   );
+});
+
+it("keeps an intentionally emptied watchlist but refills one from another universe", () => {
+  const symbols = ["NVRA", "CLDS", "VLOC"];
+  // Cleared on purpose: the choice survives a reload.
+  expect(
+    normalizePreferences({ watchlist: [] }, symbols, "1m", ["NVRA"]).watchlist,
+  ).toEqual([]);
+  // Saved against the previous universe: fall back to the run's suggestions.
+  expect(
+    normalizePreferences({ watchlist: ["AAPL", "MSFT"] }, symbols, "1m", [
+      "CLDS",
+      "NVRA",
+    ]).watchlist,
+  ).toEqual(["CLDS", "NVRA"]);
+  // Never saved before: the defaults apply.
+  expect(normalizePreferences(undefined, symbols, "1m", []).watchlist).toEqual([
+    "NVRA",
+    "CLDS",
+    "VLOC",
+  ]);
 });

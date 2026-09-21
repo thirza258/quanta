@@ -1,11 +1,12 @@
 import { price, working } from "@/features/simulator/model/format";
-import { ema, macd, rsi, sma } from "@/features/simulator/model/indicators";
+import { indicatorSpec } from "@/features/simulator/model/preferences";
 import type {
   Candle,
   Drawing,
   DrawingKind,
   Indicator,
   Interval,
+  MarketIndicators,
   SimRun,
 } from "@/features/simulator/model/types";
 import type {
@@ -35,6 +36,7 @@ type Props = {
   interval: Interval;
   chartType: "candles" | "bars" | "line";
   indicators: Indicator[];
+  overlays: MarketIndicators;
   drawings: Drawing[];
   onDrawings: (d: Drawing[]) => void;
   tool: DrawingKind | "cursor";
@@ -267,10 +269,9 @@ export default function SimChart(props: Props) {
         ? data.map((b) => ({ time: b.time, value: b.close }))
         : data,
     );
-    const values = props.bars.map((b) => b.close);
-    const points = (v: (number | null)[]) =>
-      v.flatMap((value, i) =>
-        value === null ? [] : [{ time: data[i].time, value }],
+    const points = (v: (number | null)[] | undefined) =>
+      (v ?? []).flatMap((value, i) =>
+        value === null || !data[i] ? [] : [{ time: data[i].time, value }],
       );
     for (const entry of indicatorSeries.current) {
       const { indicator: i, series: list } = entry;
@@ -282,15 +283,15 @@ export default function SimChart(props: Props) {
             color: b.close >= b.open ? "#20a78d35" : "#e7667635",
           })),
         );
-      if (i.kind === "SMA") list[0].setData(points(sma(values, i.period)));
-      if (i.kind === "EMA") list[0].setData(points(ema(values, i.period)));
-      if (i.kind === "RSI") list[0].setData(points(rsi(values, i.period)));
+      // Series arrive already calculated by the API for these exact bars.
+      const overlay = props.overlays[indicatorSpec(i)];
+      if (i.kind === "SMA" || i.kind === "EMA" || i.kind === "RSI")
+        list[0].setData(points(overlay?.values));
       if (i.kind === "MACD") {
-        const m = macd(values, i.period, i.slow, i.signal);
-        list[0].setData(points(m.line));
-        list[1].setData(points(m.signal));
+        list[0].setData(points(overlay?.line));
+        list[1].setData(points(overlay?.signal));
         list[2].setData(
-          points(m.histogram).map((p) => ({
+          points(overlay?.histogram).map((p) => ({
             ...p,
             color: p.value >= 0 ? "#20a78d70" : "#e7667670",
           })),
@@ -302,6 +303,7 @@ export default function SimChart(props: Props) {
     setEpoch((v) => v + 1);
   }, [
     props.bars,
+    props.overlays,
     props.chartType,
     indicatorKey,
     props.symbol,

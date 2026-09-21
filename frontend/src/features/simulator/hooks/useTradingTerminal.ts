@@ -10,10 +10,17 @@ import type {
   Candle,
   Drawing,
   DrawingKind,
+  DeskView,
+  Fundamentals,
+  MarketIndicators,
+  NewsFeed,
+  RunCalendar,
   Preferences,
   SimOrder,
   SimRun,
+  SymbolAnalytics,
 } from "@/features/simulator/model/types";
+import { indicatorSpec } from "@/features/simulator/model/preferences";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { ApiError } from "@/shared/api/client";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -42,6 +49,15 @@ export function useTradingTerminal() {
   const [bars, setBars] = useState<Candle[]>([]),
     [marketError, setMarketError] = useState(""),
     [marketRetry, setMarketRetry] = useState(0);
+  const [overlays, setOverlays] = useState<MarketIndicators>({});
+  const [desk, setDesk] = useState<DeskView | null>(null),
+    [calendar, setCalendar] = useState<RunCalendar | null>(null),
+    [analytics, setAnalytics] = useState<SymbolAnalytics | null>(null);
+  const [news, setNews] = useState<NewsFeed | null>(null),
+    [fundamentals, setFundamentals] = useState<Fundamentals | null>(null),
+    [fundamentalsError, setFundamentalsError] = useState(""),
+    [deskError, setDeskError] = useState("");
+  const suggestedWatchlist = useRef<string[]>([]);
   const [connectionError, setConnectionError] = useState("");
   const loadSequence = useRef(0);
   const preferenceWrite = useRef<Promise<void> | null>(null);
@@ -73,6 +89,11 @@ export function useTradingTerminal() {
   const [tab, setTab] = useState<TradingTab>("Positions"),
     [mobileTab, setMobileTab] = useState("Chart"),
     [sideTab, setSideTab] = useState("Watchlist");
+  // Statements, screening and quant statistics are only fetched while something
+  // is showing them, or while the export dialog is collecting a full snapshot.
+  const wantsStatements = tab === "Company" || exportOpen;
+  const wantsDesk = sideTab === "Desk" || tab === "Performance" || exportOpen;
+  const wantsCalendar = tab === "Calendar" || exportOpen;
   const [tool, setTool] = useState<DrawingKind | "cursor">("cursor"),
     [selectedDrawing, setSelectedDrawing] = useState<string | null>(null);
   const [chartAction, setChartAction] = useState<{
@@ -86,7 +107,7 @@ export function useTradingTerminal() {
   const [historyVersion, setHistoryVersion] = useState(0);
   const [newConfig, setNewConfig] = useState({
     mode: "synthetic",
-    seed: "42",
+    seed: "",
     symbol: "",
     commission: "1",
     slippage_bps: "2",
@@ -151,6 +172,7 @@ export function useTradingTerminal() {
         cached?.dirty ? cached.preferences : value.preferences,
         value.quotes.map((q) => q.symbol),
         value.config.base_interval,
+        suggestedWatchlist.current,
       );
       if (searchParams.get("lesson") && !next.ticket)
         next.ticket = { ...emptyTicket(), lesson: searchParams.get("lesson")! };
@@ -170,6 +192,7 @@ export function useTradingTerminal() {
       const result = await simApi<Bootstrap>("");
       if (!mounted.current || sequence !== loadSequence.current) return;
       setBoot(result);
+      suggestedWatchlist.current = result.watchlist ?? [];
       let value = selectedId
         ? await simApi<SimRun>(`/runs/${selectedId}`)
         : result.run;
@@ -248,11 +271,19 @@ export function useTradingTerminal() {
     if (!run) return;
     let active = true;
     setMarketError("");
-    simApi<{ bars: Candle[] }>(
-      `/runs/${run.id}/market?symbol=${encodeURIComponent(prefs.symbol)}&interval=${prefs.interval}&cursor=${run.cursor}`,
+    const specs = prefs.indicators
+      .filter((i) => i.visible)
+      .map(indicatorSpec)
+      .filter(Boolean)
+      .join(",");
+    simApi<{ bars: Candle[]; indicators: MarketIndicators }>(
+      `/runs/${run.id}/market?symbol=${encodeURIComponent(prefs.symbol)}&interval=${prefs.interval}&cursor=${run.cursor}&indicators=${encodeURIComponent(specs)}`,
     )
       .then((data) => {
-        if (active) setBars(data.bars);
+        if (active) {
+          setBars(data.bars);
+          setOverlays(data.indicators ?? {});
+        }
       })
       .catch((e) => {
         if (active) {
@@ -263,7 +294,126 @@ export function useTradingTerminal() {
     return () => {
       active = false;
     };
-  }, [run?.id, run?.cursor, prefs.symbol, prefs.interval, marketRetry]);
+  }, [
+    run?.id,
+    run?.cursor,
+    prefs.symbol,
+    prefs.interval,
+    marketRetry,
+    JSON.stringify(prefs.indicators),
+  ]);
+  useEffect(() => {
+    if (!run || !wantsDesk) return;
+    let active = true;
+    const timer = setTimeout(() => {
+      void simApi<DeskView>(`/runs/${run.id}/desk`)
+        .then((view) => {
+          if (active) {
+            setDesk(view);
+            setDeskError("");
+          }
+        })
+        .catch((e) => {
+          if (active) {
+            setDesk(null);
+            setDeskError((e as Error).message);
+          }
+        });
+      void simApi<SymbolAnalytics>(
+        `/runs/${run.id}/analytics?symbol=${encodeURIComponent(prefs.symbol)}`,
+      )
+        .then((view) => {
+          if (active) setAnalytics(view);
+        })
+        .catch(() => {
+          if (active) setAnalytics(null);
+        });
+    }, 300);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [run?.id, run?.cursor, prefs.symbol, wantsDesk]);
+  useEffect(() => {
+    if (!run || !wantsCalendar) return;
+    let active = true;
+    const timer = setTimeout(() => {
+      void simApi<RunCalendar>(`/runs/${run.id}/calendar`)
+        .then((view) => {
+          if (active) setCalendar(view);
+        })
+        .catch(() => {
+          if (active) setCalendar(null);
+        });
+    }, 300);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [run?.id, run?.cursor, wantsCalendar]);
+  useEffect(() => {
+    if (!run) return;
+    let active = true;
+    const timer = setTimeout(() => {
+      const scope = prefs.newsScope === "symbol" ? prefs.symbol : "";
+      simApi<NewsFeed>(
+        `/runs/${run.id}/news?limit=80${scope ? `&symbol=${encodeURIComponent(scope)}` : ""}`,
+      )
+        .then((feed) => {
+          if (active) setNews(feed);
+        })
+        .catch(() => {
+          if (active) setNews(null);
+        });
+    }, 260);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [run?.id, run?.cursor, prefs.newsScope, prefs.symbol]);
+  useEffect(() => {
+    if (!run || !wantsStatements) return;
+    let active = true;
+    if (run.config.mode !== "synthetic" || !run.config.universe) {
+      setFundamentals(null);
+      setFundamentalsError(
+        run.config.mode === "historical"
+          ? "Imported historical replays have no generated company accounts."
+          : "This run predates the simulator's fictional companies. Start a new run to read generated accounts.",
+      );
+      return;
+    }
+    const timer = setTimeout(() => {
+      simApi<Fundamentals>(
+        `/runs/${run.id}/fundamentals?symbol=${encodeURIComponent(prefs.symbol)}`,
+      )
+        .then((data) => {
+          if (active) {
+            setFundamentals(data);
+            setFundamentalsError("");
+          }
+        })
+        .catch((e) => {
+          if (active) {
+            setFundamentals(null);
+            setFundamentalsError((e as Error).message);
+          }
+        });
+    }, 260);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [run?.id, run?.cursor, prefs.symbol, run?.config.mode, wantsStatements]);
+  useEffect(() => {
+    setNews(null);
+    setDesk(null);
+    setCalendar(null);
+    setAnalytics(null);
+    setFundamentals(null);
+    setDeskError("");
+    setFundamentalsError("");
+  }, [run?.id]);
   useEffect(() => {
     setBars([]);
     setSelectedDrawing(null);
@@ -442,6 +592,105 @@ export function useTradingTerminal() {
       window.removeEventListener("online", reconcile);
     };
   }, [run?.id, playing, archived]);
+  /** Terminal-style entry: a ticker, a function code, or both ("NVRA FA"). */
+  const FUNCTIONS: Record<string, string> = {
+    GP: "Chart",
+    N: "News",
+    NEWS: "News",
+    MOV: "Desk",
+    DESK: "Desk",
+    FA: "Company financials",
+    DES: "Company financials",
+    PORT: "Performance",
+    CAL: "Calendar",
+    ECO: "Calendar",
+    EARN: "Calendar",
+    RV: "Peers",
+    PEER: "Peers",
+    POS: "Positions",
+    OMON: "Open orders",
+    BLOT: "Trade history",
+    W: "Watchlist",
+    BUY: "Buy ticket",
+    SELL: "Sell ticket",
+    HELP: "Execution model",
+  };
+  function runCommand(raw: string) {
+    const parts = raw.trim().toUpperCase().split(/\s+/).filter(Boolean);
+    if (!parts.length) return false;
+    const listed = new Set(runRef.current?.quotes.map((q) => q.symbol) ?? []);
+    const symbol = listed.has(parts[0]) ? parts[0] : "";
+    const code = symbol ? (parts[1] ?? "GP") : parts[0];
+    if (!symbol && !FUNCTIONS[code]) return false;
+    if (symbol) chooseSymbol(symbol);
+    const openSide = (name: string) => {
+      setSideTab(name);
+      setMobileTab(name === "Trade" || name === "Watchlist" ? name : "Chart");
+      setPrefs({ rightOpen: true });
+    };
+    const openBottom = (name: TradingTab) => {
+      setTab(name);
+      setMobileTab("Portfolio");
+      setPrefs({ bottomOpen: true });
+    };
+    switch (FUNCTIONS[code]) {
+      case "News":
+        openSide("News");
+        setMobileTab("News");
+        break;
+      case "Desk":
+        openSide("Desk");
+        break;
+      case "Watchlist":
+        openSide("Watchlist");
+        break;
+      case "Buy ticket":
+      case "Sell ticket":
+        setPrefs({
+          rightOpen: true,
+          ticket: {
+            ...emptyTicket(),
+            lesson: ticket.lesson,
+            side: code === "SELL" ? "sell" : "buy",
+          },
+        });
+        setSideTab("Trade");
+        setMobileTab("Trade");
+        break;
+      case "Company financials":
+        openBottom("Company");
+        break;
+      case "Performance":
+        openBottom("Performance");
+        break;
+      case "Calendar":
+        openBottom("Calendar");
+        break;
+      case "Peers":
+        setPrefs({ statement: "peers" });
+        openBottom("Company");
+        break;
+      case "Positions":
+        openBottom("Positions");
+        break;
+      case "Open orders":
+        openBottom("Open orders");
+        break;
+      case "Trade history":
+        openBottom("Trade history");
+        break;
+      case "Execution model":
+        setHelpOpen(true);
+        break;
+      default:
+        setMobileTab("Chart");
+    }
+    return true;
+  }
+  async function jump(steps: number, label: string) {
+    setPlaying(false);
+    await perform("advance", { steps }, "POST", `Replay advanced ${label}.`);
+  }
   function chooseSymbol(symbol: string) {
     setPrefs({ symbol, ticket: { ...emptyTicket(), lesson: ticket.lesson } });
     setSearchOpen(false);
@@ -547,7 +796,7 @@ export function useTradingTerminal() {
       const draftConfig = {
         id: crypto.randomUUID(),
         mode: newConfig.mode,
-        seed: Number(newConfig.seed),
+        ...(newConfig.seed.trim() ? { seed: Number(newConfig.seed) } : {}),
         ...(newConfig.mode === "historical"
           ? { symbol: newConfig.symbol }
           : {}),
@@ -618,6 +867,17 @@ export function useTradingTerminal() {
     marketError,
     connectionError,
     bars,
+    overlays,
+    desk,
+    deskError,
+    calendar,
+    analytics,
+    news,
+    fundamentals,
+    fundamentalsError,
+    jump,
+    runCommand,
+    commandFunctions: FUNCTIONS,
     prefs,
     ticket,
     setPrefs,

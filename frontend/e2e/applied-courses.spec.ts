@@ -31,6 +31,7 @@ test("curriculum places careful investing before Security Analysis and searches 
   const cards = page.locator(".track-grid .track-card");
   for (const [index, slug] of [
     "trading-fundamentals",
+    "trading-ethics",
     "intelligent-investor",
     "security-analysis",
     "news-to-markets",
