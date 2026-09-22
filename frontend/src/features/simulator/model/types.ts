@@ -103,6 +103,8 @@ export type Preferences = {
   theme?: string;
   ticket?: Ticket;
   walkthrough?: boolean;
+  newsScope?: "all" | "symbol";
+  statement?: "income" | "balance" | "cash" | "ratios" | "peers";
 };
 
 export type SimRun = {
@@ -121,6 +123,7 @@ export type SimRun = {
   config: {
     mode: "synthetic" | "historical";
     seed: number;
+    universe?: string;
     symbol: string | null;
     base_interval: string;
     source: string;
@@ -129,9 +132,13 @@ export type SimRun = {
     spread_bps: string;
     participation: string;
   };
+  universe: string | null;
+  disclosure: string;
   quotes: (Candle & {
     symbol: string;
     name: string;
+    sector: string | null;
+    business: string | null;
     change: number;
     change_pct: number;
   })[];
@@ -153,5 +160,332 @@ export type Bootstrap = {
   run: SimRun | null;
   runs: { id: string; created_at: string; mode: string }[];
   historical: { symbol: string; source: string }[];
-  symbols: { symbol: string; name: string }[];
+  symbols: {
+    symbol: string;
+    name: string;
+    sector: string | null;
+    business: string | null;
+    simulated: boolean;
+  }[];
+  watchlist: string[];
+  disclosure: string;
+};
+
+/** Overlay series computed by the API from the same observed bars. */
+export type MarketIndicator = {
+  kind: string;
+  values?: (number | null)[];
+  line?: (number | null)[];
+  signal?: (number | null)[];
+  histogram?: (number | null)[];
+};
+
+export type MarketIndicators = Record<string, MarketIndicator>;
+
+export type MoverRow = {
+  symbol: string;
+  name: string;
+  sector: string | null;
+  close: number;
+  change: number;
+  change_pct: number;
+  volume: number;
+  relative_volume: number | null;
+  notional: number;
+  volatility: number | null;
+  window_bars: number;
+  window_high: number;
+  window_low: number;
+  sentiment: number | null;
+};
+
+export type DeskView = {
+  movers: {
+    gainers: MoverRow[];
+    losers: MoverRow[];
+    active: MoverRow[];
+    sectors: {
+      sector: string;
+      companies: number;
+      change_pct: number;
+      sentiment: number | null;
+    }[];
+    breadth: {
+      advancing: number;
+      declining: number;
+      unchanged: number;
+      average_change_pct: number;
+    };
+  };
+  performance: {
+    curve: { time: number; equity: number }[];
+    opening_equity: number;
+    equity: number;
+    total_return: number;
+    max_drawdown: number;
+    realized: string;
+    unrealized: number;
+    average_exposure: number;
+    trades: number;
+    win_rate: number | null;
+    profit_factor: number | null;
+    average_win: number | null;
+    average_loss: number | null;
+    attribution: {
+      symbol: string;
+      realized: number;
+      unrealized: number;
+      total: number;
+      quantity: number;
+      fills: number;
+    }[];
+    bars_observed: number;
+  };
+  cursor: number;
+  version: number;
+  disclosure: string;
+};
+
+export type SymbolAnalytics = {
+  symbol: string;
+  name: string;
+  sector: string | null;
+  close: number;
+  indicators: {
+    sma_20: number | null;
+    sma_50: number | null;
+    ema_20: number | null;
+    rsi_14: number | null;
+    macd: { line: number; signal: number; histogram: number } | null;
+  };
+  risk: {
+    volatility_short: number | null;
+    volatility_long: number | null;
+    short_window_bars: number;
+    long_window_bars: number;
+    beta: number | null;
+    correlation: number | null;
+    observations: number;
+  };
+  momentum: {
+    session: number | null;
+    week: number | null;
+    since_open: number;
+  };
+  range: Record<string, number>;
+  liquidity: {
+    volume: number;
+    average_volume_20: number;
+    average_volume_session: number;
+  };
+  sentiment: { session: SentimentReading; week: SentimentReading } | null;
+};
+
+export type RunCalendar = {
+  economic: {
+    index: number;
+    time: number;
+    name: string;
+    topic: string;
+    released: boolean;
+    headline: string | null;
+    sentiment: "positive" | "negative" | "neutral" | null;
+  }[];
+  earnings: {
+    symbol: string;
+    name: string;
+    sector: string | null;
+    label: string;
+    index: number;
+    time: number;
+    bars_away: number;
+    released: boolean;
+    consensus_eps: number;
+    consensus_revenue: number;
+    eps?: number;
+    revenue?: number;
+    eps_surprise?: number | null;
+    revenue_surprise?: number;
+  }[];
+  horizon_bars: number;
+  cursor: number;
+  version: number;
+  disclosure: string;
+};
+
+export type PeerRow = {
+  symbol: string;
+  name: string;
+  sector: string | null;
+  price: number;
+  market_capitalization: number;
+  price_earnings: number | null;
+  price_sales: number | null;
+  price_book: number | null;
+  enterprise_ebitda: number | null;
+  operating_margin: number | null;
+  return_on_equity: number | null;
+  revenue_growth: number | null;
+  debt_equity: number | null;
+  free_cash_flow_yield: number | null;
+  reported_quarters: number;
+  self: boolean;
+};
+
+export type NewsScope = "company" | "sector" | "macro" | "market";
+
+export type NewsItem = {
+  id: string;
+  index: number;
+  time: number;
+  scope: NewsScope;
+  symbol: string | null;
+  sector: string | null;
+  category: string;
+  headline: string;
+  summary: string;
+  source: string;
+  sentiment: "positive" | "negative" | "neutral";
+  impact: "high" | "medium" | "low" | "none";
+};
+
+export type SentimentReading = {
+  score: number;
+  weight: number;
+  items: number;
+  window_bars: number;
+  positive: number;
+  negative: number;
+  neutral: number;
+};
+
+export type NewsFeed = {
+  items: NewsItem[];
+  available: boolean;
+  cursor: number;
+  version: number;
+  disclosure: string;
+  notice: string;
+  sentiment: {
+    session: SentimentReading;
+    week: SentimentReading;
+    market: SentimentReading;
+  } | null;
+};
+
+export type Quarter = {
+  label: string;
+  index: number;
+  released: boolean;
+  revenue: number;
+  cost_of_revenue: number;
+  gross_profit: number;
+  research_development: number;
+  selling_general_admin: number;
+  depreciation: number;
+  operating_income: number;
+  ebitda: number;
+  interest_expense: number;
+  pretax_income: number;
+  tax_expense: number;
+  net_income: number;
+  eps: number;
+  shares: number;
+  cash: number;
+  receivables: number;
+  inventory: number;
+  current_assets: number;
+  property_plant_equipment: number;
+  goodwill: number;
+  total_assets: number;
+  payables: number;
+  short_term_debt: number;
+  current_liabilities: number;
+  long_term_debt: number;
+  total_debt: number;
+  total_liabilities: number;
+  equity: number;
+  operating_cash_flow: number;
+  capital_expenditure: number;
+  free_cash_flow: number;
+  dividends_paid: number;
+  buybacks: number;
+  external_financing: number;
+  financing_cash_flow: number;
+  opening_cash: number;
+  consensus_eps?: number;
+  consensus_revenue?: number;
+  revenue_surprise?: number;
+  eps_surprise?: number | null;
+};
+
+export type Valuation = {
+  price: number;
+  market_capitalization: number;
+  enterprise_value: number;
+  shares: number;
+  net_debt: number;
+  trailing_revenue: number;
+  trailing_net_income: number;
+  trailing_ebitda: number;
+  trailing_free_cash_flow: number;
+  trailing_eps: number;
+  price_earnings: number | null;
+  price_sales: number | null;
+  price_book: number | null;
+  enterprise_sales: number | null;
+  enterprise_ebitda: number | null;
+  free_cash_flow_yield: number | null;
+  dividend_yield: number | null;
+  payout_ratio: number | null;
+  gross_margin: number | null;
+  operating_margin: number | null;
+  net_margin: number | null;
+  return_on_equity: number | null;
+  return_on_assets: number | null;
+  revenue_growth: number | null;
+  earnings_growth: number | null;
+  current_ratio: number | null;
+  quick_ratio: number | null;
+  working_capital: number;
+  debt_equity: number | null;
+  net_debt_ebitda: number | null;
+  interest_coverage: number | null;
+  net_current_asset_value: number;
+  graham_number: number | null;
+  book_value_per_share: number;
+  prior_year_quarter: string | null;
+};
+
+export type Fundamentals = {
+  symbol: string;
+  name: string;
+  sector: string;
+  business: string;
+  currency: string;
+  units: string;
+  // Descriptive facts only; the parameters that generate a quarter stay server-side.
+  structure: {
+    shares: number;
+    employees: number;
+    fiscal_year_end: string;
+    development_stage: boolean;
+  };
+  quarters: Quarter[];
+  upcoming: {
+    label: string;
+    time: number;
+    bars_away: number;
+    consensus_eps: number;
+    consensus_revenue: number;
+  } | null;
+  valuation: Valuation;
+  peers: {
+    sector: string | null;
+    rows: PeerRow[];
+    median: Record<string, number | null>;
+  };
+  cursor: number;
+  version: number;
+  disclosure: string;
 };

@@ -6,6 +6,7 @@ import {
   Download,
   Layers,
   List,
+  Newspaper,
   PanelBottomOpen,
 } from "lucide-react";
 import type { TerminalView } from "../model/view";
@@ -63,9 +64,9 @@ export default function TerminalStatus({
             ? "Guest · saved for this browser"
             : "Account synced"}
         <span className="sim-status-separator">|</span>
-        <span>
+        <span title={run.disclosure}>
           {run.config.mode === "synthetic"
-            ? "Seeded synthetic · " + run.config.seed
+            ? `Simulated market · ${run.quotes.length} fictional companies · seed ${run.config.seed}`
             : "Imported historical"}
         </span>
         <button className="sim-text-button" onClick={() => setHelpOpen(true)}>
@@ -128,6 +129,7 @@ export default function TerminalStatus({
         {[
           { name: "Chart", icon: Activity },
           { name: "Watchlist", icon: List },
+          { name: "News", icon: Newspaper },
           { name: "Trade", icon: ArrowUp },
           { name: "Portfolio", icon: Layers },
         ].map(({ name, icon: Icon }) => (
@@ -136,7 +138,7 @@ export default function TerminalStatus({
             className={mobileTab === name ? "active" : ""}
             onClick={() => {
               setMobileTab(name);
-              if (name === "Trade" || name === "Watchlist") {
+              if (name === "Trade" || name === "Watchlist" || name === "News") {
                 setPrefs({ rightOpen: true });
                 setSideTab(name);
               }

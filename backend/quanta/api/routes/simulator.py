@@ -44,10 +44,57 @@ def market(
     symbol: str,
     interval: Literal["1m", "5m", "15m", "1h", "1D"] = "1m",
     cursor: int | None = Query(default=None, ge=0),
+    indicators: str | None = Query(default=None, max_length=200),
     account: str = Depends(owner),
     db: Session = Depends(get_session),
 ):
-    return service.market(run_id, symbol, interval, cursor, account, db)
+    return service.market(run_id, symbol, interval, cursor, indicators, account, db)
+
+
+@router.get("/runs/{run_id}/news")
+def news(
+    run_id: str,
+    symbol: str | None = Query(default=None, max_length=20),
+    limit: int = Query(default=60, ge=1, le=200),
+    account: str = Depends(owner),
+    db: Session = Depends(get_session),
+):
+    return service.news(run_id, symbol, limit, account, db)
+
+
+@router.get("/runs/{run_id}/fundamentals")
+def fundamentals(
+    run_id: str,
+    symbol: str = Query(max_length=20),
+    account: str = Depends(owner),
+    db: Session = Depends(get_session),
+):
+    return service.fundamentals(run_id, symbol, account, db)
+
+
+@router.get("/runs/{run_id}/calendar")
+def calendar(
+    run_id: str,
+    ahead: int | None = Query(default=None, ge=1, le=7800),
+    account: str = Depends(owner),
+    db: Session = Depends(get_session),
+):
+    return service.calendar(run_id, ahead, account, db)
+
+
+@router.get("/runs/{run_id}/desk")
+def desk_view(run_id: str, account: str = Depends(owner), db: Session = Depends(get_session)):
+    return service.desk_view(run_id, account, db)
+
+
+@router.get("/runs/{run_id}/analytics")
+def analytics(
+    run_id: str,
+    symbol: str = Query(max_length=20),
+    account: str = Depends(owner),
+    db: Session = Depends(get_session),
+):
+    return service.analytics(run_id, symbol, account, db)
 
 
 @router.post("/runs/{run_id}/orders")

@@ -31,12 +31,13 @@ export default function HelpDialog({
         description="Paper money. Real decisions to practice."
       >
         <div className="sim-walkthrough">
-          <span className="eyebrow">STEP {walkthrough + 1} OF 4</span>
+          <span className="eyebrow">STEP {walkthrough + 1} OF 5</span>
           <h3>
             {
               [
                 "Find your market",
                 "Read the chart",
+                "Follow the newsroom",
                 "Place a paper order",
                 "Review your process",
               ][walkthrough]
@@ -45,8 +46,9 @@ export default function HelpDialog({
           <p>
             {
               [
-                "Choose a stock from the watchlist or symbol search. Synthetic prices are fictional; historical replay uses an installed dataset. The clock always shows what information is available.",
-                "Pan, zoom, change the timeframe, and add indicators. Use the left drawing tools or the Objects form. Two clicks create a trend line; Escape cancels a tool.",
+                "Choose a company from the watchlist or symbol search. A simulated run lists fictional companies whose prices are generated; historical replay uses an installed dataset. The clock always shows what information is available.",
+                "Pan, zoom, change the timeframe, and add indicators. Indicator series are calculated by the server from the bars you can already see. Use the left drawing tools or the Objects form; two clicks create a trend line, and Escape cancels a tool.",
+                "Open News to read the simulated wire. Headlines drive the generated prices, so a move on the chart has a story on the same bar. Company shows the invented accounts and ratios, Desk shows movers and risk statistics, and the jump buttons step the clock forward from fifteen minutes to a week.",
                 "Open Buy or Sell, choose an order type, and preview it. Your account starts with $100,000. Advance replay to process orders on the next eligible bar.",
                 "Open Positions and Trade history. Link a thesis to your trade, compare the outcome to the plan, and export the run. A profitable result alone does not establish a sound decision.",
               ][walkthrough]
@@ -55,12 +57,12 @@ export default function HelpDialog({
           <button
             className="sim-outline"
             onClick={() =>
-              walkthrough < 3
+              walkthrough < 4
                 ? setWalkthrough((v) => v + 1)
                 : setHelpOpen(false)
             }
           >
-            {walkthrough < 3 ? "Next step" : "Start exploring"}
+            {walkthrough < 4 ? "Next step" : "Start exploring"}
             <ChevronRight size={16} />
           </button>
         </div>
@@ -89,6 +91,19 @@ export default function HelpDialog({
             book is inferred from bars. Synthetic sessions omit exchange
             holidays.
           </p>
+          {run.universe ? (
+            <p>
+              Every company, headline, wire service, broker, institution and
+              financial statement in this run is invented for teaching. The news
+              schedule is generated first and its macro, sector and company
+              shocks enter the price process, so a move on the chart has a story
+              on the same bar. No headline, reported quarter or analyst estimate
+              is released ahead of the replay clock, and imported historical
+              prices never receive generated news. Indicators, screening, risk
+              statistics, valuation ratios and account performance are all
+              calculated by the server from the bars you have already observed.
+            </p>
+          ) : null}
           <p>
             {run.config.source}. Historical splits and dividends are not applied
             by this engine; import adjusted OHLC prices, or explicitly account

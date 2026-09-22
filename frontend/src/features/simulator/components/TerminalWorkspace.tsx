@@ -1,8 +1,10 @@
+import DeskPanel from "@/features/simulator/components/DeskPanel";
 import DrawingsPanel from "@/features/simulator/components/DrawingsPanel";
+import NewsPanel from "@/features/simulator/components/NewsPanel";
 import OrderTicket from "@/features/simulator/components/OrderTicket";
 import PortfolioPanel from "@/features/simulator/components/PortfolioPanel";
 import SimChart from "@/features/simulator/components/SimChart";
-import { price, stamp } from "@/features/simulator/model/format";
+import { clock, price, stamp } from "@/features/simulator/model/format";
 import "@/features/simulator/simulator.css";
 import {
   ArrowUp,
@@ -81,6 +83,15 @@ export default function TerminalWorkspace({
     | "setTab"
     | "closePosition"
     | "setJournal"
+    | "news"
+    | "overlays"
+    | "desk"
+    | "deskError"
+    | "calendar"
+    | "analytics"
+    | "fundamentals"
+    | "fundamentalsError"
+    | "jump"
   >;
 }) {
   const {
@@ -128,9 +139,56 @@ export default function TerminalWorkspace({
     setTab,
     closePosition,
     setJournal,
+    news,
+    overlays,
+    desk,
+    deskError,
+    calendar,
+    analytics,
+    fundamentals,
+    fundamentalsError,
+    jump,
   } = terminal;
+  // A minute market steps by clock time; a daily replay steps by sessions.
+  const jumps: [string, number, string][] =
+    run.config.base_interval === "1D"
+      ? [
+          ["1D", 1, "by one session"],
+          ["1W", 5, "by one week"],
+          ["1M", 21, "by one month"],
+          ["1Q", 63, "by one quarter"],
+        ]
+      : [
+          ["15m", 15, "by fifteen minutes"],
+          ["1h", 60, "by one hour"],
+          ["1D", 390, "by one session"],
+          ["1W", 1950, "by one week"],
+        ];
+  const tape = (news?.items ?? []).slice(0, 12);
   return (
     <>
+      {tape.length ? (
+        <div className="sim-tape" aria-label="Latest simulated headlines">
+          <span className="sim-tape-badge">SIM NEWS</span>
+          <div className="sim-tape-track">
+            {tape.map((item) => (
+              <button
+                key={item.id}
+                className={`sim-tape-item ${item.sentiment}`}
+                onClick={() => {
+                  if (item.symbol) chooseSymbol(item.symbol);
+                  setSideTab("News");
+                  setPrefs({ rightOpen: true });
+                }}
+              >
+                <span className="sim-tape-time">{clock(item.time)}</span>
+                {item.symbol ? <strong>{item.symbol}</strong> : null}
+                {item.headline}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <div
         className={`sim-main-grid ${prefs.rightOpen ? "" : "right-collapsed"} ${prefs.bottomOpen ? "" : "bottom-collapsed"}`}
       >
@@ -185,6 +243,7 @@ export default function TerminalWorkspace({
             interval={prefs.interval}
             chartType={prefs.chartType}
             indicators={prefs.indicators}
+            overlays={overlays}
             drawings={drawings}
             onDrawings={changeDrawings}
             tool={tool}
@@ -245,6 +304,19 @@ export default function TerminalWorkspace({
             >
               <SkipForward size={17} />
             </button>
+            <span className="sim-jumps" role="group" aria-label="Jump replay">
+              {jumps.map(([label, steps, description]) => (
+                <button
+                  key={label}
+                  disabled={blocked || complete}
+                  title={`Jump forward ${description}`}
+                  aria-label={`Jump forward ${description}`}
+                  onClick={() => void jump(steps, description)}
+                >
+                  {label}
+                </button>
+              ))}
+            </span>
             <select
               aria-label="Replay speed"
               value={speed}
@@ -316,7 +388,7 @@ export default function TerminalWorkspace({
             />
             <aside className="sim-right-panel">
               <div className="sim-sidebar-tabs">
-                {["Watchlist", "Trade", "Drawings"].map((t) => (
+                {["Watchlist", "News", "Desk", "Trade", "Drawings"].map((t) => (
                   <button
                     key={t}
                     className={sideTab === t ? "active" : ""}
@@ -437,9 +509,11 @@ export default function TerminalWorkspace({
                     </p>
                   ) : null}
                   <p className="sim-small">
-                    {run.config.mode === "synthetic"
-                      ? "Synthetic market · fictional prices"
-                      : "Historical replay · imported prices"}
+                    {run.config.mode !== "synthetic"
+                      ? "Historical replay · imported prices"
+                      : run.universe
+                        ? "Simulated market · fictional company"
+                        : "Seeded synthetic · fictional price path"}
                     <br />
                     {stamp(run.clock)}
                   </p>
@@ -467,6 +541,21 @@ export default function TerminalWorkspace({
                   </div>
                 </div>
               </div>
+              <NewsPanel
+                feed={news}
+                symbol={prefs.symbol}
+                scope={prefs.newsScope ?? "all"}
+                onScope={(newsScope) => setPrefs({ newsScope })}
+                onSymbol={chooseSymbol}
+                show={sideTab === "News"}
+              />
+              <DeskPanel
+                desk={desk}
+                error={deskError}
+                analytics={analytics}
+                onSymbol={chooseSymbol}
+                show={sideTab === "Desk"}
+              />
               {sideTab === "Drawings" ? (
                 <DrawingsPanel
                   drawings={drawings}
@@ -517,6 +606,13 @@ export default function TerminalWorkspace({
                 run={run}
                 tab={tab}
                 setTab={setTab}
+                fundamentals={fundamentals}
+                fundamentalsError={fundamentalsError}
+                desk={desk}
+                deskError={deskError}
+                calendar={calendar}
+                statement={prefs.statement ?? "ratios"}
+                setStatement={(statement) => setPrefs({ statement })}
                 onSymbol={chooseSymbol}
                 onClose={closePosition}
                 onCancel={(id) => {

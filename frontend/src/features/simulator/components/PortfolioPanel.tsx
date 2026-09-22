@@ -4,7 +4,17 @@ import {
   stamp,
   working,
 } from "@/features/simulator/model/format";
-import type { SimOrder, SimRun } from "@/features/simulator/model/types";
+import type {
+  DeskView,
+  Fundamentals,
+  Preferences,
+  RunCalendar,
+  SimOrder,
+  SimRun,
+} from "@/features/simulator/model/types";
+import CalendarPanel from "@/features/simulator/components/CalendarPanel";
+import PerformancePanel from "@/features/simulator/components/PerformancePanel";
+import CompanyPanel from "@/features/simulator/components/CompanyPanel";
 import { download } from "@/shared/lib/download";
 import { Download, PanelBottomClose } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -13,7 +23,10 @@ export type TradingTab =
   | "Open orders"
   | "Order history"
   | "Trade history"
-  | "Account history";
+  | "Account history"
+  | "Company"
+  | "Performance"
+  | "Calendar";
 export default function PortfolioPanel({
   run,
   tab,
@@ -25,6 +38,13 @@ export default function PortfolioPanel({
   onJournal,
   onCollapse,
   disabled,
+  fundamentals,
+  fundamentalsError,
+  statement,
+  setStatement,
+  desk,
+  deskError,
+  calendar,
 }: {
   run: SimRun;
   tab: TradingTab;
@@ -36,6 +56,13 @@ export default function PortfolioPanel({
   onJournal: (order: SimOrder) => void;
   onCollapse: () => void;
   disabled: boolean;
+  fundamentals: Fundamentals | null;
+  fundamentalsError: string;
+  statement: NonNullable<Preferences["statement"]>;
+  setStatement: (next: NonNullable<Preferences["statement"]>) => void;
+  desk: DeskView | null;
+  deskError: string;
+  calendar: RunCalendar | null;
 }) {
   const orders =
     tab === "Open orders" ? run.orders.filter(working) : run.orders;
@@ -46,7 +73,13 @@ export default function PortfolioPanel({
         ? run.fills
         : tab === "Account history"
           ? run.ledger
-          : orders;
+          : tab === "Company"
+            ? (fundamentals?.quarters ?? [])
+            : tab === "Performance"
+              ? (desk?.performance.attribution ?? [])
+              : tab === "Calendar"
+                ? (calendar?.earnings ?? [])
+                : orders;
   return (
     <section className="sim-portfolio" aria-label="Trading panel">
       <div className="sim-panel-tabs">
@@ -58,6 +91,9 @@ export default function PortfolioPanel({
               "Order history",
               "Trade history",
               "Account history",
+              "Company",
+              "Performance",
+              "Calendar",
             ] as TradingTab[]
           ).map((t) => (
             <button
@@ -100,7 +136,22 @@ export default function PortfolioPanel({
         </div>
       </div>
       <div className="sim-table-scroll" role="tabpanel" aria-label={tab}>
-        {tab === "Positions" ? (
+        {tab === "Calendar" ? (
+          <CalendarPanel
+            calendar={calendar}
+            error={deskError}
+            onSymbol={onSymbol}
+          />
+        ) : tab === "Performance" ? (
+          <PerformancePanel desk={desk} error={deskError} onSymbol={onSymbol} />
+        ) : tab === "Company" ? (
+          <CompanyPanel
+            data={fundamentals}
+            error={fundamentalsError}
+            statement={statement}
+            setStatement={setStatement}
+          />
+        ) : tab === "Positions" ? (
           <table>
             <thead>
               <tr>
@@ -323,7 +374,8 @@ export default function PortfolioPanel({
             </tbody>
           </table>
         ) : null}
-        {!exportRows.length ? (
+        {!exportRows.length &&
+        !["Company", "Performance", "Calendar"].includes(tab) ? (
           <div className="sim-empty-table">
             <strong>
               {tab === "Positions"

@@ -12,7 +12,8 @@ class Model(BaseModel):
 class RunCreate(Model):
     id: UUID
     mode: Literal["synthetic", "historical"] = "synthetic"
-    seed: StrictInt = Field(default=42, ge=0, le=1000000)
+    # Omitted: derived from the run identifier so every new account differs.
+    seed: StrictInt | None = Field(default=None, ge=0, le=1000000)
     symbol: str | None = Field(default=None, max_length=20)
     commission: Decimal = Field(default=Decimal("1"), ge=0, le=100, decimal_places=2)
     slippage_bps: Decimal = Field(default=Decimal("2"), ge=0, le=100)
@@ -38,7 +39,9 @@ class OrderCreate(Mutation):
 
 
 class Advance(Mutation):
-    steps: StrictInt = Field(default=1, ge=1, le=390)
+    # Up to five modeled sessions, so a learner can step a minute or jump a week
+    # to see how a position behaves after a headline or a reported quarter.
+    steps: StrictInt = Field(default=1, ge=1, le=1950)
 
 
 class Amendment(Mutation):

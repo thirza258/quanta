@@ -24,6 +24,10 @@ export default function RunDialogs({
     | "run"
     | "prefs"
     | "bars"
+    | "news"
+    | "fundamentals"
+    | "desk"
+    | "calendar"
   >;
 }) {
   const {
@@ -41,6 +45,10 @@ export default function RunDialogs({
     run,
     prefs,
     bars,
+    news,
+    fundamentals,
+    desk,
+    calendar,
   } = terminal;
   return (
     <>
@@ -79,17 +87,21 @@ export default function RunDialogs({
           </label>
           {newConfig.mode === "synthetic" ? (
             <label className="sim-field">
-              Random seed
+              Market seed (optional)
               <input
                 type="number"
                 min={0}
                 max={1000000}
-                required
+                placeholder="Automatic"
                 value={newConfig.seed}
                 onChange={(e) =>
                   setNewConfig({ ...newConfig, seed: e.target.value })
                 }
               />
+              <small className="sim-small">
+                Leave empty for a new generated market and news schedule. Enter
+                a number to reproduce the same one.
+              </small>
             </label>
           ) : (
             <label className="sim-field">
@@ -157,7 +169,9 @@ export default function RunDialogs({
           </div>
           <p className="sim-small">
             Long-only, whole-share practice. Immediate settlement is a teaching
-            simplification. Historical corporate-action treatment comes from the
+            simplification. Synthetic runs list fictional companies whose prices
+            respond to a generated news schedule; nothing in them describes a
+            real issuer. Historical corporate-action treatment comes from the
             imported dataset.
           </p>
           <button className="sim-submit buy" disabled={busy}>
@@ -170,7 +184,7 @@ export default function RunDialogs({
         open={exportOpen}
         onOpenChange={setExportOpen}
         title="Export simulation"
-        description="Exports include confirmed history and observed market data only."
+        description="Exports include confirmed history, observed market data, and the simulated headlines and statements released so far."
       >
         <button
           className="sim-outline"
@@ -179,6 +193,12 @@ export default function RunDialogs({
               ...run,
               preferences: prefs,
               bars,
+              simulated_news: news?.items ?? [],
+              simulated_sentiment: news?.sentiment ?? null,
+              simulated_statements: fundamentals,
+              desk_analytics: desk,
+              reporting_calendar: calendar,
+              disclosure: run.disclosure,
             })
           }
         >

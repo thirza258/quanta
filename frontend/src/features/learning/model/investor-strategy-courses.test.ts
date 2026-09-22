@@ -5,8 +5,9 @@ import { normalize } from "@/features/workspace/model/state";
 
 describe("careful-investor and strategy research progression", () => {
   it("places the investor companion directly before Security Analysis and keeps evaluation last", () => {
-    expect(tracks.slice(0, 4).map((course) => course.id)).toEqual([
+    expect(tracks.slice(0, 5).map((course) => course.id)).toEqual([
       "trading-fundamentals",
+      "trading-ethics",
       "intelligent-investor",
       "security-analysis",
       "news-to-markets",

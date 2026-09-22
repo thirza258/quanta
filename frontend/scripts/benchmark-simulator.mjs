@@ -19,6 +19,9 @@ async function json(response) {
     throw new Error(`${response.status()}: ${await response.text()}`);
   return response.json();
 }
+// A company from the simulator's generated universe.
+const SYMBOL = "NVRA";
+
 try {
   await json(await api.get("/api/v1/simulator"));
   let run = await json(
@@ -42,7 +45,7 @@ try {
         id: randomUUID(),
         version: run.version,
         preferences: {
-          symbol: "AAPL",
+          symbol: SYMBOL,
           interval: "1m",
           indicators: [
             {
@@ -82,7 +85,7 @@ try {
         data: {
           id: randomUUID(),
           version: run.version,
-          symbol: "AAPL",
+          symbol: SYMBOL,
           side: "buy",
           kind: "limit",
           limit_price: "1",
@@ -96,7 +99,7 @@ try {
     errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const marketResponse = page.waitForResponse((r) =>
-    r.url().includes("/market?symbol=AAPL&interval=1m"),
+    r.url().includes(`/market?symbol=${SYMBOL}&interval=1m`),
   );
   await page.goto("/simulator");
   const bars = (await (await marketResponse).json()).bars.length;
@@ -158,7 +161,7 @@ try {
     },
     browser: browser.version(),
     viewport: "1440x900",
-    dataset: "seed 47 synthetic AAPL, 5,000 observed minute bars",
+    dataset: `seed 47 simulated market, ${SYMBOL}, 5,000 observed minute bars`,
     indicators: "Volume, SMA20, RSI14",
     concurrency: 1,
     acknowledgement: {

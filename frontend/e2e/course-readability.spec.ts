@@ -71,7 +71,7 @@ test("curriculum search recovers from no results and mobile lesson navigation st
     page.getByRole("heading", { name: "No matching tracks" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Show all courses" }).click();
-  await expect(page.locator(".track-card")).toHaveCount(12);
+  await expect(page.locator(".track-card")).toHaveCount(13);
   await page.getByRole("button", { name: "Not started", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Not started", exact: true }),
