@@ -1,0 +1,25 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://quant.nevatal.id/api",
+      "service-desc": [
+        {
+          "href": "https://quant.nevatal.id/api/openapi.json",
+          "type": "application/vnd.oai.openapi+json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://quant.nevatal.id/api/docs",
+          "type": "text/html"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://quant.nevatal.id/healthz",
+          "type": "application/json"
+        }
+      ]
+    }
+  ]
+}

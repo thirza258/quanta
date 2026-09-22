@@ -12,6 +12,38 @@
     <title>Quanta — Investment learning, in practice</title>
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
     <script src="/theme.js"></script>
+    <script>
+      (() => {
+        function registerWebMcpTools() {
+          if (!('modelContext' in navigator) || !navigator.modelContext) return;
+          try {
+            const controller = new AbortController();
+            navigator.modelContext.registerTool({
+              name: 'search_quanta',
+              title: 'Search Quanta',
+              description: 'Search quantitative finance models, valuation tools, and datasets on Quanta.',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  query: { type: 'string', description: 'Search term for financial models, valuation, or assets' }
+                },
+                required: ['query']
+              },
+              execute: async ({ query }) => {
+                return {
+                  content: [{ type: 'text', text: `Results for ${query}: Visit https://quant.nevatal.id/catalog` }]
+                };
+              }
+            }, { signal: controller.signal });
+          } catch (e) {}
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', registerWebMcpTools);
+        } else {
+          registerWebMcpTools();
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
