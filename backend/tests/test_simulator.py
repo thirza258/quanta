@@ -668,6 +668,27 @@ def test_a_run_from_before_the_universe_still_serves_every_new_endpoint(client):
     assert desk["performance"]["equity"] == 100000.0
     stats = client.get(base + "/analytics", params={"symbol": "AAPL"}).json()
     assert stats["sentiment"] is None and stats["risk"]["beta"] is not None
+    # Every monitor tool serves a run with no newsroom; only tone is absent.
+    tools = client.get(
+        base + "/monitor",
+        params={
+            "panes": "tape,book,heatmap,screener,sessions,quotes",
+            "symbol": "AAPL",
+            "screen": "volatile",
+        },
+    ).json()["tools"]
+    assert set(tools) == {"tape", "book", "heatmap", "screener", "sessions", "quotes"}
+    assert tools["tape"]["prints"] and tools["book"]["bids"]
+    assert sum(g["companies_count"] for g in tools["heatmap"]["sectors"]) == 6
+    assert tools["screener"]["rows"]
+    assert all(row["sentiment"] is None for row in tools["screener"]["rows"])
+    # No statements, so no earnings multiple to screen on.
+    assert all(row["multiple"] is None for row in tools["screener"]["rows"])
+    assert tools["sessions"]["sessions"] and tools["quotes"]["rows"]
+    # A legacy run is a cash account, and shorting it is still refused.
+    assert snapshot["account"] == "cash"
+    short = mutate(client, snapshot, "orders", symbol="AAPL", side="sell", quantity=1)
+    assert short.status_code == 422 and "long-only" in short.json()["detail"]
     # The screener must measure change exactly as the watchlist does.
     watchlist = {q["symbol"]: q["change_pct"] for q in snapshot["quotes"]}
     for row in movers["gainers"] + movers["losers"] + movers["active"]:
