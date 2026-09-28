@@ -2,6 +2,7 @@ import bisect
 import copy
 import hashlib
 import json
+import uuid
 from datetime import datetime
 from typing import Literal
 from uuid import uuid4
@@ -14,10 +15,14 @@ from sqlmodel import Session, select
 
 from quanta.db.models import TradingDataset, TradingRun
 from quanta.domain.simulator import (
+    HELD,
     OPEN,
     advance_state,
     bar_at,
+    dec,
     money,
+    retire_orphans,
+    validate_bracket,
     validate_order,
 )
 from quanta.domain.simulator_models import (
@@ -333,17 +338,28 @@ def market(
     }
 
 
+# Names for the legs an entry can carry, so a retried request produces the same
+# identifiers rather than a second copy of the bracket.
+BRACKET = uuid.UUID("5d2f7f1c-7a5e-4a0d-8b39-2b3c8b4f9a11")
+
+
 def order_create(run_id: str, payload: OrderCreate, account: str, db: Session):
     def operation(state, data):
         if state["cursor"] >= len(next(iter(data.values()))) - 1:
             raise HTTPException(422, "Replay is complete. Start a new run to place orders.")
-        if len(state["orders"]) >= 2000:
+        bracket = payload.take_profit or payload.stop_loss or payload.stop_loss_trail
+        if len(state["orders"]) + (2 if bracket else 0) > 2000:
             raise HTTPException(422, "Order limit reached. Export and start a new run.")
-        stamp = bar_at(data, payload.symbol, state["cursor"])["time"]
+        bar = bar_at(data, payload.symbol, state["cursor"])
+        stamp = bar["time"]
         next_stamp = data[payload.symbol][state["cursor"] + 1]["time"]
+        day = datetime.fromtimestamp(next_stamp, ZoneInfo("America/New_York")).date().isoformat()
         # Orders entered after a session's final bar belong to the next session.
         order = {
-            **payload.model_dump(mode="json", exclude={"version"}),
+            **payload.model_dump(
+                mode="json",
+                exclude={"version", "take_profit", "stop_loss", "stop_loss_trail"},
+            ),
             "id": str(payload.id),
             "filled": 0,
             "status": "working",
@@ -352,13 +368,66 @@ def order_create(run_id: str, payload: OrderCreate, account: str, db: Session):
             "fee_remaining": money(state["config"]["commission"]),
             "triggered": False,
             "time": stamp,
-            "day": datetime.fromtimestamp(next_stamp, ZoneInfo("America/New_York"))
-            .date()
-            .isoformat(),
+            "day": day,
             "reason": "Accepted. Waiting for the next eligible bar.",
         }
         validate_order(state, data, order)
+        if bracket:
+            validate_bracket(payload, dec(bar["close"]))
+        if order["kind"] == "trailing_stop":
+            # The trail starts from where the market is now, not from a high it
+            # reached before the order existed.
+            order["trail_anchor"] = money(bar["close"])
+            order["stop_price"] = money(
+                dec(bar["close"]) * (1 - dec(payload.trail_percent) / 100)
+            )
         state["orders"].append(order)
+        if not bracket:
+            return
+        group = str(uuid.uuid5(BRACKET, order["id"]))
+        legs = []
+        if payload.take_profit:
+            legs.append(
+                {
+                    "role": "target",
+                    "kind": "limit",
+                    "limit_price": str(payload.take_profit),
+                    "reason": "Held: waiting for the entry it protects to fill.",
+                }
+            )
+        if payload.stop_loss or payload.stop_loss_trail:
+            legs.append(
+                {
+                    "role": "stop",
+                    "kind": "trailing_stop" if payload.stop_loss_trail else "stop",
+                    "stop_price": str(payload.stop_loss) if payload.stop_loss else None,
+                    "trail_percent": str(payload.stop_loss_trail)
+                    if payload.stop_loss_trail
+                    else None,
+                    "reason": "Held: waiting for the entry it protects to fill.",
+                }
+            )
+        for leg in legs:
+            state["orders"].append(
+                {
+                    **order,
+                    "id": str(uuid.uuid5(BRACKET, f"{order['id']}:{leg['role']}")),
+                    "side": "sell",
+                    "limit_price": None,
+                    "stop_price": None,
+                    "trail_percent": None,
+                    # An exit that protects a position is not a day order. It
+                    # would otherwise vanish at a close with the position still
+                    # open and nothing watching it.
+                    "tif": "GTC",
+                    "status": HELD,
+                    "parent_id": order["id"],
+                    "oco_group": group,
+                    "activates": None,
+                    "note": "",
+                    **leg,
+                }
+            )
 
     return mutate(db, run_id, account, payload, "order", operation)
 
@@ -379,8 +448,10 @@ def cancel(run_id: str, order_id: str, payload: Mutation, account: str, db: Sess
         order = next((o for o in state["orders"] if o["id"] == order_id), None)
         if not order:
             raise HTTPException(404, "Order not found.")
-        if order["status"] in OPEN:
+        if order["status"] in (HELD, *OPEN):
             order.update(status="canceled", reason="Unfilled remainder canceled by learner.")
+        # Cancelling an entry takes its attached exits with it.
+        retire_orphans(state)
 
     return mutate(db, run_id, account, payload, "cancel:" + order_id, operation)
 

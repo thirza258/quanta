@@ -841,12 +841,24 @@ export function useTradingTerminal() {
         ...(t.kind === "stop" || t.kind === "stop_limit"
           ? { stop_price: t.stop }
           : {}),
+        ...(t.kind === "trailing_stop" ? { trail_percent: t.trail } : {}),
+        // Exits ride along with the entry, so the risk plan is written before
+        // the fill rather than chased after it.
+        ...(t.bracket && t.side === "buy" && t.kind !== "trailing_stop"
+          ? {
+              ...(t.takeProfit ? { take_profit: t.takeProfit } : {}),
+              ...(t.stopLoss ? { stop_loss: t.stopLoss } : {}),
+              ...(t.stopTrail ? { stop_loss_trail: t.stopTrail } : {}),
+            }
+          : {}),
         tif: t.tif,
         note: t.note,
         lesson: t.lesson,
       },
       "POST",
-      "Order accepted. Advance replay to observe its fill.",
+      t.bracket && t.side === "buy"
+        ? "Order accepted with its exits attached. They arm when it fills."
+        : "Order accepted. Advance replay to observe its fill.",
     );
     if (result) {
       setPreview(false);

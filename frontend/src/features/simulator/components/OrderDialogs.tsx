@@ -66,8 +66,28 @@ export default function OrderDialogs({
           <p>
             {ticket.kind === "market"
               ? "Fill at the next eligible market price"
-              : `Limit ${ticket.limit || "—"} · Stop ${ticket.stop || "—"}`}
+              : ticket.kind === "trailing_stop"
+                ? `Trailing ${ticket.trail || "—"}% below the best price it reaches`
+                : `Limit ${ticket.limit || "—"} · Stop ${ticket.stop || "—"}`}
           </p>
+          {ticket.bracket &&
+          ticket.side === "buy" &&
+          ticket.kind !== "trailing_stop" &&
+          (ticket.takeProfit || ticket.stopLoss || ticket.stopTrail) ? (
+            <p>
+              Two exits go with it, held until this fills:{" "}
+              {ticket.takeProfit
+                ? `sell at ${ticket.takeProfit}`
+                : "no take-profit"}{" "}
+              and{" "}
+              {ticket.stopTrail
+                ? `a stop trailing ${ticket.stopTrail}%`
+                : ticket.stopLoss
+                  ? `a stop at ${ticket.stopLoss}`
+                  : "no stop"}
+              . Whichever triggers first cancels the other.
+            </p>
+          ) : null}
           <p>
             Commission: {dollars(run.config.commission)} per order. Cash and
             shares are reserved when accepted. Fills depend on the next bar and

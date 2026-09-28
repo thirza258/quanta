@@ -614,3 +614,85 @@ test("monitor windows add tools beside the chart and survive a reload", async ({
   expect((await refreshed).status()).toBe(200);
   expect(errors).toEqual([]);
 });
+
+test("a bracket entry places both exits and arms them when it fills", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await open(page);
+  const run = await account(page);
+  const last = quoteFor(run, "NVRA").close;
+
+  await page.locator(".sim-quick-trade .buy").click();
+  await page.getByLabel("Attach exits to this entry").check();
+  await page.getByLabel("Take profit").fill((last * 1.03).toFixed(2));
+  await page.getByLabel("Stop loss").fill((last * 0.97).toFixed(2));
+  await expect(page.locator(".sim-bracket")).toContainText("Risking");
+  await expect(page.locator(".sim-bracket")).toContainText(":1");
+
+  // The preview says what is actually being sent.
+  await page
+    .getByRole("button", { name: "Preview buy order", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText("Two exits go with it");
+  await page
+    .getByRole("button", { name: "Place buy order", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+
+  // Both legs are in the blotter, held rather than working.
+  await page.getByRole("tab", { name: /^Open orders/ }).click();
+  await expect(page.locator(".sim-order-status.held")).toHaveCount(2);
+  await expect(page.locator("tbody")).toContainText("Take profit");
+  await expect(page.locator("tbody")).toContainText("Stop loss");
+
+  // The entry fills and both exits arm for what it bought.
+  await advance(page);
+  await expect(page.locator(".sim-order-status.held")).toHaveCount(0);
+  await expect(page.locator(".sim-order-status.working")).toHaveCount(2);
+
+  // A stop above the entry is refused before anything is sent.
+  await page
+    .getByRole("button", { name: /^Trade/ })
+    .first()
+    .click();
+  await page.getByLabel("Stop loss").fill((last * 1.2).toFixed(2));
+  await expect(page.locator(".sim-validation")).toContainText(
+    "below the entry it protects",
+  );
+  await expect(
+    page.getByRole("button", { name: "Preview buy order", exact: true }),
+  ).toBeDisabled();
+  expect(errors).toEqual([]);
+});
+
+test("a trailing stop follows the price up and is shown with its trail", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await open(page);
+  await page.locator(".sim-quick-trade .buy").click();
+  await page.getByLabel("Shares", { exact: true }).fill("20");
+  await submit(page);
+  await advance(page);
+
+  await page.getByRole("button", { name: "Sell", exact: true }).click();
+  await page.getByLabel("Order type").selectOption("trailing_stop");
+  await page.getByLabel("Shares", { exact: true }).fill("20");
+  await page.getByLabel("Trail (% below the high)").fill("4");
+  await page
+    .getByRole("button", { name: "Preview sell order", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText("Trailing 4%");
+  await page
+    .getByRole("button", { name: "Place sell order", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+
+  await page.getByRole("tab", { name: /^Open orders/ }).click();
+  await expect(page.locator("tbody")).toContainText("4% trail");
+  await expect(page.locator("tbody")).toContainText("trailing-stop");
+  expect(errors).toEqual([]);
+});

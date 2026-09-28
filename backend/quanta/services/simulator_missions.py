@@ -216,10 +216,12 @@ MISSIONS = {
                 _o(
                     "stop",
                     "Place a protective sell stop",
-                    "A sell order using a stop or stop-limit, entered while you held the shares.",
+                    "A sell stop, stop-limit or trailing stop — including one attached to "
+                    "the entry as a bracket. What counts is that the exit was decided "
+                    "before it was needed.",
                     "order_kind",
                     side="sell",
-                    kinds=["stop", "stop_limit"],
+                    kinds=["stop", "stop_limit", "trailing_stop"],
                     count=1,
                 ),
                 _o(

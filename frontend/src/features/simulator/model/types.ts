@@ -9,7 +9,8 @@ export type Candle = {
 
 export type Interval = "1m" | "5m" | "15m" | "1h" | "1D";
 
-export type OrderKind = "market" | "limit" | "stop" | "stop_limit";
+export type OrderKind =
+  "market" | "limit" | "stop" | "stop_limit" | "trailing_stop";
 
 export type SimOrder = {
   id: string;
@@ -19,7 +20,15 @@ export type SimOrder = {
   quantity: number;
   limit_price: string | null;
   stop_price: string | null;
+  trail_percent?: string | null;
+  trail_anchor?: string | null;
   tif: "DAY" | "GTC";
+  /** Set on an exit attached to an entry, naming the entry it protects. */
+  parent_id?: string | null;
+  oco_group?: string | null;
+  role?: "target" | "stop" | null;
+  /** The bar an armed bracket leg can first trade on. */
+  activates?: number | null;
   filled: number;
   status: string;
   average: string;
@@ -84,6 +93,14 @@ export type Ticket = {
   quantity: string;
   limit: string;
   stop: string;
+  /** Trail for a trailing stop, as a percentage of the best price reached. */
+  trail: string;
+  /** Exits attached to an entry, sent with it and held until it fills. */
+  bracket: boolean;
+  takeProfit: string;
+  stopLoss: string;
+  /** A trailing stop leg instead of a fixed one, as a percentage. */
+  stopTrail: string;
   tif: "DAY" | "GTC";
   note: string;
   lesson: string;

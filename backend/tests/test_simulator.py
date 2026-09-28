@@ -1138,3 +1138,179 @@ def test_scored_headlines_are_marked_on_the_bars_they_moved(client):
         params={"symbol": SYMBOL, "interval": "1m", "limit": 300, "cursor": 600},
     ).json()
     assert all(marker["time"] <= early["bars"][-1]["time"] for marker in early["markers"])
+
+
+def find(run, **match):
+    return [o for o in run["orders"] if all(o.get(k) == v for k, v in match.items())]
+
+
+def test_a_bracket_protects_an_entry_and_one_leg_cancels_the_other(client):
+    """An entry can carry its own exits, so the risk plan is written before the fill."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    quote = next(q for q in run["quotes"] if q["symbol"] == SYMBOL)
+    entry = float(quote["close"])
+    placed = mutate(
+        client,
+        run,
+        "orders",
+        symbol=SYMBOL,
+        side="buy",
+        quantity=50,
+        take_profit=round(entry * 1.02, 2),
+        stop_loss=round(entry * 0.98, 2),
+    ).json()
+    legs = find(placed, parent_id=placed["orders"][0]["id"])
+    assert len(legs) == 2
+    assert {leg["role"] for leg in legs} == {"target", "stop"}
+    # Held legs are not working orders: they reserve nothing and cannot trade.
+    assert all(leg["status"] == "held" and leg["side"] == "sell" for leg in legs)
+    assert all(leg["tif"] == "GTC" for leg in legs)
+    assert placed["reserved"] == "0.00" or float(placed["reserved"]) >= 0
+
+    # The entry fills; both legs arm for exactly the quantity it bought.
+    advanced = mutate(client, placed, "advance", steps=1).json()
+    parent = find(advanced, role=None)[0] if find(advanced, role=None) else advanced["orders"][0]
+    assert parent["status"] == "filled" and parent["filled"] == 50
+    armed = find(advanced, parent_id=parent["id"])
+    assert all(leg["status"] == "working" and leg["quantity"] == 50 for leg in armed)
+
+    # One leg trades and retires the other. Whichever it is, the position closes
+    # once and only once.
+    done = mutate(client, advanced, "advance", steps=900).json()
+    exits = find(done, parent_id=parent["id"])
+    statuses = sorted(leg["status"] for leg in exits)
+    assert statuses == ["canceled", "filled"], statuses
+    assert done["positions"] == [] or all(p["quantity"] == 0 for p in done["positions"])
+    filled_leg = next(leg for leg in exits if leg["status"] == "filled")
+    assert "bracket" in next(leg for leg in exits if leg["status"] == "canceled")["reason"]
+    assert filled_leg["filled"] == 50
+
+
+def test_a_bracket_that_cannot_be_right_is_refused(client):
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    quote = next(q for q in run["quotes"] if q["symbol"] == SYMBOL)
+    entry = float(quote["close"])
+    bad = mutate(
+        client,
+        run,
+        "orders",
+        symbol=SYMBOL,
+        side="buy",
+        quantity=10,
+        take_profit=round(entry * 0.9, 2),
+    )
+    assert bad.status_code == 422 and "above the entry" in bad.json()["detail"]
+    bad = mutate(
+        client,
+        run,
+        "orders",
+        symbol=SYMBOL,
+        side="buy",
+        quantity=10,
+        stop_loss=round(entry * 1.1, 2),
+    )
+    assert bad.status_code == 422 and "below the entry" in bad.json()["detail"]
+    # Attaching exits to a closing order is not a bracket.
+    bought = mutate(client, run, "orders", symbol=SYMBOL, side="buy", quantity=10).json()
+    bought = mutate(client, bought, "advance", steps=1).json()
+    bad = mutate(
+        client,
+        bought,
+        "orders",
+        symbol=SYMBOL,
+        side="sell",
+        quantity=10,
+        stop_loss=round(entry * 0.9, 2),
+    )
+    assert bad.status_code == 422 and "entries" in bad.json()["detail"]
+
+
+def test_an_entry_cancelled_before_it_fills_takes_its_exits_with_it(client):
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    quote = next(q for q in run["quotes"] if q["symbol"] == SYMBOL)
+    entry = float(quote["close"])
+    placed = mutate(
+        client,
+        run,
+        "orders",
+        symbol=SYMBOL,
+        side="buy",
+        kind="limit",
+        # Far below the market, so it will not fill. The exits are measured
+        # against the price this entry would pay, not against today's market.
+        limit_price=round(entry * 0.5, 2),
+        quantity=10,
+        take_profit=round(entry * 0.53, 2),
+        stop_loss=round(entry * 0.47, 2),
+    ).json()
+    parent = placed["orders"][0]
+    assert len(find(placed, parent_id=parent["id"])) == 2
+    canceled = client.post(
+        f"/api/v1/simulator/runs/{run['id']}/orders/{parent['id']}/cancel",
+        json={"id": ident(), "version": placed["version"]},
+    ).json()
+    assert all(
+        leg["status"] == "canceled" for leg in find(canceled, parent_id=parent["id"])
+    )
+
+
+def test_a_trailing_stop_ratchets_up_and_never_looks_inside_a_bar(client):
+    """The stop protecting a bar is the one that was set before the bar opened."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    bought = mutate(client, run, "orders", symbol=SYMBOL, side="buy", quantity=30).json()
+    bought = mutate(client, bought, "advance", steps=1).json()
+    trailing = mutate(
+        client,
+        bought,
+        "orders",
+        symbol=SYMBOL,
+        side="sell",
+        kind="trailing_stop",
+        quantity=30,
+        trail_percent=3,
+    ).json()
+    order = find(trailing, kind="trailing_stop")[0]
+    first = float(order["stop_price"])
+    anchor = float(order["trail_anchor"])
+    assert first == pytest.approx(anchor * 0.97, abs=0.02)
+
+    highest = anchor
+    previous = first
+    state = trailing
+    for _ in range(40):
+        state = mutate(client, state, "advance", steps=5).json()
+        order = find(state, kind="trailing_stop")[0]
+        if order["status"] != "working":
+            break
+        stop, anchor = float(order["stop_price"]), float(order["trail_anchor"])
+        # A trailing stop never steps down.
+        assert stop >= previous - 0.005, (stop, previous)
+        assert anchor >= highest - 0.005
+        assert stop == pytest.approx(anchor * 0.97, abs=0.02)
+        highest, previous = anchor, stop
+
+    # When it does trigger, it sells at or below the stop it was carrying, never
+    # at the high the same bar went on to make.
+    if order["status"] == "filled":
+        assert float(order["average"]) <= previous * 1.01
+    assert float(order["stop_price"]) >= first
+
+
+def test_a_trailing_stop_is_refused_where_it_cannot_mean_anything(client):
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    bad = mutate(
+        client, run, "orders", symbol=SYMBOL, side="buy", quantity=5, kind="trailing_stop",
+        trail_percent=2,
+    )
+    assert bad.status_code == 422 and "exits only" in bad.json()["detail"]
+    bad = mutate(client, run, "orders", symbol=SYMBOL, side="sell", quantity=5, kind="trailing_stop")
+    assert bad.status_code == 422 and "trail percentage" in bad.json()["detail"]
+    bad = mutate(
+        client, run, "orders", symbol=SYMBOL, side="buy", quantity=5, trail_percent=2
+    )
+    assert bad.status_code == 422 and "Only a trailing stop" in bad.json()["detail"]

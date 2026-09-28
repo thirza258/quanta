@@ -2336,3 +2336,32 @@
     display: none;
   }
 }
+
+/* Bracket orders --------------------------------------------------------- */
+.sim-bracket {
+  border: 1px solid var(--sim-border);
+  border-radius: 4px;
+  padding: 7px 9px 9px;
+  margin: 0 0 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.sim-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--sim-text);
+  cursor: pointer;
+}
+.sim-check input {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--sim-accent);
+}
+/* A held leg is accepted but not yet working: it should read as neither. */
+.sim-order-status.held {
+  color: var(--sim-muted);
+  border-color: var(--sim-border);
+}
