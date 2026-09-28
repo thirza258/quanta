@@ -281,7 +281,7 @@ export default function PortfolioPanel({
                         >
                           Cancel
                         </button>{" "}
-                        {o.kind !== "market" ? (
+                        {o.kind !== "market" && o.kind !== "trailing_stop" ? (
                           <button
                             className="sim-text-button"
                             disabled={disabled}

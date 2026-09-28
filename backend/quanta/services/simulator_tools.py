@@ -23,8 +23,9 @@ from quanta.services.simulator_desk import (
     _closes,
     _column,
     _prior_close,
-    indicator_series,
     quotes_table,
+    rsi,
+    sma,
     windows,
 )
 from quanta.services.simulator_universe import profile
@@ -295,21 +296,27 @@ def screener(state, data, room, screen="all", limit=25):
     cursor = state["cursor"]
     bars, short, _ = windows(state)
     rows = []
+    # Conventional periods, in this run's own observations: twenty and fifty of
+    # them, which on a minute market is the last twenty and fifty minutes and on
+    # a daily replay the last twenty and fifty sessions.
+    fast_period, slow_period = 20, 50
     for row in quotes_table(state, data, room):
         symbol = row["symbol"]
         closes = _closes(data[symbol], cursor)
-        rsi = indicator_series(closes, "rsi_14")
-        fast = indicator_series(closes, f"sma_{min(short, 20)}")
-        slow = indicator_series(closes, f"sma_{min(len(closes) - 1, short * 2) or 2}")
+        strength = rsi(closes, 14)
+        fast = sma(closes, fast_period)
+        slow = sma(closes, slow_period)
         last = row["close"]
         position = row["window_high"] - row["window_low"]
         rows.append(
             {
                 **row,
                 "close": round(last, 2),
-                "rsi": round(rsi[-1], 1) if rsi and rsi[-1] is not None else None,
-                "above_fast": bool(fast and fast[-1] is not None and last > fast[-1]),
-                "above_slow": bool(slow and slow[-1] is not None and last > slow[-1]),
+                "rsi": round(strength, 1) if strength is not None else None,
+                "above_fast": fast is not None and last > fast,
+                "above_slow": slow is not None and last > slow,
+                "sma_fast": round(fast, 2) if fast is not None else None,
+                "sma_slow": round(slow, 2) if slow is not None else None,
                 "range_position": round((last - row["window_low"]) / position, 3)
                 if position
                 else None,
@@ -350,6 +357,8 @@ def screener(state, data, room, screen="all", limit=25):
         "rows": rows[:limit],
         "window_bars": short,
         "session_bars": bars,
+        "fast_bars": fast_period,
+        "slow_bars": slow_period,
     }
 
 

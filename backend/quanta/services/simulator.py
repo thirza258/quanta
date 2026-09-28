@@ -348,7 +348,7 @@ def order_create(run_id: str, payload: OrderCreate, account: str, db: Session):
         if state["cursor"] >= len(next(iter(data.values()))) - 1:
             raise HTTPException(422, "Replay is complete. Start a new run to place orders.")
         bracket = payload.take_profit or payload.stop_loss or payload.stop_loss_trail
-        if len(state["orders"]) + (2 if bracket else 0) > 2000:
+        if len(state["orders"]) + 1 + (2 if bracket else 0) > 2000:
             raise HTTPException(422, "Order limit reached. Export and start a new run.")
         bar = bar_at(data, payload.symbol, state["cursor"])
         stamp = bar["time"]
@@ -461,6 +461,15 @@ def amend(run_id: str, order_id: str, payload: Amendment, account: str, db: Sess
         order = next((o for o in state["orders"] if o["id"] == order_id), None)
         if not order or order["status"] not in OPEN:
             raise HTTPException(409, "Only a working order can be amended.")
+        if order["kind"] == "trailing_stop":
+            # The trail resets the stop on the next bar, so an amended price here
+            # would be silently overwritten. Change the trail, or cancel and
+            # replace with a fixed stop.
+            raise HTTPException(
+                422,
+                "A trailing stop sets its own price. Cancel it and place a fixed stop "
+                "to choose the level yourself.",
+            )
         for key in ("limit_price", "stop_price"):
             value = getattr(payload, key)
             if value is not None:

@@ -1093,6 +1093,28 @@ def test_monitor_tools_are_generated_and_consistent_with_the_bars(client):
         screen["rows"], key=lambda r: -r["relative_volume"]
     )
     assert all(row["window_low"] <= row["close"] <= row["window_high"] for row in screen["rows"])
+    # Every column a screen filters on has to actually compute, or the screens
+    # that read it return nothing and look like a market with no opportunities.
+    assert any(row["rsi"] is not None for row in screen["rows"])
+    assert any(row["above_fast"] for row in screen["rows"])
+    screens = base + "/monitor"
+    for name, test in (
+        ("oversold", lambda r: r["rsi"] < 30),
+        ("overbought", lambda r: r["rsi"] > 70),
+        ("momentum", lambda r: r["above_fast"] and r["above_slow"]),
+        ("cheap", lambda r: r["multiple"] is not None),
+    ):
+        rows = client.get(
+            screens, params={"panes": "screener", "symbol": SYMBOL, "screen": name}
+        ).json()["tools"]["screener"]["rows"]
+        assert all(test(row) for row in rows), name
+    matched = {
+        name: client.get(
+            screens, params={"panes": "screener", "symbol": SYMBOL, "screen": name}
+        ).json()["tools"]["screener"]["matches"]
+        for name in ("overbought", "momentum", "cheap")
+    }
+    assert all(matched.values()), matched
 
     closes = view["tools"]["sessions"]["sessions"]
     assert closes and all(row["low"] <= row["close"] <= row["high"] for row in closes)
@@ -1314,3 +1336,124 @@ def test_a_trailing_stop_is_refused_where_it_cannot_mean_anything(client):
         client, run, "orders", symbol=SYMBOL, side="buy", quantity=5, trail_percent=2
     )
     assert bad.status_code == 422 and "Only a trailing stop" in bad.json()["detail"]
+
+
+def bracket_orders(s, data, quantity, target, stop, **changes):
+    """An entry plus its two held exits, shaped the way the service builds them."""
+    entry = order(s, data, quantity=quantity, **changes)
+    entry.update(average="0.00", reason="")
+    group = "group-" + entry["id"]
+    legs = []
+    for role, leg in (
+        ("target", {"kind": "limit", "limit_price": str(target)}),
+        ("stop", {"kind": "stop", "stop_price": str(stop)}),
+    ):
+        child = {
+            **entry,
+            "id": f"{entry['id']}:{role}",
+            "side": "sell",
+            "quantity": quantity,
+            "filled": 0,
+            "notional": "0.00",
+            "average": "0.00",
+            "fee_remaining": "1.00",
+            "status": "held",
+            "parent_id": entry["id"],
+            "oco_group": group,
+            "activates": None,
+            "role": role,
+            "limit_price": None,
+            "stop_price": None,
+            **leg,
+        }
+        s["orders"].append(child)
+        legs.append(child)
+    return entry, legs
+
+
+def test_a_bracket_stays_sized_to_the_position_across_partial_fills():
+    """The exits protect what the entry holds open, never more and never less."""
+    # Thin volume, so a 300-share entry fills across several bars, and the price
+    # then rises through the target.
+    prices = [100, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
+    data = bars(prices, volume=100)
+    s = state()
+    s["config"]["participation"] = "1"
+    entry, legs = bracket_orders(s, data, 300, target=106, stop=90)
+    for _ in range(len(prices) - 1):
+        advance_state(s, data, 1)
+        held = s["positions"].get("AAPL", {}).get("quantity", 0)
+        # A long-only account can never be driven short by its own exits.
+        assert held >= 0, held
+        still_open = entry["filled"] - sum(leg["filled"] for leg in legs)
+        assert held == still_open, (held, still_open, entry["filled"])
+        for leg in legs:
+            if leg["status"] in ("working", "partially_filled"):
+                assert leg["quantity"] - leg["filled"] == still_open, leg
+            assert "buying power" not in leg["reason"]
+    # The target took the whole position; the stop was retired behind it.
+    assert entry["filled"] == 300
+    assert sum(leg["filled"] for leg in legs) == 300
+    assert s["positions"]["AAPL"]["quantity"] == 0
+    assert [leg["status"] for leg in legs] == ["filled", "canceled"]
+
+
+def test_an_exit_that_fills_before_the_entry_finishes_leaves_nothing_unprotected():
+    prices = [100, 101, 108, 95, 102, 103, 104, 105]
+    data = bars(prices, volume=60)
+    s = state()
+    s["config"]["participation"] = "1"
+    entry, legs = bracket_orders(s, data, 240, target=107, stop=96)
+    for _ in range(len(prices) - 1):
+        advance_state(s, data, 1)
+        held = s["positions"].get("AAPL", {}).get("quantity", 0)
+        assert held >= 0
+        live = [leg for leg in legs if leg["status"] in ("working", "partially_filled")]
+        # Every share the entry still holds is covered by each surviving exit.
+        for leg in live:
+            assert leg["quantity"] - leg["filled"] == held, (leg["role"], leg, held)
+
+
+def test_a_trailing_bracket_leg_arms_from_what_the_entry_paid(client):
+    """A trailing exit needs a price to trail from the moment it starts working."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    entry = float(next(q for q in run["quotes"] if q["symbol"] == SYMBOL)["close"])
+    placed = mutate(
+        client,
+        run,
+        "orders",
+        symbol=SYMBOL,
+        side="buy",
+        quantity=20,
+        take_profit=round(entry * 1.05, 2),
+        stop_loss_trail=3,
+    ).json()
+    parent = placed["orders"][0]
+    leg = next(o for o in placed["orders"] if o.get("role") == "stop")
+    assert leg["stop_price"] is None and leg.get("trail_anchor") is None
+
+    armed = mutate(client, placed, "advance", steps=1).json()
+    parent = next(o for o in armed["orders"] if o["id"] == parent["id"])
+    leg = next(o for o in armed["orders"] if o.get("role") == "stop")
+    assert leg["status"] == "working"
+    assert float(leg["trail_anchor"]) == pytest.approx(float(parent["average"]), abs=0.01)
+    assert float(leg["stop_price"]) == pytest.approx(float(leg["trail_anchor"]) * 0.97, abs=0.02)
+
+    # Its price is not the learner's to amend: the trail would overwrite it.
+    refused = client.post(
+        f"/api/v1/simulator/runs/{run['id']}/orders/{leg['id']}/amend",
+        json={"id": ident(), "version": armed["version"], "stop_price": "1.00"},
+    )
+    assert refused.status_code == 422 and "sets its own price" in refused.json()["detail"]
+
+    # It keeps advancing, and the stop only ever ratchets up.
+    previous = float(leg["stop_price"])
+    state = armed
+    for _ in range(8):
+        state = mutate(client, state, "advance", steps=30).json()
+        leg = next(o for o in state["orders"] if o.get("role") == "stop")
+        if leg["status"] != "working":
+            break
+        assert float(leg["stop_price"]) >= previous - 0.005
+        previous = float(leg["stop_price"])

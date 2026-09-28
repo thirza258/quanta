@@ -42,12 +42,23 @@ def reservations(state, exclude=None):
     Legs of one OCO group are alternatives, not additions: only one of them can
     ever fill, so the group reserves the largest of its legs rather than their
     sum. Summing them would reject a perfectly fundable bracket.
+
+    Excluding an order excludes its whole group. Re-validating one leg while its
+    sibling still reserves the same shares would cancel a bracket for lacking the
+    very shares it is holding.
     """
+    excluded = set()
+    if exclude:
+        excluded.add(exclude)
+        target = next((o for o in state["orders"] if o["id"] == exclude), None)
+        group = target.get("oco_group") if target else None
+        if group:
+            excluded |= {o["id"] for o in state["orders"] if o.get("oco_group") == group}
     cash = Decimal(0)
     shares = {}
     groups = {}
     for order in state["orders"]:
-        if order["id"] == exclude or order["status"] not in OPEN:
+        if order["id"] in excluded or order["status"] not in OPEN:
             continue
         remaining = order["quantity"] - order["filled"]
         if order["side"] == "buy":
@@ -163,68 +174,80 @@ def execution_price(order, bar):
     return opening
 
 
-def activate(state, parent):
-    """Bring a filled entry's attached exits to life for the shares it bought.
+def arm(leg, parent, cursor):
+    """Bring a held exit to life, on the bar after the entry it protects filled.
 
-    A child is sized to what the parent has actually filled, so a partial entry is
-    protected for the part that exists and grows as the rest fills. It starts
-    working on the next bar: the engine has no view inside a bar, so an exit that
-    could trade on the same one would be trading on a price it never saw.
+    The engine has no view inside a bar, so an exit that could trade on the same
+    one would be trading on a price it never saw. A trailing leg takes its anchor
+    from what the entry actually paid, once: a later fill on the same entry must
+    not reset a stop that has already ratcheted up.
     """
-    for child in state["orders"]:
-        if child.get("parent_id") != parent["id"] or child["status"] not in (HELD, *OPEN):
-            continue
-        if not parent["filled"]:
-            continue
-        child["quantity"] = parent["filled"]
-        if child["status"] == HELD:
-            child.update(
-                status="working",
-                activates=state["cursor"] + 1,
-                reason="Working: the entry it protects has filled.",
+    leg.update(
+        status="working",
+        activates=cursor + 1,
+        reason="Working: the entry it protects has filled.",
+    )
+    if leg["kind"] == "trailing_stop" and not leg.get("trail_anchor"):
+        anchor = dec(parent["average"])
+        leg["trail_anchor"] = money(anchor)
+        leg["stop_price"] = money(
+            (anchor * (1 - dec(leg["trail_percent"]) / 100)).quantize(
+                CENT, rounding=ROUND_HALF_UP
             )
+        )
 
 
-def close_siblings(state, order):
-    """One leg of an OCO group trading retires the others.
+def rebalance(state, order, cursor):
+    """Size a bracket's exits to the shares its entry is actually holding open.
 
-    Reducing rather than cancelling outright matters on a partial fill: the rest
-    of the position is still open and still needs its other exit.
+    Recomputed from the whole group rather than stepped: an entry still filling,
+    a leg that filled in part and a sibling that filled after it all move the same
+    number, and adjusting each of them separately double-counts it.
+
+    This is also what makes the group one-cancels-other. A leg that trades reduces
+    what is left open, and its siblings shrink to match; when nothing is left open
+    and the entry is done, they are cancelled. While the entry is still working
+    they idle instead, because more shares are coming and will need protecting.
     """
-    group = group_of(order)
-    for other in state["orders"]:
-        if other["id"] == order["id"] or group_of(other) != group:
+    parent_id = order.get("parent_id") or order["id"]
+    parent = next((o for o in state["orders"] if o["id"] == parent_id), None)
+    legs = [o for o in state["orders"] if o.get("parent_id") == parent_id]
+    if not parent or not legs:
+        return
+    still_open = parent["filled"] - sum(leg["filled"] for leg in legs)
+    for leg in legs:
+        if leg["status"] not in (HELD, *OPEN):
             continue
-        if other["status"] not in (HELD, *OPEN):
-            continue
-        remaining = other["quantity"] - order["filled"]
-        if remaining <= other["filled"]:
-            other.update(
-                status="canceled",
-                reason="Canceled: the other leg of this bracket filled.",
-            )
+        if still_open > 0:
+            leg["quantity"] = leg["filled"] + still_open
+            if leg["status"] == HELD:
+                arm(leg, parent, cursor)
+        elif parent["status"] in OPEN:
+            # Flat for now, but the entry is still working. Hold the leg at what
+            # it has already done, so it reserves nothing and cannot trade, and
+            # let it grow again when the rest of the entry arrives.
+            leg["quantity"] = leg["filled"]
+            leg["reason"] = "Idle: waiting for the rest of the entry to fill."
         else:
-            other["quantity"] = remaining
-            other["reason"] = "Reduced: the other leg of this bracket filled in part."
+            leg.update(
+                status="canceled",
+                reason="Canceled: this bracket has nothing left to protect."
+                if parent["filled"]
+                else f"Canceled: the entry it was attached to was {parent['status']}.",
+            )
 
 
 def retire_orphans(state):
-    """Cancel exits whose entry will never fill.
+    """Re-sweep every bracket, so an entry that ended takes its exits with it.
 
     A held leg is invisible to reservations and to the fill loop, so one left
     behind by a cancelled or expired entry would sit in the blotter for the rest
     of the run with nothing to protect.
     """
-    parents = {order["id"]: order for order in state["orders"]}
-    for order in state["orders"]:
-        if order["status"] != HELD:
-            continue
-        parent = parents.get(order.get("parent_id") or "")
-        if parent and parent["status"] not in OPEN and not parent["filled"]:
-            order.update(
-                status="canceled",
-                reason=f"Canceled: the entry it was attached to was {parent['status']}.",
-            )
+    for parent_id in {o["parent_id"] for o in state["orders"] if o.get("parent_id")}:
+        parent = next((o for o in state["orders"] if o["id"] == parent_id), None)
+        if parent:
+            rebalance(state, parent, state["cursor"])
 
 
 def _sequence(state):
@@ -334,8 +357,9 @@ def advance_state(state, data, steps):
                 "Filled on the next eligible bar, subject to shared volume participation."
             )
             used[order["symbol"]] = used.get(order["symbol"], 0) + quantity
-            close_siblings(state, order)
-            activate(state, order)
+            # An entry that filled arms its exits; an exit that filled resizes
+            # its siblings. Both are the same recomputation over the group.
+            rebalance(state, order, state["cursor"])
             fill = {
                 "id": str(uuid4()),
                 "order_id": order["id"],
