@@ -544,3 +544,73 @@ test("simulated newsroom, company statements and performance analytics follow th
   const filled = await account(page);
   expect(filled.positions[0].quantity).toBe(10);
 });
+
+test("monitor windows add tools beside the chart and survive a reload", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await open(page);
+
+  // One window by default: the chart alone, exactly as before.
+  await expect(page.locator(".sim-monitor-pane")).toHaveCount(0);
+
+  const tape = page.waitForResponse(
+    (r) => r.url().includes("/monitor?") && r.status() === 200,
+  );
+  await page
+    .getByRole("group", { name: "Monitor windows" })
+    .getByText("2")
+    .click();
+  await tape;
+  const second = page.getByRole("region", { name: /^Monitor 2:/ });
+  await expect(second).toBeVisible();
+  await expect(
+    second.locator(".sim-tape-table tbody tr").first(),
+  ).toBeVisible();
+  // A print's price is a real number the tape shows against the clock.
+  await expect(
+    second.locator(".sim-tape-table tbody tr").first(),
+  ).toContainText("$");
+
+  // A third window is independent of the second.
+  await page
+    .getByRole("group", { name: "Monitor windows" })
+    .getByText("3")
+    .click();
+  const third = page.getByRole("region", { name: /^Monitor 3:/ });
+  await expect(third).toBeVisible();
+  await expect(third.locator(".sim-heat-cell").first()).toBeVisible();
+  await page.getByLabel("Tool for monitor 3").selectOption("screener");
+  await expect(third.getByLabel("Screen")).toBeVisible();
+  await third.getByLabel("Screen").selectOption("oversold");
+  await expect(third).toContainText("RSI under 30");
+
+  // Clicking a company in a tool moves the whole terminal to it.
+  await page.getByLabel("Tool for monitor 2").selectOption("quotes");
+  const symbol = await second
+    .locator(".sim-monitor-table tbody tr td button")
+    .first()
+    .textContent();
+  await second.locator(".sim-monitor-table tbody tr td button").first().click();
+  await expect(page.locator(".sim-symbol-details")).toContainText(
+    symbol!.trim(),
+  );
+
+  // The layout is stored with the rest of the workspace, not in the browser.
+  const saved = page.waitForResponse(
+    (r) => r.url().endsWith("/preferences") && r.request().method() === "PUT",
+  );
+  await saved;
+  await page.reload();
+  await expect(page.getByRole("region", { name: /^Monitor 2:/ })).toBeVisible();
+  await expect(page.getByRole("region", { name: /^Monitor 3:/ })).toBeVisible();
+  await expect(page.getByLabel("Tool for monitor 2")).toHaveValue("quotes");
+  await expect(page.getByLabel("Tool for monitor 3")).toHaveValue("screener");
+
+  // Advancing the clock regenerates every open tool.
+  const refreshed = page.waitForResponse((r) => r.url().includes("/monitor?"));
+  await advance(page);
+  expect((await refreshed).status()).toBe(200);
+  expect(errors).toEqual([]);
+});

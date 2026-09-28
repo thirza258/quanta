@@ -1,5 +1,6 @@
 import DeskPanel from "@/features/simulator/components/DeskPanel";
 import DrawingsPanel from "@/features/simulator/components/DrawingsPanel";
+import MonitorPane from "@/features/simulator/components/MonitorPane";
 import NewsPanel from "@/features/simulator/components/NewsPanel";
 import OrderTicket from "@/features/simulator/components/OrderTicket";
 import PortfolioPanel from "@/features/simulator/components/PortfolioPanel";
@@ -11,6 +12,7 @@ import {
   CircleHelp,
   Crosshair,
   Minus,
+  Newspaper,
   Pause,
   Play,
   Plus,
@@ -85,12 +87,17 @@ export default function TerminalWorkspace({
     | "setJournal"
     | "news"
     | "overlays"
+    | "markers"
     | "desk"
     | "deskError"
     | "calendar"
     | "analytics"
     | "fundamentals"
     | "fundamentalsError"
+    | "monitor"
+    | "monitorError"
+    | "screen"
+    | "setScreen"
     | "jump"
   >;
 }) {
@@ -141,14 +148,24 @@ export default function TerminalWorkspace({
     setJournal,
     news,
     overlays,
+    markers,
     desk,
     deskError,
     calendar,
     analytics,
     fundamentals,
     fundamentalsError,
+    monitor,
+    monitorError,
+    screen,
+    setScreen,
     jump,
   } = terminal;
+  // How many windows the chart region is split into. The chart is always the
+  // first; the rest are tools, each chosen independently and remembered with the
+  // rest of the layout.
+  const monitors = prefs.monitors ?? 1;
+  const panes = (prefs.panes ?? []).slice(0, monitors - 1);
   // A minute market steps by clock time; a daily replay steps by sessions.
   const jumps: [string, number, string][] =
     run.config.base_interval === "1D"
@@ -237,47 +254,71 @@ export default function TerminalWorkspace({
           </div>
         </nav>
         <div className="sim-chart-region">
-          <SimChart
-            bars={bars}
-            symbol={prefs.symbol}
-            interval={prefs.interval}
-            chartType={prefs.chartType}
-            indicators={prefs.indicators}
-            overlays={overlays}
-            drawings={drawings}
-            onDrawings={changeDrawings}
-            tool={tool}
-            setTool={setTool}
-            selected={selectedDrawing}
-            onSelect={(id) => {
-              setSelectedDrawing(id);
-              if (id) {
-                setSideTab("Drawings");
-                setPrefs({ rightOpen: true });
-              }
-            }}
-            run={run}
-            dark={dark}
-            onTrade={tradeAt}
-            onAmend={(id, field, value) => {
-              const order = run.orders.find((o) => o.id === id);
-              if (order && !blocked) {
-                setPlaying(false);
-                setAmendment({
-                  order,
-                  limit:
-                    field === "limit_price"
-                      ? value.toFixed(2)
-                      : (order.limit_price ?? ""),
-                  stop:
-                    field === "stop_price"
-                      ? value.toFixed(2)
-                      : (order.stop_price ?? ""),
-                });
-              }
-            }}
-            action={chartAction}
-          />
+          <div className="sim-monitors" data-monitors={monitors}>
+            <div className="sim-monitor-chart">
+              <SimChart
+                bars={bars}
+                symbol={prefs.symbol}
+                interval={prefs.interval}
+                chartType={prefs.chartType}
+                indicators={prefs.indicators}
+                overlays={overlays}
+                news={markers}
+                showNews={prefs.newsMarkers !== false}
+                drawings={drawings}
+                onDrawings={changeDrawings}
+                tool={tool}
+                setTool={setTool}
+                selected={selectedDrawing}
+                onSelect={(id) => {
+                  setSelectedDrawing(id);
+                  if (id) {
+                    setSideTab("Drawings");
+                    setPrefs({ rightOpen: true });
+                  }
+                }}
+                run={run}
+                dark={dark}
+                onTrade={tradeAt}
+                onAmend={(id, field, value) => {
+                  const order = run.orders.find((o) => o.id === id);
+                  if (order && !blocked) {
+                    setPlaying(false);
+                    setAmendment({
+                      order,
+                      limit:
+                        field === "limit_price"
+                          ? value.toFixed(2)
+                          : (order.limit_price ?? ""),
+                      stop:
+                        field === "stop_price"
+                          ? value.toFixed(2)
+                          : (order.stop_price ?? ""),
+                    });
+                  }
+                }}
+                action={chartAction}
+              />
+            </div>
+            {panes.map((pane, slot) => (
+              <MonitorPane
+                key={slot}
+                slot={slot}
+                tool={pane}
+                view={monitor}
+                error={monitorError}
+                news={news}
+                screen={screen}
+                onScreen={setScreen}
+                onTool={(index, tool) => {
+                  const next = [...(prefs.panes ?? [])];
+                  next[index] = tool;
+                  setPrefs({ panes: next });
+                }}
+                onSymbol={chooseSymbol}
+              />
+            ))}
+          </div>
           <div className="sim-replay-bar">
             <button
               className="sim-play-button"
@@ -314,6 +355,44 @@ export default function TerminalWorkspace({
                   onClick={() => void jump(steps, description)}
                 >
                   {label}
+                </button>
+              ))}
+            </span>
+            <button
+              className={`sim-icon ${prefs.newsMarkers === false ? "" : "active"}`}
+              aria-pressed={prefs.newsMarkers !== false}
+              aria-label="Mark scored headlines on the chart"
+              title={
+                prefs.newsMarkers === false
+                  ? "Show scored headlines on the chart"
+                  : "Hide scored headlines from the chart"
+              }
+              onClick={() =>
+                setPrefs({ newsMarkers: prefs.newsMarkers === false })
+              }
+            >
+              <Newspaper size={16} />
+            </button>
+            <span
+              className="sim-monitor-modes"
+              role="group"
+              aria-label="Monitor windows"
+            >
+              {([1, 2, 3] as const).map((count) => (
+                <button
+                  key={count}
+                  className={monitors === count ? "active" : ""}
+                  aria-pressed={monitors === count}
+                  title={
+                    count === 1
+                      ? "One window: the chart alone"
+                      : `${count} windows: the chart and ${count - 1} tool${
+                          count > 2 ? "s" : ""
+                        }`
+                  }
+                  onClick={() => setPrefs({ monitors: count })}
+                >
+                  {count}
                 </button>
               ))}
             </span>

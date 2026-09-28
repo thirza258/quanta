@@ -98,6 +98,19 @@ def desk_view(run_id: str, account: str = Depends(owner), db: Session = Depends(
     return service.desk_view(run_id, account, db)
 
 
+@router.get("/runs/{run_id}/monitor")
+def monitor(
+    run_id: str,
+    panes: str = Query(max_length=120),
+    symbol: str = Query(max_length=20),
+    screen: str = Query(default="all", max_length=20),
+    limit: int = Query(default=40, ge=1, le=200),
+    account: str = Depends(owner),
+    db: Session = Depends(get_session),
+):
+    return service.monitor(run_id, panes, symbol, screen, limit, account, db)
+
+
 @router.get("/runs/{run_id}/analytics")
 def analytics(
     run_id: str,

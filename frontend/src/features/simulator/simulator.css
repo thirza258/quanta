@@ -2079,3 +2079,260 @@
 .sim-mission-progress {
   color: var(--sim-accent);
 }
+
+/* Monitor windows -------------------------------------------------------- */
+/* The chart region splits into one, two or three windows. The chart is always
+   the first and keeps its full width, so a second window costs height rather
+   than the readability of the price axis. */
+.sim-monitors {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--sim-border);
+  grid-template-rows: 1fr;
+}
+.sim-monitors[data-monitors="2"] {
+  grid-template-rows: 1.6fr 1fr;
+}
+.sim-monitors[data-monitors="3"] {
+  grid-template-rows: 1.4fr 1fr;
+  grid-template-columns: 1fr 1fr;
+}
+.sim-monitors[data-monitors="3"] > .sim-monitor-chart {
+  grid-column: 1 / 3;
+}
+.sim-monitor-chart {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--sim-panel);
+}
+.sim-monitor-chart > * {
+  flex: 1;
+  min-height: 0;
+}
+.sim-monitor-pane {
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--sim-panel);
+  overflow: hidden;
+}
+.sim-monitor-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--sim-border);
+  flex-shrink: 0;
+}
+.sim-monitor-head label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sim-monitor-index {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--sim-bg);
+  background: var(--sim-muted);
+  border-radius: 2px;
+  padding: 1px 5px;
+}
+.sim-monitor-head select {
+  background: var(--sim-bg);
+  color: var(--sim-text);
+  border: 1px solid var(--sim-border);
+  font-size: 10px;
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+.sim-monitor-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 8px 8px;
+}
+.sim-monitor-summary {
+  font-size: 10px;
+  color: var(--sim-muted);
+  margin: 6px 0;
+}
+.sim-monitor-note {
+  font-size: 9px;
+  color: var(--sim-muted);
+  margin: 8px 0 0;
+  line-height: 1.45;
+}
+.sim-monitor-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 6px 0;
+}
+.sim-monitor-controls label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--sim-muted);
+}
+.sim-monitor-controls select {
+  background: var(--sim-bg);
+  color: var(--sim-text);
+  border: 1px solid var(--sim-border);
+  font-size: 10px;
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+.sim-monitor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.sim-monitor-table th {
+  text-align: right;
+  font-weight: 500;
+  color: var(--sim-muted);
+  padding: 3px 4px;
+  position: sticky;
+  top: 0;
+  background: var(--sim-panel);
+  border-bottom: 1px solid var(--sim-border);
+}
+.sim-monitor-table th:first-child,
+.sim-monitor-table td:first-child {
+  text-align: left;
+}
+.sim-monitor-table td {
+  text-align: right;
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+.sim-monitor-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--sim-border) 22%, transparent);
+}
+.sim-monitor-table td button {
+  background: none;
+  border: none;
+  color: var(--sim-accent);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.sim-book {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.sim-book-bar {
+  display: inline-block;
+  height: 8px;
+  margin-right: 5px;
+  vertical-align: middle;
+  background: color-mix(in srgb, var(--sim-accent) 45%, transparent);
+  border-radius: 1px;
+  max-width: 60%;
+}
+.sim-heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sim-heat-sector h5 {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 600;
+  margin: 0 0 3px;
+  color: var(--sim-muted);
+}
+.sim-heat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+  gap: 2px;
+}
+.sim-heat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  border: none;
+  border-radius: 2px;
+  padding: 4px 5px;
+  cursor: pointer;
+  color: var(--sim-text);
+  font-size: 9px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.sim-heat-cell strong {
+  font-size: 10px;
+}
+.sim-monitor-headlines {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.sim-monitor-headlines li {
+  display: grid;
+  grid-template-columns: 42px 34px 1fr;
+  gap: 6px;
+  align-items: baseline;
+}
+.sim-monitor-time {
+  color: var(--sim-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* A pressed icon in the replay bar, for toggles that stay on. */
+.sim-icon.active {
+  color: var(--sim-accent);
+  background: color-mix(in srgb, var(--sim-accent) 16%, transparent);
+}
+.sim-monitor-modes {
+  display: inline-flex;
+  gap: 1px;
+  border: 1px solid var(--sim-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.sim-monitor-modes button {
+  background: var(--sim-bg);
+  color: var(--sim-muted);
+  border: none;
+  font-size: 10px;
+  padding: 3px 7px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.sim-monitor-modes button.active {
+  background: var(--sim-accent);
+  color: var(--sim-bg);
+}
+@media (max-width: 900px) {
+  /* One window on a phone. Splitting a screen this short leaves every pane
+     too small to read, and the chart is what a small screen is for. */
+  .sim-monitors,
+  .sim-monitors[data-monitors="2"],
+  .sim-monitors[data-monitors="3"] {
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr;
+  }
+  .sim-monitor-pane {
+    display: none;
+  }
+  .sim-monitor-modes {
+    display: none;
+  }
+}

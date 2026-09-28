@@ -10,6 +10,7 @@ the identical feed, and no item is ever released ahead of the run's cursor.
 """
 
 import hashlib
+import re
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -155,7 +156,7 @@ COMPANY_TEMPLATES = {
         ],
         [
             "{n} sued over {s} contracts; {amount} claimed",
-            "{n} takes a {amount} charge to resolve {s} claims",
+            "{n} takes a charge of {amount} to resolve {s} claims",
         ],
     ),
     "supply": (
@@ -170,13 +171,13 @@ COMPANY_TEMPLATES = {
     ),
     "capital": (
         [
-            "{n} announces a {amount} share repurchase",
+            "{n} announces a share repurchase of {amount}",
             "{n} raises its dividend by {pct}%",
             "{n} refinances debt at a lower coupon",
         ],
         [
             "{n} suspends its dividend to fund {s} investment",
-            "{n} prices a {amount} equity offering below market",
+            "{n} prices an equity offering of {amount} below market",
             "{n} draws on its credit facility to bridge a working-capital gap",
         ],
     ),
@@ -382,28 +383,45 @@ def _money(value):
     return f"${value / 1000:.2f}bn" if value >= 1000 else f"${value}m"
 
 
+# A template writes "a {s}"; the segment that lands in the slot decides whether
+# that reads as "a" or "an". Fixing it after substitution keeps the templates
+# readable instead of doubling each one.
+_ARTICLE = re.compile(r"\b([Aa])n? (?=[aeiouAEIOU])|\b([Aa])n (?=[^aeiouAEIOU\s$0-9])")
+
+
+def _articles(text: str) -> str:
+    def swap(match):
+        if match.group(1):
+            return f"{match.group(1)}n "
+        return f"{match.group(2)} "
+
+    return _ARTICLE.sub(swap, text)
+
+
 def _fill(rng, template, company=None, sector=None, body=None, pct=(0.2, 14.0)):
     segments = SEGMENTS.get(sector or (company.sector if company else ""), ["core"])
     quarter = int(rng.integers(4))
-    return template.format(
-        n=company.name if company else "",
-        p=_possessive(company.name) if company else "",
-        t=company.symbol if company else "",
-        s=_pick(rng, segments),
-        sector=sector or (company.sector if company else ""),
-        q=QUARTERS[quarter],
-        qa=QUARTERS_ADJ[quarter],
-        r=_pick(rng, REGIONS),
-        b=_pick(rng, BROKERS),
-        a=_pick(rng, ANALYSTS),
-        body=body or "",
-        index=INDEX,
-        pct=round(float(rng.uniform(*pct)), 1),
-        amount=_money(int(rng.integers(40, 4800))),
-        jobs=int(rng.integers(20, 420)),
-        bps=int(_pick(rng, [25, 50])),
-        target=f"${company.price * rng.uniform(0.7, 1.4):,.2f}" if company else "",
-        dir="",
+    return _articles(
+        template.format(
+            n=company.name if company else "",
+            p=_possessive(company.name) if company else "",
+            t=company.symbol if company else "",
+            s=_pick(rng, segments),
+            sector=sector or (company.sector if company else ""),
+            q=QUARTERS[quarter],
+            qa=QUARTERS_ADJ[quarter],
+            r=_pick(rng, REGIONS),
+            b=_pick(rng, BROKERS),
+            a=_pick(rng, ANALYSTS),
+            body=body or "",
+            index=INDEX,
+            pct=round(float(rng.uniform(*pct)), 1),
+            amount=_money(int(rng.integers(40, 4800))),
+            jobs=int(rng.integers(20, 420)),
+            bps=int(_pick(rng, [25, 50])),
+            target=f"${company.price * rng.uniform(0.7, 1.4):,.2f}" if company else "",
+            dir="",
+        )
     )
 
 
@@ -701,6 +719,28 @@ def released(room: Newsroom, cursor: int, symbol=None, sector=None, limit=60) ->
         items.append(event)
         if len(items) >= limit:
             break
+    return items
+
+
+def news_window(room: Newsroom, first: int, cursor: int, symbol=None, sector=None) -> list[dict]:
+    """Released items inside [first, cursor], oldest first.
+
+    The same relevance filter `released` applies, bounded at both ends so a chart
+    can mark only the events inside the window it is actually drawing.
+    """
+    items = []
+    for event in room.events:
+        if event["index"] < first:
+            continue
+        if event["index"] > cursor:
+            break
+        if symbol and not (
+            event["symbol"] == symbol
+            or (event["scope"] == "sector" and event["sector"] == sector)
+            or event["scope"] in ("macro", "market")
+        ):
+            continue
+        items.append(event)
     return items
 
 

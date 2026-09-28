@@ -105,6 +105,142 @@ export type Preferences = {
   walkthrough?: boolean;
   newsScope?: "all" | "symbol";
   statement?: "income" | "balance" | "cash" | "ratios" | "peers";
+  /** How many windows the chart region is split into: 1, 2 or 3. */
+  monitors?: 1 | 2 | 3;
+  /** The tool shown in the second and third windows. */
+  panes?: MonitorTool[];
+  /** Whether scored headlines are marked on the price chart. */
+  newsMarkers?: boolean;
+};
+
+export type NewsMarker = {
+  time: number;
+  /** Net basis points of modeled impact on this bar, summed across its items. */
+  points: number;
+  count: number;
+  headline: string;
+  items: {
+    headline: string;
+    points: number;
+    scope: string;
+    impact: string;
+  }[];
+};
+
+export type MonitorTool =
+  "tape" | "book" | "heatmap" | "screener" | "sessions" | "quotes" | "news";
+
+export type TapePrint = {
+  time: number;
+  price: number;
+  size: number;
+  side: "buy" | "sell" | "—";
+  index: number;
+};
+
+export type MonitorTools = {
+  tape?: {
+    symbol: string;
+    name: string;
+    sector: string | null;
+    prints: TapePrint[];
+    volume: number;
+    buy_share: number | null;
+    notice: string;
+  };
+  book?: {
+    symbol: string;
+    last: number;
+    bid: number;
+    ask: number;
+    spread: number;
+    bids: { price: number; size: number; cumulative: number }[];
+    asks: { price: number; size: number; cumulative: number }[];
+    imbalance: number | null;
+    notice: string;
+  };
+  heatmap?: {
+    sectors: {
+      sector: string;
+      change_pct: number;
+      notional: number;
+      companies_count: number;
+      companies: {
+        symbol: string;
+        name: string;
+        close: number;
+        change_pct: number;
+        relative_volume: number | null;
+        notional: number;
+        sentiment: number | null;
+      }[];
+    }[];
+    companies: number;
+    best: number;
+    worst: number;
+    weighting: string;
+  };
+  screener?: {
+    screen: string;
+    label: string;
+    description: string;
+    screens: { id: string; label: string; description: string }[];
+    matches: number;
+    rows: {
+      symbol: string;
+      name: string;
+      sector: string | null;
+      close: number;
+      change_pct: number;
+      relative_volume: number | null;
+      volatility: number | null;
+      sentiment: number | null;
+      rsi: number | null;
+      above_fast: boolean;
+      above_slow: boolean;
+      range_position: number | null;
+      multiple: number | null;
+      window_high: number;
+      window_low: number;
+    }[];
+    window_bars: number;
+    session_bars: number;
+  };
+  sessions?: {
+    symbol: string;
+    sessions: {
+      time: number;
+      open: number;
+      high: number;
+      low: number;
+      close: number;
+      volume: number;
+      change_pct: number;
+    }[];
+    volatility: number | null;
+    prior_close: number;
+  };
+  quotes?: {
+    rows: {
+      symbol: string;
+      name: string;
+      sector: string | null;
+      close: number;
+      change: number;
+      change_pct: number;
+      volume: number;
+      relative_volume: number | null;
+      sentiment: number | null;
+    }[];
+  };
+};
+
+export type MonitorView = {
+  tools: MonitorTools;
+  symbol: string;
+  cursor: number;
+  version: number;
+  disclosure: string;
 };
 
 export type SimRun = {

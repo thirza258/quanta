@@ -1021,6 +1021,11 @@ def test_no_endpoint_reveals_a_price_beyond_the_cursor(client):
         "fundamentals": {"symbol": SYMBOL},
         "analytics": {"symbol": SYMBOL},
         "calendar": {},
+        "monitor": {
+            "panes": "tape,book,heatmap,screener,sessions,quotes",
+            "symbol": SYMBOL,
+            "screen": "cheap",
+        },
     }
     before = {
         name: client.get(f"/api/v1/simulator/runs/{run['id']}/{name}", params=params).json()
@@ -1033,3 +1038,103 @@ def test_no_endpoint_reveals_a_price_beyond_the_cursor(client):
         for name, params in routes.items()
     }
     assert before == after
+
+
+def test_monitor_tools_are_generated_and_consistent_with_the_bars(client):
+    """The tape, the book, the heat and the screens, all served in one request."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=77)
+    advanced = mutate(client, run, "advance", steps=900).json()
+    base = f"/api/v1/simulator/runs/{run['id']}"
+    view = client.get(
+        base + "/monitor",
+        params={
+            "panes": "tape,book,heatmap,screener,sessions",
+            "symbol": SYMBOL,
+            "screen": "volume",
+            "limit": 40,
+        },
+    ).json()
+    tape, book = view["tools"]["tape"], view["tools"]["book"]
+
+    # A print must not contradict the bar it came out of.
+    bars = client.get(
+        base + "/market", params={"symbol": SYMBOL, "interval": "1m", "limit": 60}
+    ).json()["bars"]
+    window = {bar["time"]: bar for bar in bars}
+    assert len(tape["prints"]) == 40
+    checked = 0
+    for print_ in tape["prints"]:
+        bar = window.get(print_["time"] - print_["time"] % 60)
+        if not bar:
+            continue
+        checked += 1
+        assert bar["low"] <= print_["price"] <= bar["high"]
+        assert print_["size"] >= 1
+    assert checked, "prints must line up with the bars they were drawn from"
+    assert 0 <= tape["buy_share"] <= 1
+    assert "Illustrative" in tape["notice"]
+
+    # The book straddles the last trade at the run's own configured spread.
+    assert book["bid"] < book["last"] < book["ask"]
+    assert book["bids"][0]["price"] > book["bids"][-1]["price"]
+    assert book["asks"][0]["price"] < book["asks"][-1]["price"]
+    assert book["bids"][-1]["cumulative"] > book["bids"][0]["cumulative"]
+
+    heat = view["tools"]["heatmap"]
+    assert sum(group["companies_count"] for group in heat["sectors"]) == 32
+    assert heat["best"] >= heat["worst"]
+    assert heat["sectors"][0]["change_pct"] >= heat["sectors"][-1]["change_pct"]
+
+    screen = view["tools"]["screener"]
+    assert screen["screen"] == "volume" and screen["label"] == "Unusual volume"
+    assert [row["id"] for row in screen["screens"]].count("oversold") == 1
+    assert screen["rows"] == sorted(
+        screen["rows"], key=lambda r: -r["relative_volume"]
+    )
+    assert all(row["window_low"] <= row["close"] <= row["window_high"] for row in screen["rows"])
+
+    closes = view["tools"]["sessions"]["sessions"]
+    assert closes and all(row["low"] <= row["close"] <= row["high"] for row in closes)
+    assert closes[-1]["time"] <= advanced["cursor"] * 60 + bars[-1]["time"]
+
+    # Regenerating gives byte-identical tools: nothing here rolls a fresh die.
+    again = client.get(
+        base + "/monitor",
+        params={"panes": "tape,book", "symbol": SYMBOL, "limit": 40},
+    ).json()
+    assert again["tools"]["tape"] == tape and again["tools"]["book"] == book
+    assert client.get(base + "/monitor", params={"panes": "nope", "symbol": SYMBOL}).status_code == 422
+
+
+def test_scored_headlines_are_marked_on_the_bars_they_moved(client):
+    """The points model is what moves the market, so it belongs on the chart."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    mutate(client, run, "advance", steps=900)
+    seen = 0
+    for interval in ("1m", "15m", "1h", "1D"):
+        data = client.get(
+            f"/api/v1/simulator/runs/{run['id']}/market",
+            params={"symbol": SYMBOL, "interval": interval, "limit": 300},
+        ).json()
+        times = {bar["time"] for bar in data["bars"]}
+        markers = data["markers"]
+        seen += len(markers)
+        # A marker that does not sit on a drawn bar cannot be rendered.
+        assert all(marker["time"] in times for marker in markers)
+        assert markers == sorted(markers, key=lambda marker: marker["time"])
+        for marker in markers:
+            assert marker["count"] >= 1 and marker["headline"]
+            assert len(marker["items"]) <= 4
+            # Several items inside one coarse bar net off; the label is the
+            # loudest of them, not whichever happened to arrive last.
+            assert marker["items"][0]["headline"] == marker["headline"]
+            assert abs(marker["items"][0]["points"]) >= abs(marker["items"][-1]["points"])
+    assert seen, "a 900-bar run has released scored headlines"
+    # Nothing ahead of the cursor is ever marked.
+    early = client.get(
+        f"/api/v1/simulator/runs/{run['id']}/market",
+        params={"symbol": SYMBOL, "interval": "1m", "limit": 300, "cursor": 600},
+    ).json()
+    assert all(marker["time"] <= early["bars"][-1]["time"] for marker in early["markers"])

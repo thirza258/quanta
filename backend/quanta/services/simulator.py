@@ -1,3 +1,4 @@
+import bisect
 import copy
 import hashlib
 import json
@@ -30,6 +31,7 @@ from quanta.domain.simulator_models import (
 )
 from quanta.services import data_store
 from quanta.services import simulator_desk as desk
+from quanta.services import simulator_tools as tools
 from quanta.services.simulator_fundamentals import quarter_label, structure, valuation
 from quanta.services.simulator_market import (
     SESSION_BARS,
@@ -40,7 +42,7 @@ from quanta.services.simulator_market import (
 from quanta.services.simulator_missions import MISSIONS
 from quanta.services.simulator_missions import listing as mission_listing
 from quanta.services.simulator_missions import progress as mission_progress
-from quanta.services.simulator_news import released, report_slot, sentiment
+from quanta.services.simulator_news import news_window, released, report_slot, sentiment
 from quanta.services.simulator_queries import latest, run_for, snapshot
 from quanta.services.simulator_universe import (
     BY_SYMBOL,
@@ -321,6 +323,10 @@ def market(
         "symbol": symbol,
         "interval": interval,
         "indicators": computed,
+        # The scored headlines that moved this window, bucketed onto the bars the
+        # chart is drawing. The points model is what makes the market move; it
+        # belongs where people look, not only in a panel beside it.
+        "markers": _markers(state, data[symbol], rows, symbol, cursor, per_bucket),
         # The oldest observation in this window, so a client can tell whether more
         # history exists behind it.
         "from_bar": max(0, cursor + 1 - len(rows) * per_bucket),
@@ -418,6 +424,50 @@ def journal(run_id: str, order_id: str, payload: Journal, account: str, db: Sess
                 fill.update(note=payload.note, lesson=payload.lesson)
 
     return mutate(db, run_id, account, payload, "journal:" + order_id, operation)
+
+
+def _markers(state, series, rows, symbol, cursor, per_bucket):
+    """Group released headlines onto the returned bars, newest bucket last.
+
+    Several items can land inside one coarse bar, so they are summed: the net
+    points are what the bar actually reflects, and the strongest single headline
+    is carried for the label.
+    """
+    room = _room(state)
+    if not room or not rows:
+        return []
+    first = max(0, cursor + 1 - len(rows) * per_bucket)
+    times = [bar["time"] for bar in rows]
+    sector = BY_SYMBOL[symbol].sector if symbol in BY_SYMBOL else None
+    buckets = {}
+    for event in news_window(room, first, cursor, symbol, sector):
+        # The bar a headline belongs to is the last one that opened before it.
+        at = (
+            int(series.time[event["index"]])
+            if hasattr(series, "time")
+            else series[event["index"]]["time"]
+        )
+        slot = bisect.bisect_right(times, at) - 1
+        if slot < 0:
+            continue
+        bucket = buckets.setdefault(
+            times[slot], {"time": times[slot], "points": 0, "count": 0, "items": []}
+        )
+        bucket["points"] += event["points"]
+        bucket["count"] += 1
+        bucket["items"].append(
+            {
+                "headline": event["headline"],
+                "points": event["points"],
+                "scope": event["scope"],
+                "impact": event["impact"],
+            }
+        )
+    for bucket in buckets.values():
+        bucket["items"].sort(key=lambda item: -abs(item["points"]))
+        bucket["headline"] = bucket["items"][0]["headline"]
+        bucket["items"] = bucket["items"][:4]
+    return sorted(buckets.values(), key=lambda bucket: bucket["time"])
 
 
 def news(run_id: str, symbol: str | None, limit: int, account: str, db: Session):
@@ -539,6 +589,54 @@ def desk_view(run_id: str, account: str, db: Session):
     return {
         "movers": desk.movers(state, data, _room(state)),
         "performance": desk.performance(state, data),
+        "cursor": state["cursor"],
+        "version": run.version,
+        "disclosure": disclosure(state["config"]),
+    }
+
+
+# One request serves however many panes a monitor layout is showing, so adding a
+# window to the terminal does not add a round trip to every advance of the clock.
+MONITORS = {"tape", "book", "heatmap", "screener", "sessions", "quotes"}
+
+
+def monitor(
+    run_id: str,
+    panes: str,
+    symbol: str,
+    screen: str,
+    limit: int,
+    account: str,
+    db: Session,
+):
+    """Whatever tools the open monitor panes are asking for, in one response."""
+    run = run_for(db, run_id, account)
+    state = run.state
+    data = markets(state, db)
+    if symbol not in data:
+        raise HTTPException(404, "This stock is unavailable in this run.")
+    requested = [name for name in panes.split(",") if name]
+    unknown = [name for name in requested if name not in MONITORS]
+    if unknown:
+        raise HTTPException(422, f"Unknown monitor tool: {unknown[0]}.")
+    room = _room(state)
+    built = {}
+    for name in dict.fromkeys(requested):
+        if name == "tape":
+            built[name] = tools.tape(state, data, symbol, limit)
+        elif name == "book":
+            built[name] = tools.book(state, data, symbol)
+        elif name == "heatmap":
+            built[name] = tools.heatmap(state, data, room)
+        elif name == "screener":
+            built[name] = tools.screener(state, data, room, screen, limit)
+        elif name == "sessions":
+            built[name] = tools.sessions_summary(state, data, symbol)
+        elif name == "quotes":
+            built[name] = {"rows": desk.quotes_table(state, data, room)}
+    return {
+        "tools": built,
+        "symbol": symbol,
         "cursor": state["cursor"],
         "version": run.version,
         "disclosure": disclosure(state["config"]),

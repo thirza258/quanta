@@ -15,6 +15,8 @@ import type {
   MarketIndicators,
   MissionCatalog,
   MissionProgress,
+  MonitorView,
+  NewsMarker,
   NewsFeed,
   RunCalendar,
   Preferences,
@@ -55,6 +57,7 @@ export function useTradingTerminal() {
     [marketError, setMarketError] = useState(""),
     [marketRetry, setMarketRetry] = useState(0);
   const [overlays, setOverlays] = useState<MarketIndicators>({});
+  const [markers, setMarkers] = useState<NewsMarker[]>([]);
   const [mission, setMission] = useState<MissionProgress | null>(null),
     [missionCatalog, setMissionCatalog] = useState<MissionCatalog | null>(null);
   const [desk, setDesk] = useState<DeskView | null>(null),
@@ -64,6 +67,9 @@ export function useTradingTerminal() {
     [fundamentals, setFundamentals] = useState<Fundamentals | null>(null),
     [fundamentalsError, setFundamentalsError] = useState(""),
     [deskError, setDeskError] = useState("");
+  const [monitor, setMonitor] = useState<MonitorView | null>(null),
+    [monitorError, setMonitorError] = useState(""),
+    [screen, setScreen] = useState("all");
   const suggestedWatchlist = useRef<string[]>([]);
   const [connectionError, setConnectionError] = useState("");
   const loadSequence = useRef(0);
@@ -101,6 +107,13 @@ export function useTradingTerminal() {
   const wantsStatements = tab === "Company" || exportOpen;
   const wantsDesk = sideTab === "Desk" || tab === "Performance" || exportOpen;
   const wantsCalendar = tab === "Calendar" || exportOpen;
+  // A monitor window declares what it needs; the hook fetches the union of those
+  // in one request, so a second and third window cost no extra round trips.
+  const openPanes = (prefs.panes ?? [])
+    .slice(0, Math.max(0, (prefs.monitors ?? 1) - 1))
+    // News already streams into the terminal on its own feed.
+    .filter((pane) => pane !== "news");
+  const paneKey = [...new Set(openPanes)].sort().join(",");
   const [tool, setTool] = useState<DrawingKind | "cursor">("cursor"),
     [selectedDrawing, setSelectedDrawing] = useState<string | null>(null);
   const [chartAction, setChartAction] = useState<{
@@ -286,13 +299,19 @@ export function useTradingTerminal() {
       .join(",");
     // A generated run has no end, so the chart asks for a window of the most
     // recent bars rather than every observation behind the cursor.
-    simApi<{ bars: Candle[]; indicators: MarketIndicators; from_bar: number }>(
+    simApi<{
+      bars: Candle[];
+      indicators: MarketIndicators;
+      markers: NewsMarker[];
+      from_bar: number;
+    }>(
       `/runs/${run.id}/market?symbol=${encodeURIComponent(prefs.symbol)}&interval=${prefs.interval}&cursor=${run.cursor}&limit=${CHART_BARS}&indicators=${encodeURIComponent(specs)}`,
     )
       .then((data) => {
         if (active) {
           setBars(data.bars);
           setOverlays(data.indicators ?? {});
+          setMarkers(data.markers ?? []);
         }
       })
       .catch((e) => {
@@ -344,6 +363,36 @@ export function useTradingTerminal() {
       clearTimeout(timer);
     };
   }, [run?.id, run?.cursor, prefs.symbol, wantsDesk]);
+  useEffect(() => {
+    if (!run || !paneKey) {
+      setMonitor(null);
+      return;
+    }
+    let active = true;
+    const timer = setTimeout(() => {
+      void simApi<MonitorView>(
+        `/runs/${run.id}/monitor?panes=${paneKey}&symbol=${encodeURIComponent(
+          prefs.symbol,
+        )}&screen=${encodeURIComponent(screen)}`,
+      )
+        .then((view) => {
+          if (active) {
+            setMonitor(view);
+            setMonitorError("");
+          }
+        })
+        .catch((e) => {
+          if (active) {
+            setMonitor(null);
+            setMonitorError((e as Error).message);
+          }
+        });
+    }, 280);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [run?.id, run?.cursor, prefs.symbol, paneKey, screen]);
   useEffect(() => {
     if (!run?.config.mission) {
       setMission(null);
@@ -908,6 +957,7 @@ export function useTradingTerminal() {
     connectionError,
     bars,
     overlays,
+    markers,
     desk,
     deskError,
     calendar,
@@ -917,6 +967,10 @@ export function useTradingTerminal() {
     news,
     fundamentals,
     fundamentalsError,
+    monitor,
+    monitorError,
+    screen,
+    setScreen,
     jump,
     runCommand,
     commandFunctions: FUNCTIONS,
