@@ -33,11 +33,14 @@ export default function OrderTicket({
   const canBracket = ticket.side === "buy" && ticket.kind !== "trailing_stop";
   const held = position?.quantity ?? 0;
   const after = held + (ticket.side === "buy" ? quantity : -quantity);
+  const margin = run.account === "margin";
+  // What a purchase can draw on. Buying back borrowed stock returns something
+  // already owed, so it is not checked against it at all.
+  const capacity = margin ? run.buying_power : run.available;
+  const covering = margin && ticket.side === "buy" && quantity <= -held;
   // On a margin account a sale beyond what is held borrows the difference.
   const borrowing =
-    run.account === "margin" &&
-    ticket.side === "sell" &&
-    quantity > Math.max(0, held);
+    margin && ticket.side === "sell" && quantity > Math.max(0, held);
   const bracket = canBracket && ticket.bracket;
   const trail = Number(ticket.trail),
     target = Number(ticket.takeProfit),
@@ -72,11 +75,15 @@ export default function OrderTicket({
                           ticket.stopTrail &&
                           !(lossTrail > 0 && lossTrail <= 50)
                         ? "Enter a trail between 0 and 50 percent."
-                        : ticket.side === "buy" && cost > Number(run.available)
-                          ? "Insufficient available cash, including working orders and fees."
+                        : ticket.side === "buy" &&
+                            cost > Number(capacity) &&
+                            !covering
+                          ? margin
+                            ? "Insufficient buying power, including working orders and fees."
+                            : "Insufficient available cash, including working orders and fees."
                           : ticket.side === "sell" &&
                               quantity > (position?.available ?? 0) &&
-                              run.account !== "margin"
+                              !margin
                             ? "Insufficient available shares. This account is long-only."
                             : "";
   const risk =
@@ -289,16 +296,14 @@ export default function OrderTicket({
           <div>
             <span>
               {ticket.side === "buy"
-                ? run.account === "margin"
+                ? margin
                   ? "Buying power"
                   : "Available cash"
                 : "Available shares"}
             </span>
             <strong>
               {ticket.side === "buy"
-                ? dollars(
-                    run.account === "margin" ? run.buying_power : run.available,
-                  )
+                ? dollars(capacity)
                 : (position?.available ?? 0)}
             </strong>
           </div>

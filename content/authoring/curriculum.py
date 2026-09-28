@@ -14,6 +14,7 @@ from learning_guidance import attach_learning_guidance
 from news_to_markets import build_news_to_markets
 from quantitative_analysis import build_quantitative_analysis
 from real_world_cases import attach_real_world_cases
+from research_depth import attach_research_depth
 from security_analysis import build_security_analysis
 from stock_bots import build_stock_bots
 from stock_ml_course import build_stock_ml
@@ -622,6 +623,8 @@ catalog.insert(
 )
 catalog.append(build_algorithm_evaluation())
 attach_learning_guidance(catalog)
+# Research sections run before references so their cited links reach each lesson's sources.
+attach_research_depth(catalog)
 attach_references(catalog)
 attach_real_world_cases(catalog)
 output = Path(__file__).resolve().parents[2] / "content/catalog/curriculum.json"

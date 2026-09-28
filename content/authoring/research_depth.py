@@ -34,8 +34,11 @@ def validate(lesson_id, body, sources):
         raise ValueError(f"Research body for {lesson_id} has {words} words; expected 150–450")
     if "](" in body or re.search(r"^#{1,2} ", body, re.M):
         raise ValueError(f"Research body for {lesson_id} must not contain links or top-level headings")
-    if body.count("$$") % 2:
-        raise ValueError(f"Unbalanced display equation in research body for {lesson_id}")
+    # Lesson pages keep one table and one numbered list at most; sources carry the links.
+    if re.search(r"^\s*(\||\d+[.)]\s)", body, re.M):
+        raise ValueError(f"Research body for {lesson_id} must not add tables or numbered lists")
+    if body.count("$$") not in (0, 2):
+        raise ValueError(f"Research body for {lesson_id} may add at most one display equation")
     if not 2 <= len(sources) <= 5:
         raise ValueError(f"Research note for {lesson_id} needs two to five sources")
     urls = set()

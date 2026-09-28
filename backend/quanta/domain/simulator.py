@@ -5,10 +5,6 @@ from zoneinfo import ZoneInfo
 
 from quanta.domain.errors import DomainError
 
-# Reg-T style: half of a new position has to be the account's own money. Kept
-# here rather than imported, because simulator_margin imports from this module.
-INITIAL_MARGIN = Decimal("0.5")
-
 OPEN = {"working", "partially_filled"}
 # A bracket's exits exist from the moment the entry is placed, but they cannot
 # trade until it fills — the shares they would sell do not exist yet. "held" is
@@ -62,27 +58,40 @@ def reservations(state, exclude=None):
     shares = {}
     groups = {}
     prices = {}
+    buys = {}
     for order in state["orders"]:
         if order["id"] in excluded or order["status"] not in OPEN:
             continue
         remaining = order["quantity"] - order["filled"]
         if order["side"] == "buy":
-            cash += dec(order["reserve_price"]) * remaining + dec(order["fee_remaining"])
+            # The commission is owed either way; the stock itself may not be.
+            cash += dec(order["fee_remaining"])
+            buys.setdefault(order["symbol"], []).append(
+                (dec(order["reserve_price"]), remaining)
+            )
         else:
             key = (order["symbol"], group_of(order))
             groups[key] = max(groups.get(key, 0), remaining)
             prices[order["symbol"]] = dec(order["reserve_price"])
-    margin = state["config"].get("account") == "margin"
+    for symbol, legs in buys.items():
+        # Buying back borrowed stock returns something the account already owes.
+        # It commits no new capital, so it reserves none: a short that has moved
+        # against the account must stay closable at the moment that matters most.
+        owed = max(0, -state["positions"].get(symbol, {}).get("quantity", 0))
+        for price, remaining in legs:
+            covering = min(remaining, owed)
+            owed -= covering
+            cash += price * (remaining - covering)
     for (symbol, _), remaining in groups.items():
         # Only the part of a sale covered by stock already held reserves stock.
-        # The rest would be borrowed, and what that reserves is margin: cash the
-        # account has to be able to put behind the borrow.
+        # The rest is borrowed, and a borrowed position consumes buying power at
+        # its full value, exactly as a purchase of the same size does.
         held = max(0, state["positions"].get(symbol, {}).get("quantity", 0))
         covered = min(remaining, max(0, held - shares.get(symbol, 0)))
         shares[symbol] = shares.get(symbol, 0) + covered
         borrowed = remaining - covered
-        if borrowed and margin:
-            cash += INITIAL_MARGIN * prices[symbol] * borrowed
+        if borrowed:
+            cash += prices[symbol] * borrowed
     return cash, shares
 
 
@@ -124,28 +133,41 @@ def validate_order(state, data, order, exclude=None):
         capacity = buying_power(state, marks(data, state["cursor"]))
     else:
         capacity = dec(state["cash"])
-    if (
-        order["side"] == "buy"
-        and reserve_price * remaining + dec(order["fee_remaining"]) > capacity - cash
-    ):
-        raise DomainError(
-            "Insufficient buying power, including fees and other working orders."
-            if margin
-            else "Insufficient available cash, including fees and other working orders."
+    held = state["positions"].get(order["symbol"], {}).get("quantity", 0)
+    if order["side"] == "buy":
+        queued = sum(
+            other["quantity"] - other["filled"]
+            for other in state["orders"]
+            if other["id"] != order["id"]
+            and other["side"] == "buy"
+            and other["symbol"] == order["symbol"]
+            and other["status"] in OPEN
         )
-    if order["side"] == "sell":
-        held = state["positions"].get(order["symbol"], {}).get("quantity", 0)
-        available = max(0, held) - shares.get(order["symbol"], 0)
-        borrowed = remaining - available
-        if borrowed <= 0:
-            return
-        if not margin:
-            raise DomainError("Insufficient available shares. This paper account is long-only.")
-        need = INITIAL_MARGIN * reserve_price * borrowed + dec(order["fee_remaining"])
-        if need > capacity - cash:
+        # Returning borrowed stock is not a purchase of anything the account does
+        # not already owe, so that part of the order needs no buying power.
+        covering = min(remaining, max(0, -held - queued))
+        opening = remaining - covering
+        if reserve_price * opening + dec(order["fee_remaining"]) > capacity - cash:
             raise DomainError(
-                "Insufficient margin to borrow this stock, including other working orders."
+                "Insufficient buying power, including fees and other working orders."
+                if margin
+                else "Insufficient available cash, including fees and other working orders."
             )
+        return
+    available = max(0, held) - shares.get(order["symbol"], 0)
+    borrowed = remaining - available
+    if borrowed <= 0:
+        return
+    if not margin:
+        raise DomainError("Insufficient available shares. This paper account is long-only.")
+    # A short consumes buying power at the full value of the stock borrowed. The
+    # 50% initial requirement is already what makes buying power twice equity;
+    # applying it again here would let a short run at four times equity while a
+    # purchase of the same size is held to two.
+    if reserve_price * borrowed + dec(order["fee_remaining"]) > capacity - cash:
+        raise DomainError(
+            "Insufficient margin to borrow this stock, including other working orders."
+        )
 
 
 def validate_bracket(payload, mark):
@@ -465,7 +487,11 @@ def advance_state(state, data, steps):
                         else "The execution price gap exceeded available cash.",
                     )
                     continue
-            if order["side"] == "sell" and held >= quantity:
+            if (
+                order["side"] == "sell"
+                and held >= quantity
+                and state["config"].get("account") != "margin"
+            ):
                 reserved, _ = reservations(state, order["id"])
                 if dec(state["cash"]) + price * quantity - fee < reserved:
                     order.update(
@@ -551,7 +577,7 @@ def advance_state(state, data, steps):
                 }
             )
             # Reserve the remaining quantity at the current estimate; close if no longer affordable.
-            if order["status"] in OPEN:
+            if order["status"] in OPEN and not order.get("forced"):
                 try:
                     validate_order(state, data, order, order["id"])
                 except DomainError:

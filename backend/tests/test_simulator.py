@@ -1600,13 +1600,23 @@ def test_a_margin_account_shorts_through_the_api_and_reports_its_exposure(client
     assert desk["average_exposure"] >= 0
 
 
-def test_an_oversized_short_is_refused_before_it_is_accepted(client):
+def test_a_short_is_held_to_the_same_leverage_as_a_purchase(client):
+    """Two to one, both ways round, and nothing accepted only to be called."""
     client.get("/api/v1/simulator")
     run = create(client, seed=11, account="margin")
-    quote = next(q for q in run["quotes"] if q["symbol"] == SYMBOL)
-    # Twice what fifty percent initial margin on $100k could ever support.
-    too_big = int(400000 / float(quote["close"]))
-    refused = mutate(client, run, "orders", symbol=SYMBOL, side="sell", quantity=too_big)
+    price = float(next(q for q in run["quotes"] if q["symbol"] == SYMBOL)["close"])
+    # Just inside twice equity: accepted, and not immediately in breach.
+    inside = mutate(
+        client, run, "orders", symbol=SYMBOL, side="sell", quantity=int(195000 / price)
+    )
+    assert inside.status_code == 200, inside.text
+    state = mutate(client, inside.json(), "advance", steps=1).json()
+    assert not [o for o in state["orders"] if o.get("forced")]
+    # Well beyond it: refused outright rather than accepted and bought in.
+    fresh = create(client, seed=11, account="margin")
+    refused = mutate(
+        client, fresh, "orders", symbol=SYMBOL, side="sell", quantity=int(250000 / price)
+    )
     assert refused.status_code == 422 and "margin" in refused.json()["detail"]
     # Missions stay on cash accounts, so every attempt meets the same rules.
     bad = client.post(
@@ -1638,3 +1648,66 @@ def test_nothing_leaks_past_the_cursor_with_a_short_open(client):
         for name, params in routes.items()
     }
     assert before == after
+
+
+def test_a_short_stays_closable_when_there_is_no_buying_power_left(client):
+    """The moment a cover matters most is the moment buying power is gone."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11, account="margin")
+    price = float(next(q for q in run["quotes"] if q["symbol"] == SYMBOL)["close"])
+    quantity = int(190000 / price)
+    placed = mutate(client, run, "orders", symbol=SYMBOL, side="sell", quantity=quantity).json()
+    # Default participation fills a position this size across many bars.
+    state = placed
+    for _ in range(12):
+        state = mutate(client, state, "advance", steps=390).json()
+        if next((o for o in state["orders"] if o["id"] == placed["orders"][0]["id"]))[
+            "status"
+        ] == "filled":
+            break
+    position = next(p for p in state["positions"] if p["symbol"] == SYMBOL)
+    assert position["quantity"] < 0
+    assert float(state["buying_power"]) < float(state["equity"])
+
+    cover = mutate(
+        client, state, "orders", symbol=SYMBOL, side="buy", quantity=-position["quantity"]
+    )
+    assert cover.status_code == 200, cover.text
+    state = cover.json()
+    cover_id = state["orders"][-1]["id"]
+    for _ in range(12):
+        state = mutate(client, state, "advance", steps=390).json()
+        order_row = next(o for o in state["orders"] if o["id"] == cover_id)
+        # Never cancelled for buying power part-way through.
+        assert order_row["status"] in ("working", "partially_filled", "filled"), order_row
+        if order_row["status"] == "filled":
+            break
+    assert order_row["status"] == "filled"
+    assert all(p["quantity"] >= 0 for p in state["positions"])
+
+
+def test_a_forced_buy_in_runs_to_flat_without_being_re_raised():
+    """One buy-in, working every bar, until the borrowed stock is returned."""
+    s = state()
+    s["config"].update(account="margin", commission="0")
+    # The short fills first; the buy-in that follows the gap is then throttled by
+    # the same thin volume everything else trades into.
+    prices = [50] * 8 + [250] * 10
+    data = bars(prices, volume=400)
+    for index, row in enumerate(data["AAPL"]):
+        if index >= 8:
+            row["time"] += 86400
+    s["config"]["participation"] = "1"
+    order(s, data, side="sell", quantity=2000, fee_remaining="0.00")
+    advance_state(s, data, 6)
+    assert s["positions"]["AAPL"]["quantity"] == -2000
+    seen = []
+    for _ in range(len(prices) - 7):
+        advance_state(s, data, 1)
+        forced = [o for o in s["orders"] if o.get("forced")]
+        seen.append(len(forced))
+        for order_row in forced:
+            assert order_row["status"] in ("working", "partially_filled", "filled")
+            assert "maintenance requirement" in order_row["reason"]
+    assert max(seen) == 1, seen
+    assert s["positions"]["AAPL"]["quantity"] == 0
