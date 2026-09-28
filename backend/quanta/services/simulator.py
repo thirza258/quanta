@@ -40,7 +40,7 @@ from quanta.services.simulator_market import (
 from quanta.services.simulator_missions import MISSIONS
 from quanta.services.simulator_missions import listing as mission_listing
 from quanta.services.simulator_missions import progress as mission_progress
-from quanta.services.simulator_news import QUARTER_SESSIONS, released, report_session, sentiment
+from quanta.services.simulator_news import released, report_slot, sentiment
 from quanta.services.simulator_queries import latest, run_for, snapshot
 from quanta.services.simulator_universe import (
     BY_SYMBOL,
@@ -177,6 +177,9 @@ def create_run(payload: RunCreate, account: str, db: Session):
             ),
         )
         cursor = mission.cursor if mission else 499
+    # The bar the account starts on. Performance and the benchmark are measured
+    # from here, so the market's move before the learner arrived is not scored.
+    config["start_cursor"] = cursor
     state = {
         "config": config,
         "requested_config": requested_config,
@@ -582,29 +585,25 @@ def calendar(run_id: str, ahead: int | None, account: str, db: Session):
 
 
 def _upcoming(seed, symbol, book, cursor, times):
-    """The next scheduled report: its date always, its consensus when published."""
-    pending = next((q for q in book if q["index"] > cursor), None)
-    if pending:
-        return {
-            "label": pending["label"],
-            "time": int(times[pending["index"]]),
-            "bars_away": pending["index"] - cursor,
-            "consensus_eps": pending["consensus_eps"],
-            "consensus_revenue": pending["consensus_revenue"],
-        }
-    # Nothing scheduled yet in the generated horizon. The cycle still fixes the
-    # date, so publish it and leave the estimate open until the street sets it.
-    first = report_session(seed, symbol)
-    current = int(cursor) // SESSION_BARS
-    elapsed = max(0, current - first)
-    session = first + (elapsed // QUARTER_SESSIONS + 1) * QUARTER_SESSIONS
-    index = session * SESSION_BARS
+    """The next scheduled report: its date always, its consensus when published.
+
+    The date comes from the reporting cycle rather than from whatever the engine
+    has generated, so it does not move as blocks are produced. The estimate is
+    left open until the quarter itself is scheduled and the street sets one.
+    """
+    position, index = report_slot(seed, symbol, cursor, SESSION_BARS)
+    scheduled = next((q for q in book if q["index"] == index), None)
+    # Quarters carried in from before the run opened occupy the first label slots,
+    # so a report's label is its position in the cycle offset by that history.
+    prior = sum(1 for quarter in book if quarter["index"] < 0)
     return {
-        "label": quarter_label(len(book)),
-        "time": int(session_open(session).timestamp()),
+        "label": scheduled["label"] if scheduled else quarter_label(position + prior),
+        "time": int(times[index])
+        if index < len(times)
+        else int(session_open(index // SESSION_BARS).timestamp()),
         "bars_away": index - int(cursor),
-        "consensus_eps": None,
-        "consensus_revenue": None,
+        "consensus_eps": scheduled["consensus_eps"] if scheduled else None,
+        "consensus_revenue": scheduled["consensus_revenue"] if scheduled else None,
     }
 
 

@@ -18,17 +18,24 @@ export default function PerformancePanel({
       </p>
     );
   const p = desk.performance;
-  // A compact sparkline of the equity path the API marked bar by bar.
+  // A compact sparkline of the equity path the API marked bar by bar, drawn
+  // against the index on one shared scale so the two are actually comparable.
   const values = p.curve.map((point) => point.equity);
-  const low = Math.min(...values, p.opening_equity);
-  const high = Math.max(...values, p.opening_equity);
+  const market = p.benchmark.curve.map((point) => point.equity);
+  const low = Math.min(...values, ...market, p.opening_equity);
+  const high = Math.max(...values, ...market, p.opening_equity);
   const span = high - low || 1;
-  const path = values
-    .map(
-      (value, index) =>
-        `${(index / Math.max(1, values.length - 1)) * 100},${30 - ((value - low) / span) * 28}`,
-    )
-    .join(" ");
+  const plot = (series: number[]) =>
+    series
+      .map(
+        (value, index) =>
+          `${(index / Math.max(1, series.length - 1)) * 100},${30 - ((value - low) / span) * 28}`,
+      )
+      .join(" ");
+  const path = plot(values);
+  const excess = p.total_return - p.benchmark.total_return;
+  const figure = (value: number | null, digits = 2) =>
+    value === null ? "—" : value.toFixed(digits);
   return (
     <section className="sim-company" aria-label="Account performance">
       <div className="sim-ratio-grid">
@@ -72,6 +79,7 @@ export default function PerformancePanel({
                 ],
                 ["Average exposure", percent(p.average_exposure, 0)],
                 ["Bars observed", String(p.bars_observed)],
+                ["Sessions", String(p.sessions)],
               ] as [string, string][]
             ).map(([label, value]) => (
               <div key={label}>
@@ -82,7 +90,7 @@ export default function PerformancePanel({
           </dl>
         </div>
         <div>
-          <h4>Equity path</h4>
+          <h4>Equity path vs {p.benchmark.name}</h4>
           <svg
             className="sim-sparkline"
             viewBox="0 0 100 32"
@@ -90,6 +98,14 @@ export default function PerformancePanel({
             role="img"
             aria-label={`Equity moved from ${dollars(p.opening_equity)} to ${dollars(p.equity)}`}
           >
+            <polyline
+              points={plot(market)}
+              fill="none"
+              stroke="#8a93a6"
+              strokeWidth="1"
+              strokeDasharray="3 2"
+              vectorEffect="non-scaling-stroke"
+            />
             <polyline
               points={path}
               fill="none"
@@ -100,10 +116,76 @@ export default function PerformancePanel({
           </svg>
           <p className="sim-small">
             {dollars(p.opening_equity)} → {dollars(p.equity)} over{" "}
-            {p.bars_observed} observed bars.
+            {p.bars_observed} observed bars. The dashed line is{" "}
+            {p.benchmark.name} rebased to the same opening balance.
           </p>
         </div>
       </div>
+      <h4>Against the market</h4>
+      <div className="sim-ratio-grid">
+        <div>
+          <dl>
+            {(
+              [
+                ["Your return", signed(p.total_return, 2)],
+                [
+                  `${p.benchmark.name} return`,
+                  signed(p.benchmark.total_return, 2),
+                ],
+                ["Excess return", signed(excess, 2)],
+                ["Beta", figure(p.risk.beta)],
+                [
+                  "Alpha (annualized)",
+                  p.risk.alpha === null ? "—" : signed(p.risk.alpha, 2),
+                ],
+              ] as [string, string][]
+            ).map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <div>
+          <dl>
+            {(
+              [
+                ["Sharpe", figure(p.risk.sharpe)],
+                ["Sortino", figure(p.risk.sortino)],
+                ["Calmar", figure(p.risk.calmar)],
+                ["CAGR", p.risk.cagr === null ? "—" : signed(p.risk.cagr, 2)],
+              ] as [string, string][]
+            ).map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <div>
+          <dl>
+            {(
+              [
+                ["Daily VaR 95%", percent(p.risk.var_95 ?? null, 2)],
+                ["Daily CVaR 95%", percent(p.risk.cvar_95, 2)],
+                ["Max drawdown", percent(p.risk.max_drawdown, 2)],
+              ] as [string, string][]
+            ).map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+      <p className="sim-small" role="note">
+        {p.risk_is_meaningful
+          ? `Ratios are computed from ${p.sessions} session closes and annualized at 252 sessions a year.`
+          : `Only ${p.sessions} session${p.sessions === 1 ? "" : "s"} have closed. Annualizing that few returns produces a number, not a measurement — advance the clock before reading these.`}
+      </p>
       <h4>Attribution by company</h4>
       <table className="sim-desk-table sim-attribution">
         <thead>

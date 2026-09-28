@@ -432,6 +432,20 @@ def report_session(seed: int, symbol: str) -> int:
     return 3 + int(digest[:8], 16) % 18
 
 
+def report_slot(seed: int, symbol: str, cursor: int, session_bars: int) -> tuple[int, int]:
+    """Position and bar of the next report a company has not yet printed.
+
+    Fixed by the seed and the ticker alone, so the answer does not move as more of
+    the market is generated. A diary entry is knowable before the result exists;
+    tying it to block depth would make the same run show a different calendar
+    depending on how far ahead the engine happened to have run.
+    """
+    first = report_session(seed, symbol)
+    current = int(cursor) // session_bars
+    position = 0 if current < first else (current - first) // QUARTER_SESSIONS + 1
+    return position, (first + position * QUARTER_SESSIONS) * session_bars
+
+
 def schedule(
     seed: int, first_session: int, sessions: int, session_bars: int, books=None
 ) -> Newsroom:

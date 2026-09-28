@@ -10,10 +10,13 @@ import math
 
 import numpy as np
 
+from quanta.domain.analytics import summarize
 from quanta.domain.simulator import dec
-from quanta.services.simulator_news import sentiment
+from quanta.services.simulator_fundamentals import quarter_label
+from quanta.services.simulator_missions import MISSIONS
+from quanta.services.simulator_news import report_slot, sentiment
 from quanta.services.simulator_queries import prior_session_close
-from quanta.services.simulator_universe import profile
+from quanta.services.simulator_universe import UNIVERSE_ID, profile
 
 SESSION = 390
 
@@ -344,6 +347,59 @@ def technicals(state, data, room, symbol):
     }
 
 
+def start_cursor(state, data):
+    """The bar the account opened on, so performance is measured from arrival."""
+    config = state["config"]
+    if "start_cursor" in config:
+        return int(config["start_cursor"])
+    # Runs created before the start cursor was recorded used fixed defaults.
+    if config["mode"] == "historical":
+        return min(30, len(next(iter(data.values()))) - 2)
+    mission = MISSIONS.get(config.get("mission") or "")
+    return mission.cursor if mission else 499
+
+
+def index_level(data, cursor, start=0):
+    """Equal-weighted level of every listed company, normalized to `start`.
+
+    This is the QX-200 the newsroom refers to: an index a learner can be measured
+    against, so a result separates into the market's move and their own. It is
+    rebased to the bar the account opened on, because the market's drift before
+    anyone was trading is neither alpha nor beta — it simply was not theirs.
+    """
+    prices = np.vstack([_closes(series, cursor)[start:] for series in data.values()])
+    return (prices / prices[:, :1]).mean(axis=0)
+
+
+def benchmark_name(state):
+    """Generated runs are measured against the generated index, by its own name.
+
+    An imported replay gets a descriptive label instead: an equal-weighted
+    average of imported closes is not the QX-200, and calling it that would
+    dress real prices in a fictional index's name.
+    """
+    config = state["config"]
+    if config["mode"] == "historical":
+        return "Equal-weighted imported average"
+    return "QX-200" if config.get("universe") == UNIVERSE_ID else "Equal-weighted run average"
+
+
+def _session_ends(series, cursor, start=0):
+    """Offsets of each session's last observation, within the window from `start`.
+
+    Annualized statistics need one observation per session, not per minute; 390
+    intraday returns a day would inflate any figure scaled by 252.
+    """
+    if not hasattr(series, "session"):
+        # An imported daily replay already has one observation per session.
+        return np.arange(cursor + 1 - start)
+    sessions = np.asarray(series.session[start : cursor + 1])
+    if len(sessions) < 2:
+        return np.array([len(sessions) - 1]) if len(sessions) else np.array([], dtype=int)
+    changes = np.flatnonzero(np.diff(sessions))
+    return np.append(changes, len(sessions) - 1)
+
+
 def _times(series, cursor):
     if hasattr(series, "time"):
         return np.asarray(series.time[: cursor + 1], dtype=np.int64)
@@ -354,16 +410,20 @@ def performance(state, data, points=180):
     """Mark the account to market on every observed bar and summarize the path."""
     cursor = state["cursor"]
     first = next(iter(data.values()))
-    times = _times(first, cursor)
+    # Only the bars since the account opened. The market's move before anyone was
+    # trading is not the learner's result, and averaging exposure over bars where
+    # nothing could be held would understate every position they did take.
+    start = min(start_cursor(state, data), cursor)
+    times = _times(first, cursor)[start:]
     opening = float(state["ledger"][0]["cash"]) if state["ledger"] else 100000.0
 
     cash = np.full(len(times), opening)
     for entry in state["ledger"]:
         if entry["time"] is None:
             continue
-        start = int(np.searchsorted(times, entry["time"]))
-        if start < len(cash):
-            cash[start:] = float(entry["cash"])
+        at = int(np.searchsorted(times, entry["time"]))
+        if at < len(cash):
+            cash[at:] = float(entry["cash"])
 
     holdings = np.zeros(len(times))
     attribution = {}
@@ -373,12 +433,12 @@ def performance(state, data, points=180):
         if symbol not in data:
             continue
         if symbol not in marks:
-            marks[symbol] = _closes(data[symbol], cursor)
-        start = int(np.searchsorted(times, fill["time"]))
-        if start >= len(times):
+            marks[symbol] = _closes(data[symbol], cursor)[start:]
+        at = int(np.searchsorted(times, fill["time"]))
+        if at >= len(times):
             continue
         quantity = fill["quantity"] * (1 if fill["side"] == "buy" else -1)
-        holdings += quantity * np.concatenate((np.zeros(start), marks[symbol][start:]))
+        holdings += quantity * np.concatenate((np.zeros(at), marks[symbol][at:]))
         book = attribution.setdefault(
             symbol, {"symbol": symbol, "realized": 0.0, "fills": 0, "quantity": 0}
         )
@@ -404,6 +464,19 @@ def performance(state, data, points=180):
     wins = [value for value in round_trips if value > 0]
     losses = [value for value in round_trips if value < 0]
     exposure = float(np.mean(holdings / np.where(equity == 0, 1, equity))) if len(equity) else 0.0
+
+    # Against the market, not just against zero. The account and the index are
+    # sampled at session closes so the annualized figures mean what they say.
+    level = index_level(data, cursor, start)
+    benchmark = opening * level
+    ends = _session_ends(first, cursor, start)
+    sessions = len(ends)
+    against = summarize(
+        equity[ends].tolist(),
+        benchmark[ends].tolist(),
+        [{"pnl": value} for value in round_trips],
+        opening,
+    )
     return {
         "curve": [
             {"time": int(times[index]), "equity": round(float(equity[index]), 2)}
@@ -426,7 +499,49 @@ def performance(state, data, points=180):
         "average_loss": round(float(np.mean(losses)), 2) if losses else None,
         "attribution": sorted(attribution.values(), key=lambda b: -abs(b["total"])),
         "bars_observed": len(equity),
+        "benchmark": {
+            "name": benchmark_name(state),
+            "equity": round(float(benchmark[-1]), 2) if len(benchmark) else opening,
+            "total_return": round(float(level[-1] - 1), 6) if len(level) else 0.0,
+            "curve": [
+                {"time": int(times[index]), "equity": round(float(benchmark[index]), 2)}
+                for index in range(0, len(benchmark), step)
+            ]
+            + (
+                [{"time": int(times[-1]), "equity": round(float(benchmark[-1]), 2)}]
+                if len(benchmark)
+                else []
+            ),
+        },
+        # Risk and market-relative figures over session closes, from the same
+        # summary the research courses use.
+        "sessions": sessions,
+        "risk": {
+            key: (round(value, 6) if isinstance(value, float) else value)
+            for key, value in against.items()
+            if key
+            in (
+                "cagr",
+                "sharpe",
+                "sortino",
+                "calmar",
+                "alpha",
+                "beta",
+                "var_95",
+                "cvar_95",
+                "max_drawdown",
+            )
+        },
+        # Annualizing a handful of sessions produces a number, not a measurement.
+        "risk_is_meaningful": sessions >= 20,
     }
+
+
+# Twenty sessions ahead. The market is generated in blocks that always run at
+# least this far past the cursor, so the diary covers a fixed window rather than
+# however much of the market happens to have been generated — two learners on the
+# same bar see the same calendar, and its length reveals nothing about the engine.
+CALENDAR_AHEAD = SESSION * 20
 
 
 def calendar(state, data, room, ahead=None):
@@ -439,8 +554,8 @@ def calendar(state, data, room, ahead=None):
     """
     cursor = state["cursor"]
     series = next(iter(data.values()))
-    times, horizon = series.time, len(series) - 1
-    limit = horizon if ahead is None else min(horizon, cursor + ahead)
+    times = series.time
+    limit = min(len(series) - 1, cursor + (CALENDAR_AHEAD if ahead is None else ahead))
 
     economic = []
     for event in room.events:
@@ -460,32 +575,56 @@ def calendar(state, data, room, ahead=None):
             }
         )
 
+    # An appointment book: every company's next print, plus the ones that landed
+    # recently enough to still be worth reading against what was expected. The
+    # dates come from the reporting cycle rather than from the generated blocks,
+    # so the board does not lengthen as the engine runs further ahead.
     earnings = []
     tag = state["config"].get("universe")
+    seed = state["config"]["seed"]
+    # Quarters carried in from before the run began sit at negative indices: they
+    # are opening history for the statements, not appointments on this diary.
+    recent = max(0, cursor - CALENDAR_AHEAD)
     for symbol, book in room.books.items():
-        quarter = book[-1]
-        if quarter["index"] < 0 or quarter["index"] > limit:
-            continue
-        released = quarter["index"] <= cursor
-        entry = {
-            "symbol": symbol,
-            **profile(symbol, tag),
-            "label": quarter["label"],
-            "index": quarter["index"],
-            "time": int(times[quarter["index"]]),
-            "bars_away": quarter["index"] - cursor,
-            "released": released,
-            "consensus_eps": quarter["consensus_eps"],
-            "consensus_revenue": quarter["consensus_revenue"],
-        }
-        if released:
-            entry.update(
-                eps=quarter["eps"],
-                revenue=quarter["revenue"],
-                eps_surprise=quarter["eps_surprise"],
-                revenue_surprise=quarter["revenue_surprise"],
+        position, index = report_slot(seed, symbol, cursor, SESSION)
+        scheduled = next((q for q in book if q["index"] == index), None)
+        prior = sum(1 for quarter in book if quarter["index"] < 0)
+        if index < len(times):
+            earnings.append(
+                {
+                    "symbol": symbol,
+                    **profile(symbol, tag),
+                    "label": scheduled["label"]
+                    if scheduled
+                    else quarter_label(position + prior),
+                    "index": index,
+                    "time": int(times[index]),
+                    "bars_away": index - cursor,
+                    "released": False,
+                    # The street sets its estimate once the quarter is scheduled.
+                    "consensus_eps": scheduled["consensus_eps"] if scheduled else None,
+                    "consensus_revenue": scheduled["consensus_revenue"] if scheduled else None,
+                }
             )
-        earnings.append(entry)
+        printed = [q for q in book if recent <= q["index"] <= cursor]
+        for quarter in printed:
+            earnings.append(
+                {
+                    "symbol": symbol,
+                    **profile(symbol, tag),
+                    "label": quarter["label"],
+                    "index": quarter["index"],
+                    "time": int(times[quarter["index"]]),
+                    "bars_away": quarter["index"] - cursor,
+                    "released": True,
+                    "consensus_eps": quarter["consensus_eps"],
+                    "consensus_revenue": quarter["consensus_revenue"],
+                    "eps": quarter["eps"],
+                    "revenue": quarter["revenue"],
+                    "eps_surprise": quarter["eps_surprise"],
+                    "revenue_surprise": quarter["revenue_surprise"],
+                }
+            )
 
     economic.sort(key=lambda item: item["index"])
     earnings.sort(key=lambda item: (item["index"], item["symbol"]))

@@ -244,6 +244,25 @@ export type DeskView = {
       fills: number;
     }[];
     bars_observed: number;
+    benchmark: {
+      name: string;
+      equity: number;
+      total_return: number;
+      curve: { time: number; equity: number }[];
+    };
+    sessions: number;
+    risk: {
+      cagr: number | null;
+      sharpe: number | null;
+      sortino: number | null;
+      calmar: number | null;
+      alpha: number | null;
+      beta: number | null;
+      var_95: number | null;
+      cvar_95: number | null;
+      max_drawdown: number | null;
+    };
+    risk_is_meaningful: boolean;
   };
   cursor: number;
   version: number;
@@ -340,8 +359,10 @@ export type RunCalendar = {
     time: number;
     bars_away: number;
     released: boolean;
-    consensus_eps: number;
-    consensus_revenue: number;
+    // Null until the quarter is scheduled: the date is knowable before the
+    // street has published an estimate for it.
+    consensus_eps: number | null;
+    consensus_revenue: number | null;
     eps?: number;
     revenue?: number;
     eps_surprise?: number | null;

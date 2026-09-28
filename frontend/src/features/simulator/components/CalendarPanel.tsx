@@ -80,7 +80,7 @@ export default function CalendarPanel({
             </thead>
             <tbody>
               {calendar.earnings.map((item) => (
-                <tr key={item.symbol}>
+                <tr key={`${item.symbol}:${item.index}`}>
                   <td>{stamp(item.time)}</td>
                   <td>
                     <button onClick={() => onSymbol(item.symbol)}>
@@ -88,7 +88,11 @@ export default function CalendarPanel({
                     </button>
                   </td>
                   <td>{item.label}</td>
-                  <td>${price(item.consensus_eps)}</td>
+                  <td>
+                    {item.consensus_eps === null
+                      ? "not yet set"
+                      : `$${price(item.consensus_eps)}`}
+                  </td>
                   <td
                     className={
                       !item.released
@@ -114,7 +118,8 @@ export default function CalendarPanel({
           <p className="sim-small">
             Consensus is a published expectation on invented revenue of{" "}
             {millions(calendar.earnings[0]?.consensus_revenue ?? 0)} and
-            similar.
+            similar. A date is on the diary as soon as the reporting cycle fixes
+            it; the street&rsquo;s estimate appears once the quarter is set.
           </p>
         </div>
       </div>

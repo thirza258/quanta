@@ -583,12 +583,36 @@ def test_desk_and_analytics_are_calculated_by_the_api(client):
     assert {s["sector"] for s in movers["sectors"]} and all(
         s["companies"] >= 1 for s in movers["sectors"]
     )
-    assert performance["bars_observed"] == advanced["cursor"] + 1
+    # Only the bars the account was open for, not the market's whole generated past.
+    assert performance["bars_observed"] == advanced["cursor"] + 1 - 499
     assert performance["curve"][0]["equity"] == 100000.0
     assert performance["equity"] == pytest.approx(float(advanced["equity"]), abs=0.02)
     assert performance["attribution"][0]["symbol"] == SYMBOL
     assert performance["attribution"][0]["quantity"] == 100
     assert performance["max_drawdown"] <= 0
+    # The index is rebased to the bar the account opened on, so the learner and the
+    # market are compared over exactly the same window.
+    benchmark = performance["benchmark"]
+    assert benchmark["name"] == "QX-200"
+    assert benchmark["curve"][0]["equity"] == 100000.0
+    assert benchmark["curve"][0]["time"] == performance["curve"][0]["time"]
+    assert benchmark["equity"] == pytest.approx(100000 * (1 + benchmark["total_return"]), abs=0.02)
+    # Every figure the panel reads must be present, even when a run is too short
+    # for it to mean anything; a missing key would render as a silent blank.
+    assert set(performance["risk"]) == {
+        "cagr",
+        "sharpe",
+        "sortino",
+        "calmar",
+        "alpha",
+        "beta",
+        "var_95",
+        "cvar_95",
+        "max_drawdown",
+    }
+    assert performance["risk"]["beta"] is not None
+    # 800 bars is barely two sessions, so annualized figures are not yet a measurement.
+    assert performance["sessions"] == 3 and performance["risk_is_meaningful"] is False
     stats = client.get(
         f"/api/v1/simulator/runs/{run['id']}/analytics", params={"symbol": SYMBOL}
     ).json()
@@ -972,3 +996,40 @@ def test_coarse_intervals_aggregate_without_reading_every_bar(client):
     daily = client.get(route, params={"symbol": SYMBOL, "interval": "1D", "limit": 5000}).json()
     assert len(daily["bars"]) == run["cursor"] // 390 + 1
     assert daily["bars"][0]["open"] == raw[0]["open"]
+
+
+def test_no_endpoint_reveals_a_price_beyond_the_cursor(client):
+    """Generating further ahead must not change a single figure already published.
+
+    Bars are generated in blocks that run past the replay cursor, so every read
+    has to be bounded by the cursor explicitly. If any of them slips and reads the
+    tail of the array instead, extending the same seed's market changes an answer
+    that the learner has already been shown — which is look-ahead, silently.
+    """
+    from quanta.services.simulator_market import simulated_market
+
+    client.get("/api/v1/simulator")
+    run = create(client, seed=4242)
+    placed = mutate(client, run, "orders", symbol=SYMBOL, side="buy", quantity=40).json()
+    advanced = mutate(client, placed, "advance", steps=600).json()
+    cursor = advanced["cursor"]
+
+    routes = {
+        "desk": {},
+        "market": {"symbol": SYMBOL, "interval": "1h", "limit": 200},
+        "news": {"limit": 50},
+        "fundamentals": {"symbol": SYMBOL},
+        "analytics": {"symbol": SYMBOL},
+        "calendar": {},
+    }
+    before = {
+        name: client.get(f"/api/v1/simulator/runs/{run['id']}/{name}", params=params).json()
+        for name, params in routes.items()
+    }
+    # Generate a long way past the cursor on the very same cached market.
+    simulated_market(4242, cursor + 30_000)
+    after = {
+        name: client.get(f"/api/v1/simulator/runs/{run['id']}/{name}", params=params).json()
+        for name, params in routes.items()
+    }
+    assert before == after
