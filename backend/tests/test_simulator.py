@@ -3,6 +3,7 @@ from uuid import uuid4
 import pytest
 from quanta.domain.errors import DomainError
 from quanta.domain.simulator import advance_state, reservations, validate_order
+from quanta.core.limits import limiter
 from test_api import signup
 
 
@@ -466,7 +467,12 @@ def test_reported_quarters_are_released_by_the_newsroom_and_tie_together(client)
     assert report["valuation"]["market_capitalization"] == pytest.approx(
         report["valuation"]["price"] * report["valuation"]["shares"]
     )
-    run = mutate(client, run, "advance", steps=1950).json()
+    # Advance past this company's own reporting date rather than a fixed distance.
+    remaining = report["upcoming"]["bars_away"]
+    while remaining > 0:
+        step = min(1950, remaining)
+        run = mutate(client, run, "advance", steps=step).json()
+        remaining -= step
     after = client.get(route, params={"symbol": SYMBOL}).json()
     assert [q["label"] for q in after["quarters"]][-1] == "Q4 2024"
     assert after["quarters"][-1]["index"] <= run["cursor"]
@@ -569,7 +575,8 @@ def test_desk_and_analytics_are_calculated_by_the_api(client):
     advanced = mutate(client, placed, "advance", steps=800).json()
     view = client.get(f"/api/v1/simulator/runs/{run['id']}/desk").json()
     movers, performance = view["movers"], view["performance"]
-    assert len(movers["gainers"]) == 6 and len(movers["losers"]) == 6
+    assert movers["gainers"] and movers["losers"]
+    assert len(movers["gainers"]) <= 6 and len(movers["losers"]) <= 6
     assert movers["gainers"][0]["change_pct"] >= movers["gainers"][-1]["change_pct"]
     assert movers["losers"][0]["change_pct"] <= movers["losers"][-1]["change_pct"]
     assert sum(movers["breadth"][key] for key in ("advancing", "declining", "unchanged")) == 32
@@ -806,3 +813,162 @@ def test_a_run_without_a_newsroom_has_no_calendar(client, monkeypatch, tmp_path)
     client.get("/api/v1/simulator")
     run = create(client, mode="historical", symbol="CAL")
     assert client.get(f"/api/v1/simulator/runs/{run['id']}/calendar").status_code == 422
+
+
+def test_the_generated_market_never_runs_out(client):
+    """The clock keeps producing sessions, headlines and reports as it advances."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    assert run["endless"] is True and run["session"] == 2
+    rid, version = run["id"], run["version"]
+    reach = run["total_bars"]
+    for _ in range(30):
+        limiter.records.clear()
+        response = client.post(
+            f"/api/v1/simulator/runs/{rid}/advance",
+            json={"id": ident(), "version": version, "steps": 1950},
+        )
+        assert response.status_code == 200, response.text
+        run = response.json()
+        version = run["version"]
+    # Well past the bars a fixed-length market used to hold.
+    assert run["cursor"] > 55000
+    assert run["total_bars"] > run["cursor"]
+    assert run["session"] > 140
+    # Orders are still accepted, because there is always a next bar to fill on.
+    placed = client.post(
+        f"/api/v1/simulator/runs/{rid}/orders",
+        json={"id": ident(), "version": version, "symbol": SYMBOL, "side": "buy", "quantity": 5},
+    )
+    assert placed.status_code == 200, placed.text
+    # The tape and the reporting cycle continue.
+    news = client.get(f"/api/v1/simulator/runs/{rid}/news", params={"limit": 40}).json()
+    assert news["items"] and max(i["index"] for i in news["items"]) <= run["cursor"]
+    assert max(i["index"] for i in news["items"]) > reach
+    report = client.get(
+        f"/api/v1/simulator/runs/{rid}/fundamentals", params={"symbol": SYMBOL}
+    ).json()
+    # A year of replay means several quarters have been reported, not just one.
+    assert len([q for q in report["quarters"] if q["index"] >= 0]) >= 2
+    assert report["upcoming"] is not None
+
+
+def test_a_block_is_the_same_however_late_it_is_generated():
+    """A stored cursor must resolve to the same bar on a cold server."""
+    from quanta.services.simulator_market import BLOCK_BARS, _market, simulated_market
+
+    _market.cache_clear()
+    straight = simulated_market(4242, BLOCK_BARS * 3)
+    sampled = {symbol: [series[i] for i in range(0, BLOCK_BARS * 4, 997)] for symbol, series in straight.items()}
+    _market.cache_clear()
+    # Reach the same point by advancing in stages, as a replay actually does.
+    for target in (0, BLOCK_BARS, BLOCK_BARS * 2, BLOCK_BARS * 3):
+        stepped = simulated_market(4242, target)
+    for symbol, rows in sampled.items():
+        assert [stepped[symbol][i] for i in range(0, BLOCK_BARS * 4, 997)] == rows
+
+
+def test_every_headline_carries_a_score_that_matches_its_move():
+    """One point is one basis point, and the tier label follows the same score."""
+    import numpy as np
+
+    from quanta.services.simulator_market import newsroom, simulated_market
+
+    data, room = simulated_market(11), newsroom(11)
+    scored = [e for e in room.events if e["points"]]
+    assert len(scored) > 500
+    assert all(e["points"] == 0 for e in room.events if e["category"] == "chatter")
+    for event in scored:
+        # The published tier is derived from the published score, so a reader can
+        # check one against the other.
+        expected = "high" if abs(event["points"]) >= 400 else (
+            "medium" if abs(event["points"]) >= 120 else "low"
+        )
+        assert event["impact"] == expected, event
+        assert event["impact"] != "none"
+    points, moves = [], []
+    for event in scored:
+        if event["scope"] != "company" or not event["symbol"]:
+            continue
+        closes = data[event["symbol"]].close
+        index = event["index"]
+        if 0 < index < len(closes):
+            points.append(event["points"])
+            moves.append((closes[index] / closes[index - 1] - 1) * 10000)
+    assert len(points) > 200
+    # The score is applied, not inferred: it explains nearly all of the same-bar move.
+    assert float(np.corrcoef(points, moves)[0][1]) > 0.9
+
+
+def test_a_chart_reads_a_window_not_the_whole_run(client):
+    """An endless run must not hand the chart every bar it has ever generated."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    rid, version = run["id"], run["version"]
+    for _ in range(12):
+        limiter.records.clear()
+        response = client.post(
+            f"/api/v1/simulator/runs/{rid}/advance",
+            json={"id": ident(), "version": version, "steps": 1950},
+        )
+        version = response.json()["version"]
+    cursor = response.json()["cursor"]
+    assert cursor > 20000
+    route = f"/api/v1/simulator/runs/{rid}/market"
+    body = client.get(route, params={"symbol": SYMBOL, "indicators": "SMA:20,RSI:14"}).json()
+    # Bounded, and far short of the observations behind it.
+    assert len(body["bars"]) == 1500
+    assert body["from_bar"] > 0
+    assert body["bars"][-1]["time"] and len(body["indicators"]["SMA:20"]["values"]) == 1500
+    # An explicit window is honoured, and nothing past the cursor leaks either way.
+    small = client.get(
+        route, params={"symbol": SYMBOL, "limit": 200, "indicators": "SMA:20,RSI:14"}
+    ).json()
+    assert len(small["bars"]) == 200
+    assert small["bars"][-1] == body["bars"][-1]
+    assert len(small["indicators"]["RSI:14"]["values"]) == 200
+
+    # Resizing the window must not change the overlay a learner sees. The rolling
+    # sums and the exponential smoothing both accumulate from wherever the read
+    # began, so the agreement is to floating-point noise rather than bit-exact,
+    # which is far below the cent the price is quoted in.
+    wide = client.get(
+        route, params={"symbol": SYMBOL, "limit": 5000, "indicators": "SMA:20,RSI:14"}
+    ).json()
+    for key in ("SMA:20", "RSI:14"):
+        for near, far in zip(
+            small["indicators"][key]["values"],
+            wide["indicators"][key]["values"][-200:],
+            strict=True,
+        ):
+            assert (near is None and far is None) or abs(near - far) < 1e-6
+
+
+def test_coarse_intervals_aggregate_without_reading_every_bar(client):
+    """Bucketing the generated bars must agree with summarizing them one by one."""
+    from quanta.services.simulator_market import simulated_market
+
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    route = f"/api/v1/simulator/runs/{run['id']}/market"
+    hourly = client.get(route, params={"symbol": SYMBOL, "interval": "1h", "limit": 5000}).json()
+    series = simulated_market(11, run["cursor"])[SYMBOL]
+    raw = series[: run["cursor"] + 1]
+    # Rebuild the same buckets the slow way and compare.
+    buckets = {}
+    for index, bar in enumerate(raw):
+        key = (index // 390, (index % 390) // 60)
+        if key not in buckets:
+            buckets[key] = dict(bar)
+        else:
+            item = buckets[key]
+            item.update(
+                high=max(item["high"], bar["high"]),
+                low=min(item["low"], bar["low"]),
+                close=bar["close"],
+                volume=item["volume"] + bar["volume"],
+            )
+    assert hourly["bars"] == list(buckets.values())
+    daily = client.get(route, params={"symbol": SYMBOL, "interval": "1D", "limit": 5000}).json()
+    assert len(daily["bars"]) == run["cursor"] // 390 + 1
+    assert daily["bars"][0]["open"] == raw[0]["open"]

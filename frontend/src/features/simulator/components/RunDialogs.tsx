@@ -28,6 +28,7 @@ export default function RunDialogs({
     | "fundamentals"
     | "desk"
     | "calendar"
+    | "missionCatalog"
   >;
 }) {
   const {
@@ -49,6 +50,7 @@ export default function RunDialogs({
     fundamentals,
     desk,
     calendar,
+    missionCatalog,
   } = terminal;
   return (
     <>
@@ -66,6 +68,31 @@ export default function RunDialogs({
             void startRun();
           }}
         >
+          <label className="sim-field">
+            Practice mission (optional)
+            <select
+              value={newConfig.mission}
+              onChange={(e) =>
+                setNewConfig({
+                  ...newConfig,
+                  mission: e.target.value,
+                  mode: e.target.value ? "synthetic" : newConfig.mode,
+                })
+              }
+            >
+              <option value="">No mission · free practice</option>
+              {missionCatalog?.missions.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.title} · {m.symbol}
+                </option>
+              ))}
+            </select>
+            <small className="sim-small">
+              A mission fixes the market and the starting point, so everyone
+              attempting it meets the same one. Its objectives describe process,
+              never profit.
+            </small>
+          </label>
           <label className="sim-field">
             Market data
             <select

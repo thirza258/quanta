@@ -81,6 +81,10 @@ def snapshot(run, db):
         "guest": run.owner.startswith("guest:"),
         "cursor": state["cursor"],
         "total_bars": len(next(iter(data.values()))),
+        # A generated market keeps producing sessions as the clock reaches them;
+        # an imported replay is bounded by the dataset that was imported.
+        "endless": universe(state["config"]) is not None,
+        "session": int(state["cursor"] // 390) + 1 if universe(state["config"]) else None,
         "clock": quotes[0]["time"],
         "config": state["config"],
         "cash": state["cash"],

@@ -6,6 +6,7 @@ import { Loading } from "@/shared/components/ui";
 import { X } from "lucide-react";
 import type { CSSProperties } from "react";
 import HelpDialog from "../components/HelpDialog";
+import MissionBar from "../components/MissionBar";
 import MarketDialogs from "../components/MarketDialogs";
 import OrderDialogs from "../components/OrderDialogs";
 import RunDialogs from "../components/RunDialogs";
@@ -58,7 +59,9 @@ export default function TradingSimulator() {
     !!marketError ||
     !!connectionError ||
     !bars.length;
-  const complete = run.cursor >= run.total_bars - 1;
+  // A generated market produces the next session as the clock reaches it, so only
+  // a bounded import can finish.
+  const complete = !run.endless && run.cursor >= run.total_bars - 1;
   const estimate = orderEstimate(run, prefs.symbol, ticket);
   const marketClosed =
     run.config.base_interval === "1D" ||
@@ -109,6 +112,7 @@ export default function TradingSimulator() {
       data-testid="trading-terminal"
     >
       <TerminalToolbar terminal={view} />
+      <MissionBar mission={terminal.mission} />
 
       {error ||
       pending ||

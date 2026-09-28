@@ -30,9 +30,17 @@ from quanta.domain.simulator_models import (
 )
 from quanta.services import data_store
 from quanta.services import simulator_desk as desk
-from quanta.services.simulator_fundamentals import structure, valuation
-from quanta.services.simulator_market import SESSION_BARS, markets, newsroom
-from quanta.services.simulator_news import released, sentiment
+from quanta.services.simulator_fundamentals import quarter_label, structure, valuation
+from quanta.services.simulator_market import (
+    SESSION_BARS,
+    markets,
+    newsroom,
+    session_open,
+)
+from quanta.services.simulator_missions import MISSIONS
+from quanta.services.simulator_missions import listing as mission_listing
+from quanta.services.simulator_missions import progress as mission_progress
+from quanta.services.simulator_news import QUARTER_SESSIONS, released, report_session, sentiment
 from quanta.services.simulator_queries import latest, run_for, snapshot
 from quanta.services.simulator_universe import (
     BY_SYMBOL,
@@ -116,6 +124,15 @@ def create_run(payload: RunCreate, account: str, db: Session):
         return snapshot(existing, db)
     requested_config = copy.deepcopy(config)
     config["execution_profile"] = "cash-whole-shares-v1"
+    mission = None
+    if config.get("mission"):
+        mission = MISSIONS.get(config["mission"])
+        if not mission:
+            raise HTTPException(404, "That practice mission does not exist.")
+        if payload.mode != "synthetic":
+            raise HTTPException(422, "Practice missions run on the generated market.")
+        # Everyone attempting a mission meets the same market and starts together.
+        config["seed"] = mission.seed
     if config["seed"] is None:
         # No seed asked for: derive one from the run identifier so each new paper
         # account gets a different market, while an idempotent retry of the same
@@ -159,7 +176,7 @@ def create_run(payload: RunCreate, account: str, db: Session):
                 "from the run's simulated news, weekday-only calendar"
             ),
         )
-        cursor = 499
+        cursor = mission.cursor if mission else 499
     state = {
         "config": config,
         "requested_config": requested_config,
@@ -212,12 +229,22 @@ def get_run(run_id: str, account: str, db: Session):
     return snapshot(run_for(db, run_id, account), db)
 
 
+# Raw observations behind one bar of each coarser interval.
+BUCKET_BARS = {"5m": 5, "15m": 15, "1h": 60, "1D": SESSION_BARS}
+# Extra bars read before the window so exponential overlays converge to the same
+# values they would reach from the start of the run.
+OVERLAY_WARMUP = 400
+# A ceiling on observations read for one chart, so a very long run stays bounded.
+MAX_OBSERVATIONS = 120_000
+
+
 def market(
     run_id: str,
     symbol: str,
     interval: Literal["1m", "5m", "15m", "1h", "1D"],
     cursor: int | None,
     indicators: str | None,
+    limit: int,
     account: str,
     db: Session,
 ):
@@ -228,8 +255,21 @@ def market(
     if state["config"]["base_interval"] == "1D" and interval != "1D":
         raise HTTPException(422, "This dataset only supports daily bars.")
     cursor = state["cursor"] if cursor is None else min(cursor, state["cursor"])
-    rows = data[symbol][: cursor + 1]
-    if interval != "1m" and state["config"]["base_interval"] != "1D":
+    # A generated run has no end, so a chart asks for a window rather than the
+    # whole history. Read enough observations to fill it, plus a warm-up margin so
+    # the smoothed overlays match the values full history would have produced.
+    daily = state["config"]["base_interval"] == "1D"
+    per_bucket = 1 if daily or interval == "1m" else BUCKET_BARS[interval]
+    span = min(cursor + 1, (limit + OVERLAY_WARMUP) * per_bucket, MAX_OBSERVATIONS)
+    start = cursor + 1 - span
+    series = data[symbol]
+    coarser = interval != "1m" and not daily
+    if coarser and hasattr(series, "aggregate"):
+        # Generated bars are columnar, so buckets are reduced without turning
+        # every observation behind them into a dictionary first.
+        rows = series.aggregate(start, cursor + 1, per_bucket)
+    elif coarser:
+        rows = series[start : cursor + 1]
         grouped = {}
         size = {"5m": 300, "15m": 900, "1h": 3600, "1D": 86400}[interval]
         for bar in rows:
@@ -251,8 +291,11 @@ def market(
                     volume=item["volume"] + bar["volume"],
                 )
         rows = list(grouped.values())
+    else:
+        rows = series[start : cursor + 1]
     # Overlays are computed here, from the same observed bars that are returned,
-    # so the client never recomputes them and no future price can reach them.
+    # so the client never recomputes them and no future price can reach them. They
+    # are calculated across the warm-up margin and then trimmed with the bars.
     closes = [bar["close"] for bar in rows]
     computed = {}
     for spec in (indicators or "").split(",")[:8]:
@@ -262,6 +305,12 @@ def market(
         series = desk.indicator_series(closes, spec)
         if series:
             computed[spec] = series
+    if len(rows) > limit:
+        rows = rows[-limit:]
+        for series in computed.values():
+            for key, values in series.items():
+                if isinstance(values, list):
+                    series[key] = values[-limit:]
     return {
         "bars": rows,
         "version": run.version,
@@ -269,6 +318,9 @@ def market(
         "symbol": symbol,
         "interval": interval,
         "indicators": computed,
+        # The oldest observation in this window, so a client can tell whether more
+        # history exists behind it.
+        "from_bar": max(0, cursor + 1 - len(rows) * per_bucket),
     }
 
 
@@ -389,7 +441,7 @@ def news(run_id: str, symbol: str | None, limit: int, account: str, db: Session)
     data = markets(state, db)
     if symbol and symbol not in data:
         raise HTTPException(404, "This stock is unavailable in this run.")
-    room = newsroom(config["seed"])
+    room = newsroom(config["seed"], state["cursor"])
     cursor = state["cursor"]
     times = next(iter(data.values())).time
     items = released(
@@ -434,12 +486,11 @@ def fundamentals(run_id: str, symbol: str, account: str, db: Session):
     if symbol not in data or symbol not in BY_SYMBOL:
         raise HTTPException(404, "This stock is unavailable in this run.")
     company = BY_SYMBOL[symbol]
-    room = newsroom(config["seed"])
+    room = newsroom(config["seed"], state["cursor"])
     cursor = state["cursor"]
     series = data[symbol]
     book = room.books[symbol]
     released_quarters = [q for q in book if q["index"] < 0 or q["index"] <= cursor]
-    pending = next((q for q in book if q["index"] > cursor), None)
     times = series.time
     return {
         "symbol": symbol,
@@ -457,17 +508,10 @@ def fundamentals(run_id: str, symbol: str, account: str, db: Session):
         "units": "millions of USD except per-share amounts",
         "quarters": released_quarters,
         # Only the expectation is published ahead of a print, never the result.
-        "upcoming": (
-            {
-                "label": pending["label"],
-                "time": int(times[pending["index"]]),
-                "bars_away": pending["index"] - cursor,
-                "consensus_eps": pending["consensus_eps"],
-                "consensus_revenue": pending["consensus_revenue"],
-            }
-            if pending
-            else None
-        ),
+        # The date is knowable from the calendar alone, so it is given even when
+        # the quarter itself is further out than the market has been generated;
+        # the street's estimate appears once that quarter has been scheduled.
+        "upcoming": _upcoming(config["seed"], symbol, book, cursor, times),
         "valuation": valuation(company, released_quarters, series[cursor]["close"]),
         "peers": desk.peers(state, data, room, symbol, _peer_valuation),
         "cursor": cursor,
@@ -481,7 +525,7 @@ def _room(state):
     config = state["config"]
     if config["mode"] != "synthetic" or config.get("universe") != UNIVERSE_ID:
         return None
-    return newsroom(config["seed"])
+    return newsroom(config["seed"], state["cursor"])
 
 
 def desk_view(run_id: str, account: str, db: Session):
@@ -534,4 +578,64 @@ def calendar(run_id: str, ahead: int | None, account: str, db: Session):
         "cursor": state["cursor"],
         "version": run.version,
         "disclosure": disclosure(state["config"]),
+    }
+
+
+def _upcoming(seed, symbol, book, cursor, times):
+    """The next scheduled report: its date always, its consensus when published."""
+    pending = next((q for q in book if q["index"] > cursor), None)
+    if pending:
+        return {
+            "label": pending["label"],
+            "time": int(times[pending["index"]]),
+            "bars_away": pending["index"] - cursor,
+            "consensus_eps": pending["consensus_eps"],
+            "consensus_revenue": pending["consensus_revenue"],
+        }
+    # Nothing scheduled yet in the generated horizon. The cycle still fixes the
+    # date, so publish it and leave the estimate open until the street sets it.
+    first = report_session(seed, symbol)
+    current = int(cursor) // SESSION_BARS
+    elapsed = max(0, current - first)
+    session = first + (elapsed // QUARTER_SESSIONS + 1) * QUARTER_SESSIONS
+    index = session * SESSION_BARS
+    return {
+        "label": quarter_label(len(book)),
+        "time": int(session_open(session).timestamp()),
+        "bars_away": index - int(cursor),
+        "consensus_eps": None,
+        "consensus_revenue": None,
+    }
+
+
+def missions():
+    """The practice catalog, for lesson pages and the mission picker."""
+    return {"missions": mission_listing(), "disclosure": DISCLOSURE}
+
+
+def mission(run_id: str, account: str, db: Session):
+    """The run's mission and how far each of its objectives has been met."""
+    run = run_for(db, run_id, account)
+    state = run.state
+    chosen = MISSIONS.get(state["config"].get("mission") or "")
+    if not chosen:
+        raise HTTPException(404, "This run was not started from a practice mission.")
+    data = markets(state, db)
+    room = _room(state)
+    times = next(iter(data.values())).time
+    objectives = mission_progress(chosen, state, room, times)
+    return {
+        "id": chosen.id,
+        "title": chosen.title,
+        "subtitle": chosen.subtitle,
+        "brief": chosen.brief,
+        "lessons": list(chosen.lessons),
+        "symbol": chosen.symbol,
+        "objectives": objectives,
+        "met": sum(1 for o in objectives if o["met"]),
+        "total": len(objectives),
+        "complete": all(o["met"] for o in objectives),
+        "cursor": state["cursor"],
+        "version": run.version,
+        "disclosure": DISCLOSURE,
     }

@@ -338,13 +338,25 @@ export default function TerminalWorkspace({
                 ? " · Market closed · next session on step"
                 : ""}
             </span>
-            <progress
-              max={run.total_bars - 1}
-              value={run.cursor}
-              aria-label="Replay progress"
-            />
+            {run.endless ? (
+              // There is no end to fill a bar towards; show how far the clock
+              // has run and how much of this session is behind it.
+              <progress
+                max={390}
+                value={run.cursor % 390}
+                aria-label="Progress through the session"
+              />
+            ) : (
+              <progress
+                max={run.total_bars - 1}
+                value={run.cursor}
+                aria-label="Replay progress"
+              />
+            )}
             <span className="sim-replay-count">
-              {run.cursor + 1} / {run.total_bars}
+              {run.endless
+                ? `Day ${run.session} · bar ${(run.cursor % 390) + 1}/390`
+                : `${run.cursor + 1} / ${run.total_bars}`}
             </span>
             <button
               className="sim-icon"

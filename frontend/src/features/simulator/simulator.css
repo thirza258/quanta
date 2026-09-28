@@ -1975,3 +1975,107 @@
   border-top: 1px solid var(--sim-accent);
   color: var(--sim-muted);
 }
+.sim-news-points {
+  float: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.sim-news-points.up {
+  color: #20a78d;
+}
+.sim-news-points.down {
+  color: #e76676;
+}
+.sim-news-points.flat {
+  color: var(--sim-muted);
+  font-weight: 400;
+}
+
+/* Practice mission banner. */
+.sim-mission {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--sim-border);
+  background: var(--sim-blue-bg);
+  font-size: 11px;
+}
+.sim-mission > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  cursor: pointer;
+  color: var(--sim-text);
+}
+.sim-mission > summary::-webkit-details-marker {
+  display: none;
+}
+.sim-mission-sub {
+  color: var(--sim-muted);
+}
+.sim-mission-score {
+  margin-left: auto;
+  color: var(--sim-accent);
+  font-weight: 600;
+}
+.sim-mission.complete .sim-mission-score {
+  color: #20a78d;
+}
+.sim-mission-chips {
+  display: inline-flex;
+  gap: 4px;
+}
+.sim-mission-chips > span {
+  width: 18px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--sim-border);
+}
+.sim-mission-chips > span.met {
+  background: #20a78d;
+}
+.sim-mission-body {
+  padding: 0 14px 12px 38px;
+}
+.sim-mission-brief {
+  margin: 0 0 10px;
+  max-width: 76ch;
+  line-height: 1.6;
+  color: var(--sim-text);
+}
+.sim-mission-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.sim-mission-list > li {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+}
+.sim-mission-mark {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 1px solid var(--sim-border);
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+.sim-mission-list > li.met .sim-mission-mark {
+  background: #20a78d;
+  border-color: #20a78d;
+}
+.sim-mission-detail,
+.sim-mission-progress {
+  display: block;
+  color: var(--sim-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.sim-mission-progress {
+  color: var(--sim-accent);
+}

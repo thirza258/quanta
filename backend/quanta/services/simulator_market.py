@@ -15,6 +15,7 @@ and no generated series is ever presented as observed market history.
 
 import math
 import random
+import threading
 from datetime import datetime, timedelta
 from functools import lru_cache
 from zoneinfo import ZoneInfo
@@ -23,7 +24,7 @@ import numpy as np
 from fastapi import HTTPException
 
 from quanta.db.models import TradingDataset
-from quanta.services.simulator_news import schedule
+from quanta.services.simulator_news import Newsroom, schedule
 from quanta.services.simulator_universe import (
     COMPANIES,
     LEGACY_SYMBOLS,
@@ -31,9 +32,14 @@ from quanta.services.simulator_universe import (
 )
 
 SYMBOLS = LEGACY_SYMBOLS
-SESSIONS = 20
 SESSION_BARS = 390
-TOTAL_BARS = SESSIONS * SESSION_BARS
+# A run has no fixed end. Sessions are generated a block at a time as the replay
+# clock reaches them, and one block beyond the cursor is always kept ahead so the
+# next bar, the next headline and the next scheduled report already exist.
+BLOCK_SESSIONS = 21
+BLOCK_BARS = BLOCK_SESSIONS * SESSION_BARS
+SESSIONS = BLOCK_SESSIONS
+TOTAL_BARS = BLOCK_BARS
 MARKET_VOL = 0.15
 SECTOR_VOL = 0.11
 SECTOR_LOAD = 0.62
@@ -58,6 +64,15 @@ class BarSeries:
 
     def __len__(self):
         return int(self.time.shape[0])
+
+    def extend(self, block):
+        """Append the next block's prices and volumes in place.
+
+        The time and session arrays are shared across every company and are
+        replaced by the market itself, so they are not copied here.
+        """
+        self.cents = np.concatenate((self.cents, block.cents), axis=1)
+        self.volume = np.concatenate((self.volume, block.volume))
 
     @property
     def open(self):
@@ -97,6 +112,40 @@ class BarSeries:
     def __iter__(self):
         return (self._row(i) for i in range(len(self)))
 
+    def aggregate(self, start, stop, per_bucket):
+        """Group observations into coarser bars without materializing each one.
+
+        Sessions are fixed-length and start on the hour-and-a-half boundary, so a
+        bucket is decided by arithmetic on the index rather than by reading a
+        timestamp, and only the buckets themselves become dictionaries.
+        """
+        if stop <= start:
+            return []
+        index = np.arange(start, stop)
+        key = (
+            self.session[start:stop].astype(np.int64) * SESSION_BARS
+            + (index % SESSION_BARS) // per_bucket
+        )
+        opens = np.flatnonzero(np.concatenate(([True], key[1:] != key[:-1])))
+        closes = np.concatenate((opens[1:], [stop - start])) - 1
+        window = slice(start, stop)
+        high = np.maximum.reduceat(self.cents[1][window], opens)
+        low = np.minimum.reduceat(self.cents[2][window], opens)
+        volume = np.add.reduceat(self.volume[window].astype(np.int64), opens)
+        return [
+            {
+                # A bucket is stamped with its first observation, which is the
+                # session-anchored boundary it starts on.
+                "time": int(self.time[window][first]),
+                "open": int(self.cents[0][window][first]) / 100,
+                "high": int(high[position]) / 100,
+                "low": int(low[position]) / 100,
+                "close": int(self.cents[3][window][last]) / 100,
+                "volume": int(volume[position]),
+            }
+            for position, (first, last) in enumerate(zip(opens, closes, strict=True))
+        ]
+
     def prior_session_close(self, cursor):
         """Close of the last bar before the cursor's own session."""
         day = self.session[cursor]
@@ -105,18 +154,25 @@ class BarSeries:
         return int(self.cents[row][index]) / 100
 
 
-@lru_cache(maxsize=2)
-def session_times(total):
-    """Weekday-only minute stamps, 09:30–16:00 America/New_York. Holidays omitted."""
-    stamps = []
-    day = OPENING
-    while len(stamps) < total:
-        if day.weekday() < 5:
-            stamps.extend(
-                int((day + timedelta(minutes=i)).timestamp()) for i in range(SESSION_BARS)
-            )
+@lru_cache(maxsize=4096)
+def session_open(session):
+    """Opening minute of a session on the weekday-only calendar. Holidays omitted."""
+    day, remaining = OPENING, session
+    while remaining:
         day += timedelta(days=1)
-    return np.array(stamps[:total], dtype=np.int64)
+        if day.weekday() < 5:
+            remaining -= 1
+    return day
+
+
+@lru_cache(maxsize=64)
+def session_times(first_session, sessions):
+    """Minute stamps for a block of sessions, 09:30-16:00 America/New_York."""
+    stamps = []
+    for offset in range(sessions):
+        day = session_open(first_session + offset)
+        stamps.extend(int((day + timedelta(minutes=i)).timestamp()) for i in range(SESSION_BARS))
+    return np.array(stamps, dtype=np.int64)
 
 
 def _shape(minutes, floor, open_weight, open_scale, close_weight, close_scale):
@@ -147,32 +203,89 @@ def _unit(series):
     return series / math.sqrt(float((series**2).mean()))
 
 
-# One entry per seed holds a run's bars, headlines and statements. Prices are
-# stored as whole cents and the shock arrays are released once the paths are
-# built, so an entry costs roughly 8 MB; 24 keeps that many accounts warm inside
-# a 1 GiB API container, and a cold generation costs roughly 70 ms.
-@lru_cache(maxsize=24)
-def generated(seed):
-    """Bars and the newsroom for one run, built together from its seed."""
-    room = schedule(seed, SESSIONS, SESSION_BARS)
-    return _paths(seed, room), room.release()
+class Market:
+    """A generated market that grows a block of sessions at a time.
+
+    A run has no fixed end. Blocks are produced in order, each continuing from the
+    closing prices of the one before, so the clock can keep advancing for as long
+    as a learner wants to replay. A block is a pure function of the seed and its
+    own first session, so the same block regenerated later is identical, and a
+    stored cursor always resolves to the same bar.
+    """
+
+    def __init__(self, seed):
+        self.seed = seed
+        self.blocks = 0
+        self.series = {}
+        self.room = Newsroom()
+        self.carry = {company.symbol: float(company.price) for company in COMPANIES}
+        # One copy of the clock, shared by all 32 series.
+        self.time = np.empty(0, dtype=np.int64)
+        self.session = np.empty(0, dtype=np.int64)
+        self._lock = threading.Lock()
+
+    def __len__(self):
+        return self.blocks * BLOCK_BARS
+
+    def ensure(self, cursor):
+        """Generate through the block after the one holding the cursor."""
+        target = (max(int(cursor), 0) // BLOCK_BARS + 2) * BLOCK_BARS
+        if len(self) >= target:
+            return
+        with self._lock:
+            while len(self) < target:
+                self._extend()
+
+    def _extend(self):
+        first = self.blocks * BLOCK_SESSIONS
+        room = schedule(self.seed, first, BLOCK_SESSIONS, SESSION_BARS, self.room.books or None)
+        block, self.carry = _paths(self.seed, room, first, self.carry)
+        self.time = np.concatenate((self.time, session_times(first, BLOCK_SESSIONS)))
+        self.session = np.concatenate((self.session, first + np.arange(BLOCK_BARS) // SESSION_BARS))
+        for symbol, series in block.items():
+            if symbol in self.series:
+                self.series[symbol].extend(series)
+            else:
+                self.series[symbol] = series
+            self.series[symbol].time = self.time
+            self.series[symbol].session = self.session
+        self.room.events.extend(room.events)
+        self.room.books = room.books
+        self.room.calendar = room.calendar
+        room.release()
+        self.blocks += 1
 
 
-def simulated_market(seed):
+# One entry per seed. A block of 21 sessions costs about 80 ms to generate, and an
+# entry grows only as far as its own run is actually replayed: roughly 5 MB of
+# bars per simulated month, plus its headlines. A run carried through a simulated
+# year holds around 60 MB, so four are kept rather than the two dozen a fixed-size
+# market allowed.
+@lru_cache(maxsize=4)
+def _market(seed):
+    return Market(seed)
+
+
+def simulated_market(seed, cursor=0):
     """Fictional companies whose prices are moved by the run's simulated news."""
-    return generated(seed)[0]
+    market = _market(seed)
+    market.ensure(cursor)
+    return market.series
 
 
-def newsroom(seed):
+def newsroom(seed, cursor=0):
     """The run's headlines, reporting calendar and generated statements."""
-    return generated(seed)[1]
+    market = _market(seed)
+    market.ensure(cursor)
+    return market.room
 
 
-def _paths(seed, room):
-    rng = np.random.default_rng((seed * 6364136223846793005 + 1442695040888963407) % (2**63))
-    times = session_times(TOTAL_BARS)
-    minutes = np.arange(TOTAL_BARS) % SESSION_BARS
-    session = np.arange(TOTAL_BARS) // SESSION_BARS
+def _paths(seed, room, first_session, carry):
+    """One block of bars, continuing from the closing prices handed in."""
+    rng = np.random.default_rng([seed, first_session, 0x9E3779B9])
+    times = session_times(first_session, BLOCK_SESSIONS)
+    minutes = np.arange(BLOCK_BARS) % SESSION_BARS
+    session = first_session + np.arange(BLOCK_BARS) // SESSION_BARS
     opens_session = minutes == 0
     openings = int(opens_session.sum())
     price_shape = _unit(_shape(minutes, 0.55, 1.35, 45.0, 0.85, 55.0))
@@ -186,20 +299,20 @@ def _paths(seed, room):
     market_noise = (
         market_vol
         * price_shape
-        * _persistence(rng, (TOTAL_BARS,), 0.985, 0.055)
-        * rng.standard_normal(TOTAL_BARS)
+        * _persistence(rng, (BLOCK_BARS,), 0.985, 0.055)
+        * rng.standard_normal(BLOCK_BARS)
     )
     # Overnight gaps carry more of the move than a single minute inside a session.
     market_noise[opens_session] += 2.6 * market_vol * rng.standard_normal(openings)
     sector_noise = {
-        name: SECTOR_VOL * per_bar * price_shape * rng.standard_normal(TOTAL_BARS)
+        name: SECTOR_VOL * per_bar * price_shape * rng.standard_normal(BLOCK_BARS)
         for name in room.sector
     }
 
     count = len(COMPANIES)
-    clustering = _persistence(rng, (TOTAL_BARS, count), 0.992, 0.05)
-    noise = rng.standard_normal((TOTAL_BARS, count))
-    output = {}
+    clustering = _persistence(rng, (BLOCK_BARS, count), 0.992, 0.05)
+    noise = rng.standard_normal((BLOCK_BARS, count))
+    output, closing = {}, {}
     for position, company in enumerate(COMPANIES):
         excited = _unit(1 + room.volatility[company.symbol])
         factors = company.beta * market_noise + SECTOR_LOAD * sector_noise[company.sector]
@@ -219,38 +332,42 @@ def _paths(seed, room):
         returns[opens_session] += (
             1.9 * idio * excited[opens_session] * rng.standard_normal(openings)
         )
-        # Remove the Itô drift so a flat expectation stays flat over the run.
+        # Remove the Itô drift so a flat expectation stays flat over the block.
         returns = np.clip(returns - 0.5 * float(returns.var()), -0.25, 0.25)
-        closes = company.price * np.exp(np.cumsum(returns))
-        previous = np.concatenate(([company.price], closes[:-1]))
+        opened = carry[company.symbol]
+        closes = opened * np.exp(np.cumsum(returns))
+        previous = np.concatenate(([opened], closes[:-1]))
         # Part of each bar's move is already present at its opening print, and
         # most of an overnight move is, which is what makes a gap look like one.
         share = np.where(opens_session, 0.78, 0.26)
         opening = previous * np.exp(share * returns)
         span = np.abs(returns) + idio * price_shape * 0.9
-        upper = np.abs(rng.standard_normal(TOTAL_BARS)) * span * 0.55
-        lower = np.abs(rng.standard_normal(TOTAL_BARS)) * span * 0.55
+        upper = np.abs(rng.standard_normal(BLOCK_BARS)) * span * 0.55
+        lower = np.abs(rng.standard_normal(BLOCK_BARS)) * span * 0.55
         high = np.maximum(opening, closes) * (1 + upper)
         low = np.minimum(opening, closes) * (1 - lower)
         turnover = (
             company.volume
             * volume_shape
             * (1 + room.volume[company.symbol])
-            * np.exp(rng.normal(0, 0.35, TOTAL_BARS))
+            * np.exp(rng.normal(0, 0.35, BLOCK_BARS))
             * (1 + 6 * np.abs(returns))
+        )
+        cents = np.stack(
+            [
+                np.rint(np.maximum(value, 0.01) * 100).astype(np.int32)
+                for value in (opening, high, low, closes)
+            ]
         )
         output[company.symbol] = BarSeries(
             times,
-            np.stack(
-                [
-                    np.rint(np.maximum(value, 0.01) * 100).astype(np.int32)
-                    for value in (opening, high, low, closes)
-                ]
-            ),
+            cents,
             np.maximum(np.rint(turnover), 100).astype(np.int32),
             session,
         )
-    return output
+        # The next block opens where this one closed, to the cent that was printed.
+        closing[company.symbol] = float(cents[3][-1]) / 100
+    return output, closing
 
 
 @lru_cache(maxsize=8)
@@ -297,7 +414,8 @@ def markets(state, db):
     config = state["config"]
     if config["mode"] == "synthetic":
         if config.get("universe") == UNIVERSE_ID:
-            return simulated_market(config["seed"])
+            # Generation follows the replay clock, so the market never runs out.
+            return simulated_market(config["seed"], state["cursor"])
         return legacy_synthetic(config["seed"])
     dataset = db.get(TradingDataset, config["dataset_id"])
     if not dataset:

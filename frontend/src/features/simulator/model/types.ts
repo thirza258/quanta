@@ -114,6 +114,9 @@ export type SimRun = {
   guest: boolean;
   cursor: number;
   total_bars: number;
+  /** A generated market keeps producing sessions; an import is bounded. */
+  endless: boolean;
+  session: number | null;
   clock: number;
   cash: string;
   reserved: string;
@@ -124,6 +127,7 @@ export type SimRun = {
     mode: "synthetic" | "historical";
     seed: number;
     universe?: string;
+    mission?: string | null;
     symbol: string | null;
     base_interval: string;
     source: string;
@@ -281,6 +285,42 @@ export type SymbolAnalytics = {
   sentiment: { session: SentimentReading; week: SentimentReading } | null;
 };
 
+export type MissionProgress = {
+  id: string;
+  title: string;
+  subtitle: string;
+  brief: string;
+  lessons: string[];
+  symbol: string;
+  objectives: {
+    id: string;
+    title: string;
+    detail: string;
+    met: boolean;
+    progress: string;
+  }[];
+  met: number;
+  total: number;
+  complete: boolean;
+  cursor: number;
+  version: number;
+  disclosure: string;
+};
+
+export type MissionCatalog = {
+  missions: {
+    id: string;
+    title: string;
+    subtitle: string;
+    lessons: string[];
+    brief: string;
+    symbol: string;
+    name: string;
+    objectives: { id: string; title: string; detail: string }[];
+  }[];
+  disclosure: string;
+};
+
 export type RunCalendar = {
   economic: {
     index: number;
@@ -347,6 +387,8 @@ export type NewsItem = {
   source: string;
   sentiment: "positive" | "negative" | "neutral";
   impact: "high" | "medium" | "low" | "none";
+  /** Signed score. One point is one basis point of modeled price move. */
+  points: number;
 };
 
 export type SentimentReading = {

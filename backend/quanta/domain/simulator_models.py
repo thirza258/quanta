@@ -14,6 +14,9 @@ class RunCreate(Model):
     mode: Literal["synthetic", "historical"] = "synthetic"
     # Omitted: derived from the run identifier so every new account differs.
     seed: StrictInt | None = Field(default=None, ge=0, le=1000000)
+    # A lesson-linked practice mission. It fixes the market so everyone attempting
+    # the same mission meets the same one.
+    mission: str | None = Field(default=None, max_length=40)
     symbol: str | None = Field(default=None, max_length=20)
     commission: Decimal = Field(default=Decimal("1"), ge=0, le=100, decimal_places=2)
     slippage_bps: Decimal = Field(default=Decimal("2"), ge=0, le=100)

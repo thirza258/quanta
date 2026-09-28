@@ -178,7 +178,8 @@ export default function OrderTicket({
             </strong>
           </div>
         </div>
-        <details className="sim-journal-fields">
+        {/* A mission that asks for a written reason should not hide the box. */}
+        <details className="sim-journal-fields" open={!!run.config.mission}>
           <summary>Trade thesis & lesson</summary>
           <label className="sim-field">
             Trade thesis

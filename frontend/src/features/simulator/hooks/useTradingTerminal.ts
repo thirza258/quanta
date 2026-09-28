@@ -13,6 +13,8 @@ import type {
   DeskView,
   Fundamentals,
   MarketIndicators,
+  MissionCatalog,
+  MissionProgress,
   NewsFeed,
   RunCalendar,
   Preferences,
@@ -25,6 +27,9 @@ import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { ApiError } from "@/shared/api/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+/** Bars a chart holds at once. The API bounds this too. */
+const CHART_BARS = 1500;
+
 type Pending = {
   path: string;
   method: string;
@@ -50,6 +55,8 @@ export function useTradingTerminal() {
     [marketError, setMarketError] = useState(""),
     [marketRetry, setMarketRetry] = useState(0);
   const [overlays, setOverlays] = useState<MarketIndicators>({});
+  const [mission, setMission] = useState<MissionProgress | null>(null),
+    [missionCatalog, setMissionCatalog] = useState<MissionCatalog | null>(null);
   const [desk, setDesk] = useState<DeskView | null>(null),
     [calendar, setCalendar] = useState<RunCalendar | null>(null),
     [analytics, setAnalytics] = useState<SymbolAnalytics | null>(null);
@@ -107,6 +114,7 @@ export function useTradingTerminal() {
   const [historyVersion, setHistoryVersion] = useState(0);
   const [newConfig, setNewConfig] = useState({
     mode: "synthetic",
+    mission: searchParams.get("mission") ?? "",
     seed: "",
     symbol: "",
     commission: "1",
@@ -276,8 +284,10 @@ export function useTradingTerminal() {
       .map(indicatorSpec)
       .filter(Boolean)
       .join(",");
-    simApi<{ bars: Candle[]; indicators: MarketIndicators }>(
-      `/runs/${run.id}/market?symbol=${encodeURIComponent(prefs.symbol)}&interval=${prefs.interval}&cursor=${run.cursor}&indicators=${encodeURIComponent(specs)}`,
+    // A generated run has no end, so the chart asks for a window of the most
+    // recent bars rather than every observation behind the cursor.
+    simApi<{ bars: Candle[]; indicators: MarketIndicators; from_bar: number }>(
+      `/runs/${run.id}/market?symbol=${encodeURIComponent(prefs.symbol)}&interval=${prefs.interval}&cursor=${run.cursor}&limit=${CHART_BARS}&indicators=${encodeURIComponent(specs)}`,
     )
       .then((data) => {
         if (active) {
@@ -334,6 +344,31 @@ export function useTradingTerminal() {
       clearTimeout(timer);
     };
   }, [run?.id, run?.cursor, prefs.symbol, wantsDesk]);
+  useEffect(() => {
+    if (!run?.config.mission) {
+      setMission(null);
+      return;
+    }
+    let active = true;
+    const timer = setTimeout(() => {
+      void simApi<MissionProgress>(`/runs/${run.id}/mission`)
+        .then((view) => {
+          if (active) setMission(view);
+        })
+        .catch(() => {
+          if (active) setMission(null);
+        });
+    }, 260);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [run?.id, run?.version, run?.config.mission]);
+  useEffect(() => {
+    void simApi<MissionCatalog>("/missions")
+      .then(setMissionCatalog)
+      .catch(() => {});
+  }, []);
   useEffect(() => {
     if (!run || !wantsCalendar) return;
     let active = true;
@@ -407,6 +442,7 @@ export function useTradingTerminal() {
   }, [run?.id, run?.cursor, prefs.symbol, run?.config.mode, wantsStatements]);
   useEffect(() => {
     setNews(null);
+    setMission(null);
     setDesk(null);
     setCalendar(null);
     setAnalytics(null);
@@ -536,7 +572,10 @@ export function useTradingTerminal() {
     const timer = setInterval(() => {
       if (busyRef.current || pendingRef.current) return;
       const current = runRef.current;
-      if (!current || current.cursor >= current.total_bars - 1) {
+      if (
+        !current ||
+        (!current.endless && current.cursor >= current.total_bars - 1)
+      ) {
         setPlaying(false);
         return;
       }
@@ -797,6 +836,7 @@ export function useTradingTerminal() {
         id: crypto.randomUUID(),
         mode: newConfig.mode,
         ...(newConfig.seed.trim() ? { seed: Number(newConfig.seed) } : {}),
+        ...(newConfig.mission ? { mission: newConfig.mission } : {}),
         ...(newConfig.mode === "historical"
           ? { symbol: newConfig.symbol }
           : {}),
@@ -871,6 +911,8 @@ export function useTradingTerminal() {
     desk,
     deskError,
     calendar,
+    mission,
+    missionCatalog,
     analytics,
     news,
     fundamentals,

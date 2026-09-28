@@ -25,6 +25,11 @@ def bootstrap(account: str = Depends(owner), db: Session = Depends(get_session))
     return service.bootstrap(account, db)
 
 
+@router.get("/missions")
+def missions():
+    return service.missions()
+
+
 @router.post("/runs")
 def create_run(
     payload: RunCreate, account: str = Depends(owner), db: Session = Depends(get_session)
@@ -45,10 +50,11 @@ def market(
     interval: Literal["1m", "5m", "15m", "1h", "1D"] = "1m",
     cursor: int | None = Query(default=None, ge=0),
     indicators: str | None = Query(default=None, max_length=200),
+    limit: int = Query(default=1500, ge=50, le=5000),
     account: str = Depends(owner),
     db: Session = Depends(get_session),
 ):
-    return service.market(run_id, symbol, interval, cursor, indicators, account, db)
+    return service.market(run_id, symbol, interval, cursor, indicators, limit, account, db)
 
 
 @router.get("/runs/{run_id}/news")
@@ -70,6 +76,11 @@ def fundamentals(
     db: Session = Depends(get_session),
 ):
     return service.fundamentals(run_id, symbol, account, db)
+
+
+@router.get("/runs/{run_id}/mission")
+def mission(run_id: str, account: str = Depends(owner), db: Session = Depends(get_session)):
+    return service.mission(run_id, account, db)
 
 
 @router.get("/runs/{run_id}/calendar")
