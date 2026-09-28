@@ -41,11 +41,16 @@ def validate(lesson_id, body, sources):
         raise ValueError(f"Research body for {lesson_id} may add at most one display equation")
     if not 2 <= len(sources) <= 5:
         raise ValueError(f"Research note for {lesson_id} needs two to five sources")
-    urls = set()
+    urls, labels = set(), set()
     for source in sources:
         if len(source) != 6:
             raise ValueError(f"Malformed research source for {lesson_id}: {source!r}")
         kind, authors, year, title, url, note = source
+        # Footer links are found by their visible name, so each must be unique.
+        label = (authors.strip().lower(), title.strip().lower())
+        if label in labels:
+            raise ValueError(f"Research source cited twice for {lesson_id}: {title}")
+        labels.add(label)
         if kind not in KINDS:
             raise ValueError(f"Unknown source kind for {lesson_id}: {kind}")
         if not (authors.strip() and len(title.strip()) >= 8 and 30 <= len(note) <= 400):

@@ -470,15 +470,14 @@ def advance_state(state, data, steps):
                 # balance going negative is the debt the margin call answers.
                 covering = max(0, min(quantity, -held))
                 funds = capital(state, data) - reserved - fee
-                affordable = covering + max(
-                    0,
-                    int(
-                        (funds / price - covering).to_integral_value(rounding=ROUND_DOWN)
-                        if funds > 0
-                        else 0
-                    ),
+                # Covering shares cost no buying power, so they are not counted
+                # against it; only what the order opens beyond the short is.
+                opening = (
+                    int((funds / price).to_integral_value(rounding=ROUND_DOWN))
+                    if funds > 0
+                    else 0
                 )
-                quantity = min(quantity, max(covering, affordable))
+                quantity = min(quantity, covering + max(0, opening))
                 if quantity == 0:
                     order.update(
                         status="rejected",

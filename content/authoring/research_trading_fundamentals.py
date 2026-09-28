@@ -44,7 +44,7 @@ Funds add one more layer. An ETF's market price is kept close to the value of it
 
 When you trace a trade, name four stages: the order, the match, clearing and settlement. For each stage, write down which institution is responsible and what could delay or reverse it.""",
         [
-            ("arxiv", "Gould, Porter, Williams, McDonald, Fenn & Howison", 2010, "Limit Order Books", "https://arxiv.org/abs/1012.0349",
+            ("arxiv", "Gould et al.", 2010, "Limit Order Books", "https://arxiv.org/abs/1012.0349",
              "Survey of how limit order books work, what empirical studies find, and where popular models fall short."),
             ("official", "U.S. SEC · Investor.gov", 2024, "New T+1 Settlement Cycle: What Investors Need To Know", "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/new-t1-settlement-cycle-what-investors-need-know-investor-bulletin",
              "Explains settlement and the U.S. move from T+2 to T+1 on 28 May 2024."),
@@ -67,9 +67,9 @@ Before submitting a practice order, compare its size with the displayed size and
         [
             ("paper", "Glosten & Milgrom", 1985, "Bid, Ask and Transaction Prices in a Specialist Market with Heterogeneously Informed Traders", "https://doi.org/10.1016/0304-405X%2885%2990044-3",
              "The classic adverse-selection model in which a bid-ask spread exists even without order-processing costs."),
-            ("arxiv", "Tóth, Lempérière, Deremble, de Lataillade, Kockelkoren & Bouchaud", 2011, "Anomalous price impact and the critical nature of liquidity in financial markets", "https://arxiv.org/abs/1105.1694",
+            ("arxiv", "Tóth et al.", 2011, "Anomalous price impact and the critical nature of liquidity in financial markets", "https://arxiv.org/abs/1105.1694",
              "A theory of thin liquidity near the price that accounts for square-root impact, with supporting data."),
-            ("arxiv", "Braun, Fiegen, Wagner, Krause & Guhr", 2017, "Impact and Recovery Process of Mini Flash Crashes: An Empirical Study", "https://arxiv.org/abs/1707.05580",
+            ("arxiv", "Braun et al.", 2017, "Impact and Recovery Process of Mini Flash Crashes: An Empirical Study", "https://arxiv.org/abs/1707.05580",
              "Shows that most millisecond-scale price crashes follow large market orders and often do not fully reverse."),
         ],
     ),
