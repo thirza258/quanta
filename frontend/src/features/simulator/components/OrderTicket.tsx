@@ -31,6 +31,13 @@ export default function OrderTicket({
   // Exits can only be attached to an entry: there is nothing for them to
   // protect on an order that is closing a position.
   const canBracket = ticket.side === "buy" && ticket.kind !== "trailing_stop";
+  const held = position?.quantity ?? 0;
+  const after = held + (ticket.side === "buy" ? quantity : -quantity);
+  // On a margin account a sale beyond what is held borrows the difference.
+  const borrowing =
+    run.account === "margin" &&
+    ticket.side === "sell" &&
+    quantity > Math.max(0, held);
   const bracket = canBracket && ticket.bracket;
   const trail = Number(ticket.trail),
     target = Number(ticket.takeProfit),
@@ -68,7 +75,8 @@ export default function OrderTicket({
                         : ticket.side === "buy" && cost > Number(run.available)
                           ? "Insufficient available cash, including working orders and fees."
                           : ticket.side === "sell" &&
-                              quantity > (position?.available ?? 0)
+                              quantity > (position?.available ?? 0) &&
+                              run.account !== "margin"
                             ? "Insufficient available shares. This account is long-only."
                             : "";
   const risk =
@@ -280,23 +288,25 @@ export default function OrderTicket({
           </div>
           <div>
             <span>
-              {ticket.side === "buy" ? "Available cash" : "Available shares"}
+              {ticket.side === "buy"
+                ? run.account === "margin"
+                  ? "Buying power"
+                  : "Available cash"
+                : "Available shares"}
             </span>
             <strong>
               {ticket.side === "buy"
-                ? dollars(run.available)
+                ? dollars(
+                    run.account === "margin" ? run.buying_power : run.available,
+                  )
                 : (position?.available ?? 0)}
             </strong>
           </div>
           <div>
             <span>Position after full fill</span>
             <strong>
-              {Math.max(
-                0,
-                (position?.quantity ?? 0) +
-                  (ticket.side === "buy" ? quantity : -quantity),
-              )}{" "}
-              shares
+              {Number.isFinite(after) ? after : 0} shares
+              {after < 0 ? " short" : ""}
             </strong>
           </div>
         </div>
@@ -338,6 +348,15 @@ export default function OrderTicket({
         >
           Preview {ticket.side} order
         </button>
+        {borrowing ? (
+          <p className="sim-small" role="note">
+            This sale borrows {quantity - Math.max(0, held)} shares. Half its
+            value is held as initial margin, the borrow accrues a fee each
+            session it stays open, and the account is bought in if equity falls
+            under 30% of what it is carrying. Dividends are not modelled in this
+            simulator, in either direction.
+          </p>
+        ) : null}
         <p className="sim-small">
           Orders become eligible on the next replay bar. Estimated prices and
           stop triggers are not guaranteed fills.

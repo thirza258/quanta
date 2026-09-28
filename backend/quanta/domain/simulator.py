@@ -5,6 +5,10 @@ from zoneinfo import ZoneInfo
 
 from quanta.domain.errors import DomainError
 
+# Reg-T style: half of a new position has to be the account's own money. Kept
+# here rather than imported, because simulator_margin imports from this module.
+INITIAL_MARGIN = Decimal("0.5")
+
 OPEN = {"working", "partially_filled"}
 # A bracket's exits exist from the moment the entry is placed, but they cannot
 # trade until it fills — the shares they would sell do not exist yet. "held" is
@@ -57,6 +61,7 @@ def reservations(state, exclude=None):
     cash = Decimal(0)
     shares = {}
     groups = {}
+    prices = {}
     for order in state["orders"]:
         if order["id"] in excluded or order["status"] not in OPEN:
             continue
@@ -66,8 +71,18 @@ def reservations(state, exclude=None):
         else:
             key = (order["symbol"], group_of(order))
             groups[key] = max(groups.get(key, 0), remaining)
+            prices[order["symbol"]] = dec(order["reserve_price"])
+    margin = state["config"].get("account") == "margin"
     for (symbol, _), remaining in groups.items():
-        shares[symbol] = shares.get(symbol, 0) + remaining
+        # Only the part of a sale covered by stock already held reserves stock.
+        # The rest would be borrowed, and what that reserves is margin: cash the
+        # account has to be able to put behind the borrow.
+        held = max(0, state["positions"].get(symbol, {}).get("quantity", 0))
+        covered = min(remaining, max(0, held - shares.get(symbol, 0)))
+        shares[symbol] = shares.get(symbol, 0) + covered
+        borrowed = remaining - covered
+        if borrowed and margin:
+            cash += INITIAL_MARGIN * prices[symbol] * borrowed
     return cash, shares
 
 
@@ -99,15 +114,38 @@ def validate_order(state, data, order, exclude=None):
     order["reserve_price"] = money(reserve_price)
     cash, shares = reservations(state, exclude)
     remaining = order["quantity"] - order["filled"]
+    margin = state["config"].get("account") == "margin"
+    # A cash account can spend its cash. A margin account can spend its buying
+    # power, which is not the same number: short proceeds are sitting in the cash
+    # balance and are owed back, so cash overstates what is actually available.
+    if margin:
+        from quanta.domain.simulator_margin import buying_power, marks
+
+        capacity = buying_power(state, marks(data, state["cursor"]))
+    else:
+        capacity = dec(state["cash"])
     if (
         order["side"] == "buy"
-        and reserve_price * remaining + dec(order["fee_remaining"]) > dec(state["cash"]) - cash
+        and reserve_price * remaining + dec(order["fee_remaining"]) > capacity - cash
     ):
-        raise DomainError("Insufficient available cash, including fees and other working orders.")
-    if order["side"] == "sell" and remaining > state["positions"].get(order["symbol"], {}).get(
-        "quantity", 0
-    ) - shares.get(order["symbol"], 0):
-        raise DomainError("Insufficient available shares. This paper account is long-only.")
+        raise DomainError(
+            "Insufficient buying power, including fees and other working orders."
+            if margin
+            else "Insufficient available cash, including fees and other working orders."
+        )
+    if order["side"] == "sell":
+        held = state["positions"].get(order["symbol"], {}).get("quantity", 0)
+        available = max(0, held) - shares.get(order["symbol"], 0)
+        borrowed = remaining - available
+        if borrowed <= 0:
+            return
+        if not margin:
+            raise DomainError("Insufficient available shares. This paper account is long-only.")
+        need = INITIAL_MARGIN * reserve_price * borrowed + dec(order["fee_remaining"])
+        if need > capacity - cash:
+            raise DomainError(
+                "Insufficient margin to borrow this stock, including other working orders."
+            )
 
 
 def validate_bracket(payload, mark):
@@ -118,7 +156,10 @@ def validate_bracket(payload, mark):
     than as the risk plan the learner wrote.
     """
     if payload.side != "buy":
-        raise DomainError("Attached exits are available on entries, not on closing orders.")
+        raise DomainError(
+            "Attached exits are available on buy entries. A short entry cannot carry "
+            "them yet; place its stop as a separate order."
+        )
     if payload.stop_loss and payload.stop_loss_trail:
         raise DomainError("A stop leg takes either a fixed price or a trail, not both.")
     reference = dec(payload.limit_price or payload.stop_price or mark)
@@ -260,6 +301,105 @@ def _sequence(state):
     return sorted(state["orders"], key=lambda order: 0 if order.get("role") == "stop" else 1)
 
 
+def session_end(data, cursor):
+    """True when the next bar belongs to a different session than this one."""
+    rows = next(iter(data.values()))
+    if cursor + 1 >= len(rows):
+        return True
+    zone = ZoneInfo("America/New_York")
+    return (
+        datetime.fromtimestamp(rows[cursor]["time"], zone).date()
+        != datetime.fromtimestamp(rows[cursor + 1]["time"], zone).date()
+    )
+
+
+def buy_in(state, data, symbol, quantity, reason):
+    """A market order the account did not ask for, to close a called position.
+
+    It is an order rather than an instant adjustment so it queues, respects the
+    same volume participation as everything else, and appears in the blotter with
+    the reason it exists. A broker closing a position does not get a better fill
+    than the learner would have.
+    """
+    bar = bar_at(data, symbol, state["cursor"])
+    state["orders"].append(
+        {
+            "id": f"buyin:{symbol}:{state['cursor']}",
+            "symbol": symbol,
+            "side": "buy",
+            "kind": "market",
+            "quantity": quantity,
+            "limit_price": None,
+            "stop_price": None,
+            "trail_percent": None,
+            "tif": "GTC",
+            "filled": 0,
+            "status": "working",
+            "average": "0.00",
+            "notional": "0.00",
+            "fee_remaining": money(state["config"]["commission"]),
+            "reserve_price": money(bar["close"] * 2),
+            "triggered": False,
+            "forced": True,
+            "activates": state["cursor"] + 1,
+            "time": bar["time"],
+            "day": datetime.fromtimestamp(bar["time"], ZoneInfo("America/New_York"))
+            .date()
+            .isoformat(),
+            "note": "",
+            "lesson": "",
+            "reason": reason,
+        }
+    )
+
+
+def settle_margin(state, data):
+    """End-of-session financing and the maintenance check, in that order.
+
+    The borrow is charged first, because it is one of the things that can push an
+    account under its requirement, and an account should be called on the balance
+    it actually has rather than on the one it had before it paid its bills.
+    """
+    from quanta.domain.simulator_margin import MAINTENANCE_MARGIN, called, charge_borrow, marks
+
+    if state["config"].get("account") != "margin":
+        return
+    cursor = state["cursor"]
+    prices = marks(data, cursor)
+    if session_end(data, cursor):
+        charge_borrow(state, prices, bar_at(data, next(iter(data)), cursor)["time"])
+    if not called(state, prices):
+        return
+    percent = int(MAINTENANCE_MARGIN * 100)
+    for symbol, quantity in list(
+        (s, p["quantity"]) for s, p in state["positions"].items() if p["quantity"] < 0
+    ):
+        pending = sum(
+            o["quantity"] - o["filled"]
+            for o in state["orders"]
+            if o.get("forced") and o["symbol"] == symbol and o["status"] in OPEN
+        )
+        outstanding = -quantity - pending
+        if outstanding > 0:
+            buy_in(
+                state,
+                data,
+                symbol,
+                outstanding,
+                f"Bought in: account equity fell under the {percent}% maintenance "
+                "requirement on its borrowed stock.",
+            )
+
+
+def capital(state, data):
+    """What the account can put behind a purchase on this bar."""
+    if state["config"].get("account") != "margin":
+        return dec(state["cash"])
+    from quanta.domain.simulator_margin import buying_power, marks
+
+    return buying_power(state, marks(data, state["cursor"]))
+
+
 def advance_state(state, data, steps):
     last = len(next(iter(data.values()))) - 1
     for _ in range(min(steps, last - state["cursor"])):
@@ -300,23 +440,32 @@ def advance_state(state, data, steps):
             if not quantity:
                 continue
             fee = dec(order["fee_remaining"])
+            held = state["positions"].get(order["symbol"], {}).get("quantity", 0)
             if order["side"] == "buy":
                 reserved, _ = reservations(state, order["id"])
-                affordable = max(
+                # Buying back borrowed stock is never refused for cash. A short
+                # that gapped against the account has to be closable, and the
+                # balance going negative is the debt the margin call answers.
+                covering = max(0, min(quantity, -held))
+                funds = capital(state, data) - reserved - fee
+                affordable = covering + max(
                     0,
                     int(
-                        ((dec(state["cash"]) - reserved - fee) / price).to_integral_value(
-                            rounding=ROUND_DOWN
-                        )
+                        (funds / price - covering).to_integral_value(rounding=ROUND_DOWN)
+                        if funds > 0
+                        else 0
                     ),
                 )
-                quantity = min(quantity, affordable)
+                quantity = min(quantity, max(covering, affordable))
                 if quantity == 0:
                     order.update(
-                        status="rejected", reason="The execution price gap exceeded available cash."
+                        status="rejected",
+                        reason="The execution price gap exceeded available buying power."
+                        if order.get("forced")
+                        else "The execution price gap exceeded available cash.",
                     )
                     continue
-            if order["side"] == "sell":
+            if order["side"] == "sell" and held >= quantity:
                 reserved, _ = reservations(state, order["id"])
                 if dec(state["cash"]) + price * quantity - fee < reserved:
                     order.update(
@@ -327,24 +476,38 @@ def advance_state(state, data, steps):
             position = state["positions"].setdefault(
                 order["symbol"], {"quantity": 0, "cost": "0.00"}
             )
-            notional = price * quantity
+            # Cost is signed: what a long paid, or minus what a short was paid.
+            # One sign convention makes `value - cost` the unrealized result and
+            # `proceeds - basis` the realized one in both directions, instead of
+            # two mirrored branches that have to be kept in agreement.
+            held, cost = position["quantity"], dec(position["cost"])
+            direction = 1 if order["side"] == "buy" else -1
+            flow = -price if order["side"] == "buy" else price
+            # A fill can close one position and open the opposite one. Selling 30
+            # while long 10 realizes a result on those 10 and shorts 20; treating
+            # it as one or the other misstates both.
+            closing = min(quantity, abs(held)) if held and (held > 0) != (direction > 0) else 0
+            opening = quantity - closing
             realized = Decimal(0)
-            if order["side"] == "buy":
-                change = -notional - fee
-                position["quantity"] += quantity
-                position["cost"] = money(dec(position["cost"]) + notional + fee)
-            else:
+            if closing:
                 # All cost is allocated on the final exit so rounding cannot leave a residue.
                 basis = (
-                    dec(position["cost"])
-                    if quantity == position["quantity"]
-                    else dec(money(dec(position["cost"]) * quantity / position["quantity"]))
+                    cost
+                    if closing == abs(held)
+                    else dec(money(cost * closing / abs(held)))
                 )
-                change = notional - fee
-                realized = change - basis
-                position["quantity"] -= quantity
-                position["cost"] = money(dec(position["cost"]) - basis)
+                realized = flow * closing - basis - fee
+                cost -= basis
+                held += direction * closing
                 state["realized"] = money(dec(state["realized"]) + realized)
+            if opening:
+                # Opening carries the fee only when no closing leg already did.
+                cost += -flow * opening + (fee if not closing else Decimal(0))
+                held += direction * opening
+            position["quantity"] = held
+            position["cost"] = money(cost)
+            notional = price * quantity
+            change = flow * quantity - fee
             state["cash"] = money(dec(state["cash"]) + change)
             order["notional"] = money(dec(order["notional"]) + notional)
             order["filled"] += quantity
@@ -353,9 +516,12 @@ def advance_state(state, data, steps):
             order["status"] = (
                 "filled" if order["filled"] == order["quantity"] else "partially_filled"
             )
-            order["reason"] = (
-                "Filled on the next eligible bar, subject to shared volume participation."
-            )
+            if not order.get("forced"):
+                # A buy-in keeps the reason it was raised for; it is the only
+                # record of why the account bought something it never asked for.
+                order["reason"] = (
+                    "Filled on the next eligible bar, subject to shared volume participation."
+                )
             used[order["symbol"]] = used.get(order["symbol"], 0) + quantity
             # An entry that filled arms its exits; an exit that filled resizes
             # its siblings. Both are the same recomputation over the group.
@@ -393,6 +559,7 @@ def advance_state(state, data, steps):
                         status="canceled",
                         reason="Remaining quantity canceled: insufficient buying power after the gap fill.",
                     )
+        settle_margin(state, data)
     retire_orphans(state)
     # At a session's last known bar, DAY orders cannot remain working overnight.
     cursor = state["cursor"]

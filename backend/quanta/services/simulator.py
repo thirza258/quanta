@@ -138,6 +138,10 @@ def create_run(payload: RunCreate, account: str, db: Session):
             raise HTTPException(404, "That practice mission does not exist.")
         if payload.mode != "synthetic":
             raise HTTPException(422, "Practice missions run on the generated market.")
+        if payload.account != "cash":
+            # Every attempt at a mission should meet the same account, and none
+            # of the missions is about short selling.
+            raise HTTPException(422, "Practice missions run on a cash account.")
         # Everyone attempting a mission meets the same market and starts together.
         config["seed"] = mission.seed
     if config["seed"] is None:

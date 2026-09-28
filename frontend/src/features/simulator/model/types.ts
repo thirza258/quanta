@@ -61,6 +61,9 @@ export type Position = {
   market_value: string;
   unrealized: string;
   available: number;
+  /** Shares a close acts on, whichever way the position faces. */
+  closable: number;
+  short: boolean;
 };
 
 export type DrawingKind =
@@ -275,6 +278,11 @@ export type SimRun = {
   reserved: string;
   available: string;
   equity: string;
+  /** What the account is carrying, counting a short at what it owes. */
+  gross_exposure: string;
+  /** Cash on a cash account; twice equity less gross on a margin one. */
+  buying_power: string;
+  account: "cash" | "margin";
   realized: string;
   config: {
     mode: "synthetic" | "historical";

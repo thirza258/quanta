@@ -696,3 +696,55 @@ test("a trailing stop follows the price up and is shown with its trail", async (
   await expect(page.locator("tbody")).toContainText("trailing-stop");
   expect(errors).toEqual([]);
 });
+
+test("a margin account sells short, carries the borrow, and buys it back", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await open(page);
+
+  // A cash account says so, and refuses a sale it cannot cover.
+  await expect(page.locator(".sim-account-metrics")).not.toContainText(
+    "MARGIN",
+  );
+
+  await page.getByLabel("New simulation run").click();
+  await page.getByLabel("Account type").selectOption("margin");
+  await page.getByRole("button", { name: "Create new paper account" }).click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expect(page.locator(".sim-account-metrics")).toContainText("MARGIN");
+  await expect(page.locator(".sim-account-metrics")).toContainText(
+    "Buying power",
+  );
+
+  await page.locator(".sim-quick-trade .sell").click();
+  await page.getByLabel("Shares", { exact: true }).fill("40");
+  // Selling stock it does not own is borrowing, and the ticket says so.
+  await expect(page.locator(".sim-ticket")).toContainText("This sale borrows");
+  await expect(page.locator(".sim-ticket")).toContainText("40 shares");
+  await expect(page.locator(".sim-ticket")).toContainText("40 shares short");
+  await submit(page, "sell");
+  await advance(page);
+
+  await page.getByRole("tab", { name: /^Positions/ }).click();
+  const position = page
+    .getByRole("tabpanel", { name: "Positions" })
+    .locator("tbody tr")
+    .first();
+  await expect(position).toContainText("-40");
+  await expect(page.locator(".sim-account-metrics")).not.toContainText(
+    "Gross $0.00",
+  );
+
+  // Close buys the borrowed stock back rather than selling more of it.
+  await position.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(page.locator(".sim-ticket")).toContainText("Preview buy order");
+  await submit(page, "buy");
+  await advance(page);
+  await page.getByRole("tab", { name: /^Positions/ }).click();
+  await expect(
+    page.getByRole("tabpanel", { name: "Positions" }).locator("tbody tr"),
+  ).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

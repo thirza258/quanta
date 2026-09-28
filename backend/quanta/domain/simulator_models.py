@@ -17,6 +17,10 @@ class RunCreate(Model):
     # A lesson-linked practice mission. It fixes the market so everyone attempting
     # the same mission meets the same one.
     mission: str | None = Field(default=None, max_length=40)
+    # A cash account can only sell what it owns. A margin account can borrow
+    # stock to sell, and pays for the privilege. Runs made before this existed
+    # are cash accounts, which is what they always were.
+    account: Literal["cash", "margin"] = "cash"
     symbol: str | None = Field(default=None, max_length=20)
     commission: Decimal = Field(default=Decimal("1"), ge=0, le=100, decimal_places=2)
     slippage_bps: Decimal = Field(default=Decimal("2"), ge=0, le=100)

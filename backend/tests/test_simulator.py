@@ -1457,3 +1457,184 @@ def test_a_trailing_bracket_leg_arms_from_what_the_entry_paid(client):
             break
         assert float(leg["stop_price"]) >= previous - 0.005
         previous = float(leg["stop_price"])
+
+
+def test_a_cash_account_is_still_long_only(client):
+    """Margin is opt-in. Nothing about an existing account changes."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    assert run["config"]["account"] == "cash"
+    refused = mutate(client, run, "orders", symbol=SYMBOL, side="sell", quantity=10)
+    assert refused.status_code == 422
+    assert "long-only" in refused.json()["detail"]
+    # Buying power on a cash account is the cash it has not committed.
+    assert run["buying_power"] == run["available"]
+    assert run["gross_exposure"] == "0.00"
+
+
+def test_shorting_realizes_on_the_cover_in_both_directions():
+    """A short's result is proceeds less what it cost to buy the stock back."""
+    s = state()
+    s["config"]["account"] = "margin"
+    s["config"]["participation"] = "1"
+    s["config"]["commission"] = "0"
+    data = bars([50, 50, 45, 45], volume=10000)
+    order(s, data, side="sell", quantity=100, fee_remaining="0.00")
+    advance_state(s, data, 1)
+    position = s["positions"]["AAPL"]
+    # Short 100 at 50: the stock is owed, and the basis is what it was sold for.
+    assert position["quantity"] == -100
+    assert position["cost"] == "-5000.00"
+    assert s["cash"] == "105000.00"
+
+    order(s, data, side="buy", quantity=100, fee_remaining="0.00")
+    advance_state(s, data, 1)
+    assert s["positions"]["AAPL"]["quantity"] == 0
+    assert s["positions"]["AAPL"]["cost"] == "0.00"
+    assert s["realized"] == "500.00"
+    assert s["cash"] == "100500.00"
+
+    # The same trade the other way round loses the same amount.
+    loss = state()
+    loss["config"].update(account="margin", participation="1", commission="0")
+    rising = bars([45, 45, 50, 50], volume=10000)
+    order(loss, rising, side="sell", quantity=100, fee_remaining="0.00")
+    advance_state(loss, rising, 1)
+    order(loss, rising, side="buy", quantity=100, fee_remaining="0.00")
+    advance_state(loss, rising, 1)
+    assert loss["realized"] == "-500.00"
+
+
+def test_a_sale_that_crosses_zero_closes_the_long_and_opens_the_short():
+    s = state()
+    s["config"].update(account="margin", participation="1", commission="0")
+    data = bars([50, 50, 60, 60], volume=10000)
+    order(s, data, side="buy", quantity=10, fee_remaining="0.00")
+    advance_state(s, data, 1)
+    assert s["positions"]["AAPL"] == {"quantity": 10, "cost": "500.00"}
+
+    # Sell 30 while long 10: ten shares are closed at a profit and twenty shorted.
+    order(s, data, side="sell", quantity=30, fee_remaining="0.00")
+    advance_state(s, data, 1)
+    position = s["positions"]["AAPL"]
+    assert position["quantity"] == -20
+    # Closed 10 at 60 against a 500 basis, then shorted 20 at 60.
+    assert s["realized"] == "100.00"
+    assert position["cost"] == "-1200.00"
+
+
+def test_borrow_is_charged_once_a_session_and_a_call_forces_a_buy_in():
+    from quanta.domain.simulator_margin import BORROW_RATE
+
+    s = state()
+    s["config"].update(account="margin", participation="1", commission="0")
+    # Two sessions of flat prices, then a gap that puts the account under water.
+    session = [50] * 3
+    data = bars(session + session, volume=10000)
+    # Second session starts a day later, so the borrow accrues twice.
+    for index, row in enumerate(data["AAPL"]):
+        if index >= 3:
+            row["time"] += 86400
+    order(s, data, side="sell", quantity=1000, fee_remaining="0.00")
+    advance_state(s, data, 5)
+    charges = [e for e in s["ledger"] if e["type"] == "borrow_fee"]
+    assert len(charges) == 2, charges
+    expected = round(50 * 1000 * float(BORROW_RATE) / 252, 2)
+    assert float(charges[0]["amount"]) == pytest.approx(-expected, abs=0.01)
+    # The ledger carries the running cash balance the performance curve reads.
+    assert charges[-1]["cash"] == s["cash"]
+
+    # A gap up large enough to breach maintenance forces a buy-in.
+    gap = state()
+    gap["config"].update(account="margin", participation="1", commission="0")
+    prices = [50, 50, 50, 50, 240, 240, 240, 240]
+    market = bars(prices, volume=100000)
+    for index, row in enumerate(market["AAPL"]):
+        if index >= 4:
+            row["time"] += 86400
+    order(gap, market, side="sell", quantity=2000, fee_remaining="0.00")
+    advance_state(gap, market, 1)
+    assert gap["positions"]["AAPL"]["quantity"] == -2000
+    advance_state(gap, market, 6)
+    forced = [o for o in gap["orders"] if o.get("forced")]
+    assert forced, "a breached maintenance requirement has to call the account"
+    assert "maintenance requirement" in forced[0]["reason"]
+    assert gap["positions"]["AAPL"]["quantity"] == 0
+    assert float(gap["realized"]) < 0
+
+
+def test_a_margin_account_shorts_through_the_api_and_reports_its_exposure(client):
+    """The whole path: a margin run, a short, its cost of carry, and the cover."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11, account="margin")
+    assert run["config"]["account"] == "margin" and run["account"] == "margin"
+    # Two to one at fifty percent initial margin, against a flat $100k account.
+    assert float(run["buying_power"]) == pytest.approx(200000, abs=1)
+
+    shorted = mutate(client, run, "orders", symbol=SYMBOL, side="sell", quantity=100).json()
+    shorted = mutate(client, shorted, "advance", steps=1).json()
+    position = next(p for p in shorted["positions"] if p["symbol"] == SYMBOL)
+    assert position["quantity"] == -100 and position["short"] is True
+    assert float(position["cost"]) < 0
+    # Short proceeds are in the cash balance but are not the account's to spend.
+    assert float(shorted["cash"]) > 100000
+    assert float(shorted["buying_power"]) < float(shorted["cash"]) * 2
+    assert float(shorted["gross_exposure"]) == pytest.approx(
+        abs(float(position["market_value"])), abs=0.02
+    )
+    # The account is worth what it was, less costs, the moment it opens.
+    assert float(shorted["equity"]) == pytest.approx(100000, abs=60)
+
+    # A session of carry leaves a borrow charge in the ledger.
+    carried = mutate(client, shorted, "advance", steps=500).json()
+    borrow = [e for e in carried["ledger"] if e["type"] == "borrow_fee"]
+    assert borrow and float(borrow[0]["amount"]) < 0
+
+    covered = mutate(client, carried, "orders", symbol=SYMBOL, side="buy", quantity=100).json()
+    covered = mutate(client, covered, "advance", steps=1).json()
+    assert all(p["quantity"] != -100 for p in covered["positions"])
+    assert float(covered["realized"]) != 0
+    # A short round trip is a closing trade, whichever side closed it.
+    desk = client.get(f"/api/v1/simulator/runs/{run['id']}/desk").json()["performance"]
+    assert desk["trades"] >= 1
+    assert desk["average_exposure"] >= 0
+
+
+def test_an_oversized_short_is_refused_before_it_is_accepted(client):
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11, account="margin")
+    quote = next(q for q in run["quotes"] if q["symbol"] == SYMBOL)
+    # Twice what fifty percent initial margin on $100k could ever support.
+    too_big = int(400000 / float(quote["close"]))
+    refused = mutate(client, run, "orders", symbol=SYMBOL, side="sell", quantity=too_big)
+    assert refused.status_code == 422 and "margin" in refused.json()["detail"]
+    # Missions stay on cash accounts, so every attempt meets the same rules.
+    bad = client.post(
+        "/api/v1/simulator/runs",
+        json={"id": ident(), "mission": "stop-discipline", "account": "margin"},
+    )
+    assert bad.status_code == 422 and "cash account" in bad.json()["detail"]
+
+
+def test_nothing_leaks_past_the_cursor_with_a_short_open(client):
+    from quanta.services.simulator_market import simulated_market
+
+    client.get("/api/v1/simulator")
+    run = create(client, seed=606, account="margin")
+    placed = mutate(client, run, "orders", symbol=SYMBOL, side="sell", quantity=60).json()
+    advanced = mutate(client, placed, "advance", steps=500).json()
+    routes = {
+        "desk": {},
+        "monitor": {"panes": "screener,heatmap", "symbol": SYMBOL, "screen": "volatile"},
+        "analytics": {"symbol": SYMBOL},
+    }
+    before = {
+        name: client.get(f"/api/v1/simulator/runs/{run['id']}/{name}", params=params).json()
+        for name, params in routes.items()
+    }
+    simulated_market(606, advanced["cursor"] + 30_000)
+    after = {
+        name: client.get(f"/api/v1/simulator/runs/{run['id']}/{name}", params=params).json()
+        for name, params in routes.items()
+    }
+    assert before == after

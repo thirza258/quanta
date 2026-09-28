@@ -128,6 +128,7 @@ export function useTradingTerminal() {
   const [newConfig, setNewConfig] = useState({
     mode: "synthetic",
     mission: searchParams.get("mission") ?? "",
+    account: "cash",
     seed: "",
     symbol: "",
     commission: "1",
@@ -816,12 +817,18 @@ export function useTradingTerminal() {
     setSideTab("Trade");
     setMobileTab("Trade");
   }
-  function closePosition(symbol: string, quantity: number) {
+  function closePosition(symbol: string, quantity: number, short = false) {
     setPlaying(false);
     setPrefs({
       symbol,
       rightOpen: true,
-      ticket: { ...emptyTicket(), side: "sell", quantity: String(quantity) },
+      // Closing a short means buying the borrowed stock back. Selling would add
+      // to it, which is the opposite of what the button says.
+      ticket: {
+        ...emptyTicket(),
+        side: short ? "buy" : "sell",
+        quantity: String(quantity),
+      },
     });
     setSideTab("Trade");
     setMobileTab("Trade");
@@ -898,6 +905,7 @@ export function useTradingTerminal() {
         mode: newConfig.mode,
         ...(newConfig.seed.trim() ? { seed: Number(newConfig.seed) } : {}),
         ...(newConfig.mission ? { mission: newConfig.mission } : {}),
+        account: newConfig.mission ? "cash" : newConfig.account,
         ...(newConfig.mode === "historical"
           ? { symbol: newConfig.symbol }
           : {}),

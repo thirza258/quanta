@@ -426,6 +426,7 @@ def performance(state, data, points=180):
             cash[at:] = float(entry["cash"])
 
     holdings = np.zeros(len(times))
+    by_symbol = {}
     attribution = {}
     marks = {}
     for fill in state["fills"]:
@@ -438,7 +439,9 @@ def performance(state, data, points=180):
         if at >= len(times):
             continue
         quantity = fill["quantity"] * (1 if fill["side"] == "buy" else -1)
-        holdings += quantity * np.concatenate((np.zeros(at), marks[symbol][at:]))
+        leg = quantity * np.concatenate((np.zeros(at), marks[symbol][at:]))
+        holdings += leg
+        by_symbol[symbol] = by_symbol.get(symbol, np.zeros(len(times))) + leg
         book = attribution.setdefault(
             symbol, {"symbol": symbol, "realized": 0.0, "fills": 0, "quantity": 0}
         )
@@ -447,12 +450,14 @@ def performance(state, data, points=180):
         book["quantity"] += quantity
 
     equity = cash + holdings
+    gross = sum((np.abs(values) for values in by_symbol.values()), np.zeros(len(times)))
     peak = np.maximum.accumulate(equity)
     drawdown = equity / peak - 1
     step = max(1, len(equity) // points)
     for symbol, book in attribution.items():
         mark = float(marks[symbol][-1])
         position = state["positions"].get(symbol, {})
+        book["short"] = position.get("quantity", 0) < 0
         book["unrealized"] = round(
             mark * position.get("quantity", 0) - float(position.get("cost", 0)), 2
         )
@@ -460,10 +465,14 @@ def performance(state, data, points=180):
         book["total"] = round(book["realized"] + book["unrealized"], 2)
         book["quantity"] = position.get("quantity", 0)
 
-    round_trips = [float(f["realized"]) for f in state["fills"] if f["side"] == "sell"]
+    # A closing trade is one that realized something, whichever side it was on.
+    # A short realizes its result when it is bought back, and its opening sale
+    # realizes nothing; counting sells would score both backwards.
+    round_trips = [float(f["realized"]) for f in state["fills"] if float(f["realized"]) != 0]
     wins = [value for value in round_trips if value > 0]
     losses = [value for value in round_trips if value < 0]
-    exposure = float(np.mean(holdings / np.where(equity == 0, 1, equity))) if len(equity) else 0.0
+    # Gross, so a short counts as exposure rather than cancelling a long.
+    exposure = float(np.mean(gross / np.where(equity == 0, 1, equity))) if len(equity) else 0.0
 
     # Against the market, not just against zero. The account and the index are
     # sampled at session closes so the annualized figures mean what they say.
@@ -492,6 +501,7 @@ def performance(state, data, points=180):
         "realized": str(dec(state["realized"])),
         "unrealized": round(sum(book["unrealized"] for book in attribution.values()), 2),
         "average_exposure": round(exposure, 4),
+        "gross_exposure": round(float(gross[-1]), 2) if len(gross) else 0.0,
         "trades": len(round_trips),
         "win_rate": round(len(wins) / len(round_trips), 4) if round_trips else None,
         "profit_factor": round(sum(wins) / -sum(losses), 3) if losses else None,

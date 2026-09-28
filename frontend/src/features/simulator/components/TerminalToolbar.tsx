@@ -73,6 +73,20 @@ export default function TerminalToolbar({
               {dollars(run.realized)}
             </strong>
           </span>
+          {run.account === "margin" ? (
+            <>
+              {/* Cash on a margin account includes short proceeds that are owed
+                  back, so the two numbers that actually constrain trading are
+                  what it can still buy and what it is already carrying. */}
+              <span>
+                Buying power <strong>{dollars(run.buying_power)}</strong>
+              </span>
+              <span title="Longs and shorts added together, not netted against each other">
+                Gross <strong>{dollars(run.gross_exposure)}</strong>
+              </span>
+              <span className="sim-paper-badge">MARGIN</span>
+            </>
+          ) : null}
         </div>
         <Link to="/" className="sim-back">
           <ArrowLeft size={14} /> Learning workspace

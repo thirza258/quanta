@@ -51,7 +51,7 @@ export default function PortfolioPanel({
   tab: TradingTab;
   setTab: (tab: TradingTab) => void;
   onSymbol: (s: string) => void;
-  onClose: (s: string, q: number) => void;
+  onClose: (s: string, q: number, short?: boolean) => void;
   onCancel: (id: string) => void;
   onAmend: (order: SimOrder) => void;
   onJournal: (order: SimOrder) => void;
@@ -193,18 +193,19 @@ export default function PortfolioPanel({
                   <td>
                     <button
                       className="sim-text-button"
-                      disabled={disabled || !p.available}
-                      onClick={() => onClose(p.symbol, p.available)}
+                      disabled={disabled || !p.closable}
+                      onClick={() => onClose(p.symbol, p.closable, p.short)}
                     >
                       Close
                     </button>{" "}
                     <button
                       className="sim-text-button"
-                      disabled={disabled || !p.available}
+                      disabled={disabled || !p.closable}
                       onClick={() =>
                         onClose(
                           p.symbol,
-                          Math.max(1, Math.floor(p.available / 2)),
+                          Math.max(1, Math.floor(p.closable / 2)),
+                          p.short,
                         )
                       }
                     >

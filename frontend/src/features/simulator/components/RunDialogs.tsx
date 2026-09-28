@@ -94,6 +94,27 @@ export default function RunDialogs({
             </small>
           </label>
           <label className="sim-field">
+            Account type
+            <select
+              value={newConfig.mission ? "cash" : newConfig.account}
+              disabled={!!newConfig.mission}
+              onChange={(e) =>
+                setNewConfig({ ...newConfig, account: e.target.value })
+              }
+            >
+              <option value="cash">Cash · long only</option>
+              <option value="margin">Margin · may sell short</option>
+            </select>
+            <small className="sim-small">
+              A cash account can only sell what it owns. A margin account can
+              borrow stock to sell: half the value is held as initial margin,
+              the borrow accrues a fee every session, and the account is bought
+              in if equity falls under 30% of what it is carrying. Dividends are
+              not modelled, in either direction. Practice missions always run on
+              a cash account.
+            </small>
+          </label>
+          <label className="sim-field">
             Market data
             <select
               value={newConfig.mode}
