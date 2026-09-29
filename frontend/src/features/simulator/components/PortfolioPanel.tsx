@@ -2,6 +2,7 @@ import {
   csv,
   dollars,
   stamp,
+  live,
   working,
 } from "@/features/simulator/model/format";
 import type {
@@ -50,7 +51,7 @@ export default function PortfolioPanel({
   tab: TradingTab;
   setTab: (tab: TradingTab) => void;
   onSymbol: (s: string) => void;
-  onClose: (s: string, q: number) => void;
+  onClose: (s: string, q: number, short?: boolean) => void;
   onCancel: (id: string) => void;
   onAmend: (order: SimOrder) => void;
   onJournal: (order: SimOrder) => void;
@@ -64,8 +65,7 @@ export default function PortfolioPanel({
   deskError: string;
   calendar: RunCalendar | null;
 }) {
-  const orders =
-    tab === "Open orders" ? run.orders.filter(working) : run.orders;
+  const orders = tab === "Open orders" ? run.orders.filter(live) : run.orders;
   const exportRows =
     tab === "Positions"
       ? run.positions
@@ -106,7 +106,7 @@ export default function PortfolioPanel({
               {t === "Positions" ? (
                 <span>{run.positions.length}</span>
               ) : t === "Open orders" ? (
-                <span>{run.orders.filter(working).length}</span>
+                <span>{run.orders.filter(live).length}</span>
               ) : null}
             </button>
           ))}
@@ -193,18 +193,19 @@ export default function PortfolioPanel({
                   <td>
                     <button
                       className="sim-text-button"
-                      disabled={disabled || !p.available}
-                      onClick={() => onClose(p.symbol, p.available)}
+                      disabled={disabled || !p.closable}
+                      onClick={() => onClose(p.symbol, p.closable, p.short)}
                     >
                       Close
                     </button>{" "}
                     <button
                       className="sim-text-button"
-                      disabled={disabled || !p.available}
+                      disabled={disabled || !p.closable}
                       onClick={() =>
                         onClose(
                           p.symbol,
-                          Math.max(1, Math.floor(p.available / 2)),
+                          Math.max(1, Math.floor(p.closable / 2)),
+                          p.short,
                         )
                       }
                     >
@@ -246,7 +247,13 @@ export default function PortfolioPanel({
                     </button>
                   </td>
                   <td className={o.side === "buy" ? "sim-up" : "sim-down"}>
-                    {o.side.toUpperCase()} · {o.kind.replace("_", "-")}
+                    {o.side.toUpperCase()} · {o.kind.replaceAll("_", "-")}
+                    {o.role ? (
+                      <small className="sim-order-reason">
+                        {o.role === "target" ? "Take profit" : "Stop loss"} on
+                        the entry above
+                      </small>
+                    ) : null}
                   </td>
                   <td>
                     {o.quantity} / {o.filled}
@@ -254,7 +261,11 @@ export default function PortfolioPanel({
                       {o.quantity - o.filled} remaining
                     </small>
                   </td>
-                  <td>{o.limit_price ?? o.stop_price ?? "Market"}</td>
+                  <td>
+                    {o.kind === "trailing_stop"
+                      ? `${o.stop_price ?? "—"} (${o.trail_percent}% trail)`
+                      : (o.limit_price ?? o.stop_price ?? "Market")}
+                  </td>
                   <td title={o.reason}>
                     <span className={`sim-order-status ${o.status}`}>
                       {o.status.replaceAll("_", " ")}
@@ -271,7 +282,7 @@ export default function PortfolioPanel({
                         >
                           Cancel
                         </button>{" "}
-                        {o.kind !== "market" ? (
+                        {o.kind !== "market" && o.kind !== "trailing_stop" ? (
                           <button
                             className="sim-text-button"
                             disabled={disabled}

@@ -1870,7 +1870,7 @@ This is a new learner-facing terminal. The existing small paper-order calculator
 #### 6.3.1 First-Release Scope & Learner Journey
 
 * **Entry points:** Add **Trading simulator** to the main navigation and links from the beginner lessons on orders, returns, risk, and the paper-trading plan. The terminal must also work independently of lesson completion.
-* **Default account:** Start with a virtual $100,000 USD cash account, whole shares, and long-only buy/sell trading. Show **Paper trading** persistently. Advanced margin, short selling, and bot execution remain subsequent releases under Section 5.3.
+* **Default account:** Start with a virtual $100,000 USD cash account, whole shares, and long-only buy/sell trading. Show **Paper trading** persistently. A run may instead be opened as a Reg-T margin account, which may sell short and carries a borrow fee and a maintenance call; it is opt-in, so the default stays a long-only cash account. Bot execution remains a subsequent release under Section 5.3.
 * **Market modes:** Support seeded synthetic markets and replay of installed historical stock datasets. Clearly display the mode, data source, interval, and simulation timestamp. Live or delayed feeds require a configured provider and are a later enhancement; neither synthetic nor replay prices may be labeled live.
 * **Primary journey:** Open the terminal → choose a stock from search or the watchlist → inspect candles and indicators → open Buy/Sell → preview and place an order → follow its status and chart marker → review or close the position → inspect P&L and trade history.
 * **Delivery sequence:** First deliver the chart workspace, then connect persistent paper orders and portfolio accounting, then complete replay, lesson integration, accessibility, and the acceptance scenarios in Section 6.3.5. The first release requires all three steps.
@@ -1949,7 +1949,9 @@ The chart is the dominant visual element. On a 1440 × 900 desktop viewport, its
 
 **Implementation status (September 14, 2026):** The first-release terminal is implemented at `/simulator`. See the [simulator guide and actual API contract](docs/SIMULATOR.md) and [acceptance and performance verification](docs/VERIFICATION.md).
 
-**Subsequent releases:** Multi-chart layouts, custom indicators, server-side price alerts, licensed live/delayed feeds, Level 2 DOM, bracket/OCO and trailing orders, realistic margin/short borrowing, TWAP/VWAP, and Python bot control. These extend the new terminal after the first-release acceptance criteria pass.
+**Delivered since the first release:** one/two/three monitor windows with generated tools (time & sales, indicative depth, sector heat map, named screens, session summaries, quotes), scored news markers on the chart, a QX-200 benchmark with alpha, beta and the risk ratios on the performance panel, attached take-profit and stop-loss exits with one-cancels-other handling, trailing stops, and optional Reg-T margin accounts with short selling, a session borrow fee and forced buy-in.
+
+**Subsequent releases:** custom indicators, server-side price alerts, licensed live/delayed feeds, a real Level 2 DOM with queue priority, TWAP/VWAP, Python bot control, and dividend crediting to holders. These extend the new terminal after the first-release acceptance criteria pass.
 
 ---
 

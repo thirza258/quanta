@@ -12,6 +12,10 @@ import {
   trackLabel,
 } from "@/features/learning/model/catalog";
 import { practiceComplete } from "@/features/learning/model/progress";
+import {
+  MISSION_TITLES,
+  missionFor,
+} from "@/features/simulator/model/missions";
 import type { Lesson } from "@/features/learning/model/types";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { Loading, Modal } from "@/shared/components/ui";
@@ -334,7 +338,24 @@ function Reader({ lesson }: { lesson: Lesson }) {
             </section>
           ) : null}
           <PracticeQuestions lesson={lesson} />
-          {["0.4", "0.5", "0.7", "0.8"].includes(lesson.id) ? (
+          {missionFor(lesson.id) ? (
+            <div className="lesson-objective">
+              <span className="eyebrow">PUT IT INTO PRACTICE</span>
+              <p>
+                <strong>{MISSION_TITLES[missionFor(lesson.id)!]}</strong> — a
+                practice mission on a virtual $100,000 account. It fixes the
+                market so everyone attempting it meets the same one, and its
+                objectives describe what you did and recorded rather than what
+                the trade returned.
+              </p>
+              <Link
+                className="text-link"
+                to={`/simulator?mission=${missionFor(lesson.id)}&lesson=${lesson.id}`}
+              >
+                Start the mission <ArrowRight size={15} />
+              </Link>
+            </div>
+          ) : ["0.8"].includes(lesson.id) ? (
             <div className="lesson-objective">
               <span className="eyebrow">PUT IT INTO PRACTICE</span>
               <p>

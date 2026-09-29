@@ -1,4 +1,4 @@
-import type { Indicator, Preferences, Ticket } from "./types";
+import type { Indicator, MonitorTool, Preferences, Ticket } from "./types";
 
 /** The overlay request the API computes; volume is already on every bar. */
 export const indicatorSpec = (i: Indicator) =>
@@ -14,6 +14,11 @@ export const emptyTicket = (): Ticket => ({
   quantity: "10",
   limit: "",
   stop: "",
+  trail: "",
+  bracket: false,
+  takeProfit: "",
+  stopLoss: "",
+  stopTrail: "",
   tif: "GTC",
   note: "",
   lesson: "",
@@ -40,7 +45,20 @@ export const defaultPreferences = (): Preferences => ({
   bottomHeight: 230,
   rightOpen: true,
   bottomOpen: true,
+  monitors: 1,
+  panes: ["tape", "heatmap"],
 });
+
+/** Tools a monitor window can show, in the order the picker offers them. */
+export const MONITOR_TOOLS: { id: MonitorTool; label: string }[] = [
+  { id: "tape", label: "Time & sales" },
+  { id: "book", label: "Order book" },
+  { id: "heatmap", label: "Heat map" },
+  { id: "screener", label: "Screener" },
+  { id: "sessions", label: "Sessions" },
+  { id: "quotes", label: "Quotes" },
+  { id: "news", label: "News" },
+];
 
 export function normalizePreferences(
   raw: Partial<Preferences> | undefined,
@@ -126,6 +144,16 @@ export function normalizePreferences(
               .slice(0, 500)
           : [],
       ]),
+  );
+  // A monitor layout saved on a desktop must not arrive on a phone as three
+  // windows in a column too short to read any of them.
+  p.monitors = ([1, 2, 3] as const).includes(p.monitors as 1 | 2 | 3)
+    ? p.monitors
+    : 1;
+  const tools = MONITOR_TOOLS.map((tool) => tool.id);
+  const panes = Array.isArray(p.panes) ? p.panes : [];
+  p.panes = [0, 1].map((slot) =>
+    tools.includes(panes[slot]) ? panes[slot] : (defaults.panes ?? [])[slot],
   );
   p.rightWidth = Math.min(420, Math.max(250, Number(p.rightWidth) || 300));
   p.bottomHeight = Math.min(420, Math.max(130, Number(p.bottomHeight) || 230));

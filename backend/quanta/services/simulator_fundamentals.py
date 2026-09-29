@@ -147,21 +147,15 @@ PROFILES = {
 DEVELOPMENT_STAGE = {"QBIT", "ZEPH", "PRNA", "HLXB", "HLSP"}
 HISTORY = 8
 # The run opens in January 2025, so the eight quarters already on file end with
-# Q3 2024, and the quarter reported during the run is Q4 2024.
-QUARTER_LABELS = [
-    "Q4 2022",
-    "Q1 2023",
-    "Q2 2023",
-    "Q3 2023",
-    "Q4 2023",
-    "Q1 2024",
-    "Q2 2024",
-    "Q3 2024",
-    "Q4 2024",
-    "Q1 2025",
-    "Q2 2025",
-    "Q3 2025",
-]
+# Q3 2024, and the first quarter reported during the run is Q4 2024. A run has no
+# fixed end, so labels continue from there for as long as it is replayed.
+FIRST_QUARTER = 3  # Q4 2022, the oldest quarter on file
+
+
+def quarter_label(position: int) -> str:
+    """Name the quarter `position` places after the oldest one on file."""
+    index = FIRST_QUARTER + position
+    return f"Q{index % 4 + 1} {2022 + index // 4}"
 
 
 def _stable(symbol: str) -> np.random.Generator:
@@ -309,7 +303,7 @@ def opening_book(company, rng) -> list[dict]:
         revenue *= (1 + shape["growth"]) ** 0.25 * float(rng.normal(1, 0.022))
         margin = shape["operating_margin"] * float(rng.normal(1, 0.05))
         quarter = _quarter(
-            company, shape, -1, QUARTER_LABELS[step], revenue * seasonal, margin, previous, True
+            company, shape, -1, quarter_label(step), revenue * seasonal, margin, previous, True
         )
         quarters.append(quarter)
         previous = quarter
@@ -330,7 +324,7 @@ def next_report(company, book, rng, surprise, index, position) -> dict:
         company,
         shape,
         index,
-        QUARTER_LABELS[min(len(book), len(QUARTER_LABELS) - 1)],
+        quarter_label(len(book)),
         revenue,
         margin,
         previous,

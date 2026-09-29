@@ -88,3 +88,24 @@ def test_the_authoring_module_cites_only_primary_sources():
     ):
         assert host in source
     assert "http://" not in source
+
+
+def test_the_lesson_to_mission_map_matches_the_client():
+    """The client holds its own copy so lesson pages need no network call."""
+    import re
+
+    from quanta.services.simulator_missions import BY_LESSON, MISSIONS
+
+    source = (
+        Path(__file__).resolve().parents[2]
+        / "frontend/src/features/simulator/model/missions.ts"
+    ).read_text(encoding="utf-8")
+    block = source[source.index("MISSION_FOR_LESSON"):source.index("MISSION_TITLES")]
+    client = dict(re.findall(r'"([\d.]+)":\s*"([a-z-]+)"', block))
+    assert client == BY_LESSON
+    titles = source[source.index("MISSION_TITLES"):]
+    named = dict(re.findall(r'"?([a-z-]+)"?:\s*"([^"]+)"', titles))
+    assert named == {mission.id: mission.title for mission in MISSIONS.values()}
+    # Every lesson a mission claims has to exist in the curriculum.
+    lessons = {module["id"] for course in CATALOG for module in course["modules"]}
+    assert set(BY_LESSON) <= lessons

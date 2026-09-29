@@ -123,6 +123,22 @@ export default function NewsPanel({
             <p className="sim-news-headline">{item.headline}</p>
             <p className="sim-news-source">
               {item.source} · {item.category}
+              {item.points ? (
+                <span
+                  className={`sim-news-points ${item.points > 0 ? "up" : "down"}`}
+                  title={`Scored ${item.points} points. One point is one basis point of modeled price move: ${(item.points / 100).toFixed(2)}% in total, 58% of it on this bar and the rest drifting.`}
+                >
+                  {item.points > 0 ? "+" : ""}
+                  {item.points} pts
+                </span>
+              ) : (
+                <span
+                  className="sim-news-points flat"
+                  title="No modeled price effect"
+                >
+                  0 pts
+                </span>
+              )}
             </p>
           </li>
         ))}

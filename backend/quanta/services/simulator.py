@@ -1,6 +1,8 @@
+import bisect
 import copy
 import hashlib
 import json
+import uuid
 from datetime import datetime
 from typing import Literal
 from uuid import uuid4
@@ -13,10 +15,14 @@ from sqlmodel import Session, select
 
 from quanta.db.models import TradingDataset, TradingRun
 from quanta.domain.simulator import (
+    HELD,
     OPEN,
     advance_state,
     bar_at,
+    dec,
     money,
+    retire_orphans,
+    validate_bracket,
     validate_order,
 )
 from quanta.domain.simulator_models import (
@@ -30,9 +36,18 @@ from quanta.domain.simulator_models import (
 )
 from quanta.services import data_store
 from quanta.services import simulator_desk as desk
-from quanta.services.simulator_fundamentals import structure, valuation
-from quanta.services.simulator_market import SESSION_BARS, markets, newsroom
-from quanta.services.simulator_news import released, sentiment
+from quanta.services import simulator_tools as tools
+from quanta.services.simulator_fundamentals import quarter_label, structure, valuation
+from quanta.services.simulator_market import (
+    SESSION_BARS,
+    markets,
+    newsroom,
+    session_open,
+)
+from quanta.services.simulator_missions import MISSIONS
+from quanta.services.simulator_missions import listing as mission_listing
+from quanta.services.simulator_missions import progress as mission_progress
+from quanta.services.simulator_news import news_window, released, report_slot, sentiment
 from quanta.services.simulator_queries import latest, run_for, snapshot
 from quanta.services.simulator_universe import (
     BY_SYMBOL,
@@ -116,6 +131,19 @@ def create_run(payload: RunCreate, account: str, db: Session):
         return snapshot(existing, db)
     requested_config = copy.deepcopy(config)
     config["execution_profile"] = "cash-whole-shares-v1"
+    mission = None
+    if config.get("mission"):
+        mission = MISSIONS.get(config["mission"])
+        if not mission:
+            raise HTTPException(404, "That practice mission does not exist.")
+        if payload.mode != "synthetic":
+            raise HTTPException(422, "Practice missions run on the generated market.")
+        if payload.account != "cash":
+            # Every attempt at a mission should meet the same account, and none
+            # of the missions is about short selling.
+            raise HTTPException(422, "Practice missions run on a cash account.")
+        # Everyone attempting a mission meets the same market and starts together.
+        config["seed"] = mission.seed
     if config["seed"] is None:
         # No seed asked for: derive one from the run identifier so each new paper
         # account gets a different market, while an idempotent retry of the same
@@ -159,7 +187,10 @@ def create_run(payload: RunCreate, account: str, db: Session):
                 "from the run's simulated news, weekday-only calendar"
             ),
         )
-        cursor = 499
+        cursor = mission.cursor if mission else 499
+    # The bar the account starts on. Performance and the benchmark are measured
+    # from here, so the market's move before the learner arrived is not scored.
+    config["start_cursor"] = cursor
     state = {
         "config": config,
         "requested_config": requested_config,
@@ -212,12 +243,22 @@ def get_run(run_id: str, account: str, db: Session):
     return snapshot(run_for(db, run_id, account), db)
 
 
+# Raw observations behind one bar of each coarser interval.
+BUCKET_BARS = {"5m": 5, "15m": 15, "1h": 60, "1D": SESSION_BARS}
+# Extra bars read before the window so exponential overlays converge to the same
+# values they would reach from the start of the run.
+OVERLAY_WARMUP = 400
+# A ceiling on observations read for one chart, so a very long run stays bounded.
+MAX_OBSERVATIONS = 120_000
+
+
 def market(
     run_id: str,
     symbol: str,
     interval: Literal["1m", "5m", "15m", "1h", "1D"],
     cursor: int | None,
     indicators: str | None,
+    limit: int,
     account: str,
     db: Session,
 ):
@@ -228,8 +269,21 @@ def market(
     if state["config"]["base_interval"] == "1D" and interval != "1D":
         raise HTTPException(422, "This dataset only supports daily bars.")
     cursor = state["cursor"] if cursor is None else min(cursor, state["cursor"])
-    rows = data[symbol][: cursor + 1]
-    if interval != "1m" and state["config"]["base_interval"] != "1D":
+    # A generated run has no end, so a chart asks for a window rather than the
+    # whole history. Read enough observations to fill it, plus a warm-up margin so
+    # the smoothed overlays match the values full history would have produced.
+    daily = state["config"]["base_interval"] == "1D"
+    per_bucket = 1 if daily or interval == "1m" else BUCKET_BARS[interval]
+    span = min(cursor + 1, (limit + OVERLAY_WARMUP) * per_bucket, MAX_OBSERVATIONS)
+    start = cursor + 1 - span
+    series = data[symbol]
+    coarser = interval != "1m" and not daily
+    if coarser and hasattr(series, "aggregate"):
+        # Generated bars are columnar, so buckets are reduced without turning
+        # every observation behind them into a dictionary first.
+        rows = series.aggregate(start, cursor + 1, per_bucket)
+    elif coarser:
+        rows = series[start : cursor + 1]
         grouped = {}
         size = {"5m": 300, "15m": 900, "1h": 3600, "1D": 86400}[interval]
         for bar in rows:
@@ -251,8 +305,11 @@ def market(
                     volume=item["volume"] + bar["volume"],
                 )
         rows = list(grouped.values())
+    else:
+        rows = series[start : cursor + 1]
     # Overlays are computed here, from the same observed bars that are returned,
-    # so the client never recomputes them and no future price can reach them.
+    # so the client never recomputes them and no future price can reach them. They
+    # are calculated across the warm-up margin and then trimmed with the bars.
     closes = [bar["close"] for bar in rows]
     computed = {}
     for spec in (indicators or "").split(",")[:8]:
@@ -262,6 +319,12 @@ def market(
         series = desk.indicator_series(closes, spec)
         if series:
             computed[spec] = series
+    if len(rows) > limit:
+        rows = rows[-limit:]
+        for series in computed.values():
+            for key, values in series.items():
+                if isinstance(values, list):
+                    series[key] = values[-limit:]
     return {
         "bars": rows,
         "version": run.version,
@@ -269,20 +332,38 @@ def market(
         "symbol": symbol,
         "interval": interval,
         "indicators": computed,
+        # The scored headlines that moved this window, bucketed onto the bars the
+        # chart is drawing. The points model is what makes the market move; it
+        # belongs where people look, not only in a panel beside it.
+        "markers": _markers(state, data[symbol], rows, symbol, cursor, per_bucket),
+        # The oldest observation in this window, so a client can tell whether more
+        # history exists behind it.
+        "from_bar": max(0, cursor + 1 - len(rows) * per_bucket),
     }
+
+
+# Names for the legs an entry can carry, so a retried request produces the same
+# identifiers rather than a second copy of the bracket.
+BRACKET = uuid.UUID("5d2f7f1c-7a5e-4a0d-8b39-2b3c8b4f9a11")
 
 
 def order_create(run_id: str, payload: OrderCreate, account: str, db: Session):
     def operation(state, data):
         if state["cursor"] >= len(next(iter(data.values()))) - 1:
             raise HTTPException(422, "Replay is complete. Start a new run to place orders.")
-        if len(state["orders"]) >= 2000:
+        bracket = payload.take_profit or payload.stop_loss or payload.stop_loss_trail
+        if len(state["orders"]) + 1 + (2 if bracket else 0) > 2000:
             raise HTTPException(422, "Order limit reached. Export and start a new run.")
-        stamp = bar_at(data, payload.symbol, state["cursor"])["time"]
+        bar = bar_at(data, payload.symbol, state["cursor"])
+        stamp = bar["time"]
         next_stamp = data[payload.symbol][state["cursor"] + 1]["time"]
+        day = datetime.fromtimestamp(next_stamp, ZoneInfo("America/New_York")).date().isoformat()
         # Orders entered after a session's final bar belong to the next session.
         order = {
-            **payload.model_dump(mode="json", exclude={"version"}),
+            **payload.model_dump(
+                mode="json",
+                exclude={"version", "take_profit", "stop_loss", "stop_loss_trail"},
+            ),
             "id": str(payload.id),
             "filled": 0,
             "status": "working",
@@ -291,13 +372,66 @@ def order_create(run_id: str, payload: OrderCreate, account: str, db: Session):
             "fee_remaining": money(state["config"]["commission"]),
             "triggered": False,
             "time": stamp,
-            "day": datetime.fromtimestamp(next_stamp, ZoneInfo("America/New_York"))
-            .date()
-            .isoformat(),
+            "day": day,
             "reason": "Accepted. Waiting for the next eligible bar.",
         }
         validate_order(state, data, order)
+        if bracket:
+            validate_bracket(payload, dec(bar["close"]))
+        if order["kind"] == "trailing_stop":
+            # The trail starts from where the market is now, not from a high it
+            # reached before the order existed.
+            order["trail_anchor"] = money(bar["close"])
+            order["stop_price"] = money(
+                dec(bar["close"]) * (1 - dec(payload.trail_percent) / 100)
+            )
         state["orders"].append(order)
+        if not bracket:
+            return
+        group = str(uuid.uuid5(BRACKET, order["id"]))
+        legs = []
+        if payload.take_profit:
+            legs.append(
+                {
+                    "role": "target",
+                    "kind": "limit",
+                    "limit_price": str(payload.take_profit),
+                    "reason": "Held: waiting for the entry it protects to fill.",
+                }
+            )
+        if payload.stop_loss or payload.stop_loss_trail:
+            legs.append(
+                {
+                    "role": "stop",
+                    "kind": "trailing_stop" if payload.stop_loss_trail else "stop",
+                    "stop_price": str(payload.stop_loss) if payload.stop_loss else None,
+                    "trail_percent": str(payload.stop_loss_trail)
+                    if payload.stop_loss_trail
+                    else None,
+                    "reason": "Held: waiting for the entry it protects to fill.",
+                }
+            )
+        for leg in legs:
+            state["orders"].append(
+                {
+                    **order,
+                    "id": str(uuid.uuid5(BRACKET, f"{order['id']}:{leg['role']}")),
+                    "side": "sell",
+                    "limit_price": None,
+                    "stop_price": None,
+                    "trail_percent": None,
+                    # An exit that protects a position is not a day order. It
+                    # would otherwise vanish at a close with the position still
+                    # open and nothing watching it.
+                    "tif": "GTC",
+                    "status": HELD,
+                    "parent_id": order["id"],
+                    "oco_group": group,
+                    "activates": None,
+                    "note": "",
+                    **leg,
+                }
+            )
 
     return mutate(db, run_id, account, payload, "order", operation)
 
@@ -318,8 +452,10 @@ def cancel(run_id: str, order_id: str, payload: Mutation, account: str, db: Sess
         order = next((o for o in state["orders"] if o["id"] == order_id), None)
         if not order:
             raise HTTPException(404, "Order not found.")
-        if order["status"] in OPEN:
+        if order["status"] in (HELD, *OPEN):
             order.update(status="canceled", reason="Unfilled remainder canceled by learner.")
+        # Cancelling an entry takes its attached exits with it.
+        retire_orphans(state)
 
     return mutate(db, run_id, account, payload, "cancel:" + order_id, operation)
 
@@ -329,6 +465,15 @@ def amend(run_id: str, order_id: str, payload: Amendment, account: str, db: Sess
         order = next((o for o in state["orders"] if o["id"] == order_id), None)
         if not order or order["status"] not in OPEN:
             raise HTTPException(409, "Only a working order can be amended.")
+        if order["kind"] == "trailing_stop":
+            # The trail resets the stop on the next bar, so an amended price here
+            # would be silently overwritten. Change the trail, or cancel and
+            # replace with a fixed stop.
+            raise HTTPException(
+                422,
+                "A trailing stop sets its own price. Cancel it and place a fixed stop "
+                "to choose the level yourself.",
+            )
         for key in ("limit_price", "stop_price"):
             value = getattr(payload, key)
             if value is not None:
@@ -365,6 +510,50 @@ def journal(run_id: str, order_id: str, payload: Journal, account: str, db: Sess
     return mutate(db, run_id, account, payload, "journal:" + order_id, operation)
 
 
+def _markers(state, series, rows, symbol, cursor, per_bucket):
+    """Group released headlines onto the returned bars, newest bucket last.
+
+    Several items can land inside one coarse bar, so they are summed: the net
+    points are what the bar actually reflects, and the strongest single headline
+    is carried for the label.
+    """
+    room = _room(state)
+    if not room or not rows:
+        return []
+    first = max(0, cursor + 1 - len(rows) * per_bucket)
+    times = [bar["time"] for bar in rows]
+    sector = BY_SYMBOL[symbol].sector if symbol in BY_SYMBOL else None
+    buckets = {}
+    for event in news_window(room, first, cursor, symbol, sector):
+        # The bar a headline belongs to is the last one that opened before it.
+        at = (
+            int(series.time[event["index"]])
+            if hasattr(series, "time")
+            else series[event["index"]]["time"]
+        )
+        slot = bisect.bisect_right(times, at) - 1
+        if slot < 0:
+            continue
+        bucket = buckets.setdefault(
+            times[slot], {"time": times[slot], "points": 0, "count": 0, "items": []}
+        )
+        bucket["points"] += event["points"]
+        bucket["count"] += 1
+        bucket["items"].append(
+            {
+                "headline": event["headline"],
+                "points": event["points"],
+                "scope": event["scope"],
+                "impact": event["impact"],
+            }
+        )
+    for bucket in buckets.values():
+        bucket["items"].sort(key=lambda item: -abs(item["points"]))
+        bucket["headline"] = bucket["items"][0]["headline"]
+        bucket["items"] = bucket["items"][:4]
+    return sorted(buckets.values(), key=lambda bucket: bucket["time"])
+
+
 def news(run_id: str, symbol: str | None, limit: int, account: str, db: Session):
     """Simulated headlines already released by the run's clock, newest first."""
     run = run_for(db, run_id, account)
@@ -389,7 +578,7 @@ def news(run_id: str, symbol: str | None, limit: int, account: str, db: Session)
     data = markets(state, db)
     if symbol and symbol not in data:
         raise HTTPException(404, "This stock is unavailable in this run.")
-    room = newsroom(config["seed"])
+    room = newsroom(config["seed"], state["cursor"])
     cursor = state["cursor"]
     times = next(iter(data.values())).time
     items = released(
@@ -434,12 +623,11 @@ def fundamentals(run_id: str, symbol: str, account: str, db: Session):
     if symbol not in data or symbol not in BY_SYMBOL:
         raise HTTPException(404, "This stock is unavailable in this run.")
     company = BY_SYMBOL[symbol]
-    room = newsroom(config["seed"])
+    room = newsroom(config["seed"], state["cursor"])
     cursor = state["cursor"]
     series = data[symbol]
     book = room.books[symbol]
     released_quarters = [q for q in book if q["index"] < 0 or q["index"] <= cursor]
-    pending = next((q for q in book if q["index"] > cursor), None)
     times = series.time
     return {
         "symbol": symbol,
@@ -457,17 +645,10 @@ def fundamentals(run_id: str, symbol: str, account: str, db: Session):
         "units": "millions of USD except per-share amounts",
         "quarters": released_quarters,
         # Only the expectation is published ahead of a print, never the result.
-        "upcoming": (
-            {
-                "label": pending["label"],
-                "time": int(times[pending["index"]]),
-                "bars_away": pending["index"] - cursor,
-                "consensus_eps": pending["consensus_eps"],
-                "consensus_revenue": pending["consensus_revenue"],
-            }
-            if pending
-            else None
-        ),
+        # The date is knowable from the calendar alone, so it is given even when
+        # the quarter itself is further out than the market has been generated;
+        # the street's estimate appears once that quarter has been scheduled.
+        "upcoming": _upcoming(config["seed"], symbol, book, cursor, times),
         "valuation": valuation(company, released_quarters, series[cursor]["close"]),
         "peers": desk.peers(state, data, room, symbol, _peer_valuation),
         "cursor": cursor,
@@ -481,7 +662,7 @@ def _room(state):
     config = state["config"]
     if config["mode"] != "synthetic" or config.get("universe") != UNIVERSE_ID:
         return None
-    return newsroom(config["seed"])
+    return newsroom(config["seed"], state["cursor"])
 
 
 def desk_view(run_id: str, account: str, db: Session):
@@ -492,6 +673,54 @@ def desk_view(run_id: str, account: str, db: Session):
     return {
         "movers": desk.movers(state, data, _room(state)),
         "performance": desk.performance(state, data),
+        "cursor": state["cursor"],
+        "version": run.version,
+        "disclosure": disclosure(state["config"]),
+    }
+
+
+# One request serves however many panes a monitor layout is showing, so adding a
+# window to the terminal does not add a round trip to every advance of the clock.
+MONITORS = {"tape", "book", "heatmap", "screener", "sessions", "quotes"}
+
+
+def monitor(
+    run_id: str,
+    panes: str,
+    symbol: str,
+    screen: str,
+    limit: int,
+    account: str,
+    db: Session,
+):
+    """Whatever tools the open monitor panes are asking for, in one response."""
+    run = run_for(db, run_id, account)
+    state = run.state
+    data = markets(state, db)
+    if symbol not in data:
+        raise HTTPException(404, "This stock is unavailable in this run.")
+    requested = [name for name in panes.split(",") if name]
+    unknown = [name for name in requested if name not in MONITORS]
+    if unknown:
+        raise HTTPException(422, f"Unknown monitor tool: {unknown[0]}.")
+    room = _room(state)
+    built = {}
+    for name in dict.fromkeys(requested):
+        if name == "tape":
+            built[name] = tools.tape(state, data, symbol, limit)
+        elif name == "book":
+            built[name] = tools.book(state, data, symbol)
+        elif name == "heatmap":
+            built[name] = tools.heatmap(state, data, room)
+        elif name == "screener":
+            built[name] = tools.screener(state, data, room, screen, limit)
+        elif name == "sessions":
+            built[name] = tools.sessions_summary(state, data, symbol)
+        elif name == "quotes":
+            built[name] = {"rows": desk.quotes_table(state, data, room)}
+    return {
+        "tools": built,
+        "symbol": symbol,
         "cursor": state["cursor"],
         "version": run.version,
         "disclosure": disclosure(state["config"]),
@@ -534,4 +763,60 @@ def calendar(run_id: str, ahead: int | None, account: str, db: Session):
         "cursor": state["cursor"],
         "version": run.version,
         "disclosure": disclosure(state["config"]),
+    }
+
+
+def _upcoming(seed, symbol, book, cursor, times):
+    """The next scheduled report: its date always, its consensus when published.
+
+    The date comes from the reporting cycle rather than from whatever the engine
+    has generated, so it does not move as blocks are produced. The estimate is
+    left open until the quarter itself is scheduled and the street sets one.
+    """
+    position, index = report_slot(seed, symbol, cursor, SESSION_BARS)
+    scheduled = next((q for q in book if q["index"] == index), None)
+    # Quarters carried in from before the run opened occupy the first label slots,
+    # so a report's label is its position in the cycle offset by that history.
+    prior = sum(1 for quarter in book if quarter["index"] < 0)
+    return {
+        "label": scheduled["label"] if scheduled else quarter_label(position + prior),
+        "time": int(times[index])
+        if index < len(times)
+        else int(session_open(index // SESSION_BARS).timestamp()),
+        "bars_away": index - int(cursor),
+        "consensus_eps": scheduled["consensus_eps"] if scheduled else None,
+        "consensus_revenue": scheduled["consensus_revenue"] if scheduled else None,
+    }
+
+
+def missions():
+    """The practice catalog, for lesson pages and the mission picker."""
+    return {"missions": mission_listing(), "disclosure": DISCLOSURE}
+
+
+def mission(run_id: str, account: str, db: Session):
+    """The run's mission and how far each of its objectives has been met."""
+    run = run_for(db, run_id, account)
+    state = run.state
+    chosen = MISSIONS.get(state["config"].get("mission") or "")
+    if not chosen:
+        raise HTTPException(404, "This run was not started from a practice mission.")
+    data = markets(state, db)
+    room = _room(state)
+    times = next(iter(data.values())).time
+    objectives = mission_progress(chosen, state, room, times)
+    return {
+        "id": chosen.id,
+        "title": chosen.title,
+        "subtitle": chosen.subtitle,
+        "brief": chosen.brief,
+        "lessons": list(chosen.lessons),
+        "symbol": chosen.symbol,
+        "objectives": objectives,
+        "met": sum(1 for o in objectives if o["met"]),
+        "total": len(objectives),
+        "complete": all(o["met"] for o in objectives),
+        "cursor": state["cursor"],
+        "version": run.version,
+        "disclosure": DISCLOSURE,
     }

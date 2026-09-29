@@ -544,3 +544,207 @@ test("simulated newsroom, company statements and performance analytics follow th
   const filled = await account(page);
   expect(filled.positions[0].quantity).toBe(10);
 });
+
+test("monitor windows add tools beside the chart and survive a reload", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await open(page);
+
+  // One window by default: the chart alone, exactly as before.
+  await expect(page.locator(".sim-monitor-pane")).toHaveCount(0);
+
+  const tape = page.waitForResponse(
+    (r) => r.url().includes("/monitor?") && r.status() === 200,
+  );
+  await page
+    .getByRole("group", { name: "Monitor windows" })
+    .getByText("2")
+    .click();
+  await tape;
+  const second = page.getByRole("region", { name: /^Monitor 2:/ });
+  await expect(second).toBeVisible();
+  await expect(
+    second.locator(".sim-tape-table tbody tr").first(),
+  ).toBeVisible();
+  // A print's price is a real number the tape shows against the clock.
+  await expect(
+    second.locator(".sim-tape-table tbody tr").first(),
+  ).toContainText("$");
+
+  // A third window is independent of the second.
+  await page
+    .getByRole("group", { name: "Monitor windows" })
+    .getByText("3")
+    .click();
+  const third = page.getByRole("region", { name: /^Monitor 3:/ });
+  await expect(third).toBeVisible();
+  await expect(third.locator(".sim-heat-cell").first()).toBeVisible();
+  await page.getByLabel("Tool for monitor 3").selectOption("screener");
+  await expect(third.getByLabel("Screen")).toBeVisible();
+  await third.getByLabel("Screen").selectOption("oversold");
+  await expect(third).toContainText("RSI under 30");
+
+  // Clicking a company in a tool moves the whole terminal to it.
+  await page.getByLabel("Tool for monitor 2").selectOption("quotes");
+  const symbol = await second
+    .locator(".sim-monitor-table tbody tr td button")
+    .first()
+    .textContent();
+  await second.locator(".sim-monitor-table tbody tr td button").first().click();
+  await expect(page.locator(".sim-symbol-details")).toContainText(
+    symbol!.trim(),
+  );
+
+  // The layout is stored with the rest of the workspace, not in the browser.
+  const saved = page.waitForResponse(
+    (r) => r.url().endsWith("/preferences") && r.request().method() === "PUT",
+  );
+  await saved;
+  await page.reload();
+  await expect(page.getByRole("region", { name: /^Monitor 2:/ })).toBeVisible();
+  await expect(page.getByRole("region", { name: /^Monitor 3:/ })).toBeVisible();
+  await expect(page.getByLabel("Tool for monitor 2")).toHaveValue("quotes");
+  await expect(page.getByLabel("Tool for monitor 3")).toHaveValue("screener");
+
+  // Advancing the clock regenerates every open tool.
+  const refreshed = page.waitForResponse((r) => r.url().includes("/monitor?"));
+  await advance(page);
+  expect((await refreshed).status()).toBe(200);
+  expect(errors).toEqual([]);
+});
+
+test("a bracket entry places both exits and arms them when it fills", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await open(page);
+  const run = await account(page);
+  const last = quoteFor(run, "NVRA").close;
+
+  await page.locator(".sim-quick-trade .buy").click();
+  await page.getByLabel("Attach exits to this entry").check();
+  await page.getByLabel("Take profit").fill((last * 1.03).toFixed(2));
+  await page.getByLabel("Stop loss").fill((last * 0.97).toFixed(2));
+  await expect(page.locator(".sim-bracket")).toContainText("Risking");
+  await expect(page.locator(".sim-bracket")).toContainText(":1");
+
+  // The preview says what is actually being sent.
+  await page
+    .getByRole("button", { name: "Preview buy order", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText("Two exits go with it");
+  await page
+    .getByRole("button", { name: "Place buy order", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+
+  // Both legs are in the blotter, held rather than working.
+  await page.getByRole("tab", { name: /^Open orders/ }).click();
+  await expect(page.locator(".sim-order-status.held")).toHaveCount(2);
+  await expect(page.locator("tbody")).toContainText("Take profit");
+  await expect(page.locator("tbody")).toContainText("Stop loss");
+
+  // The entry fills and both exits arm for what it bought.
+  await advance(page);
+  await expect(page.locator(".sim-order-status.held")).toHaveCount(0);
+  await expect(page.locator(".sim-order-status.working")).toHaveCount(2);
+
+  // A stop above the entry is refused before anything is sent.
+  await page
+    .getByRole("button", { name: /^Trade/ })
+    .first()
+    .click();
+  await page.getByLabel("Stop loss").fill((last * 1.2).toFixed(2));
+  await expect(page.locator(".sim-validation")).toContainText(
+    "below the entry it protects",
+  );
+  await expect(
+    page.getByRole("button", { name: "Preview buy order", exact: true }),
+  ).toBeDisabled();
+  expect(errors).toEqual([]);
+});
+
+test("a trailing stop follows the price up and is shown with its trail", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await open(page);
+  await page.locator(".sim-quick-trade .buy").click();
+  await page.getByLabel("Shares", { exact: true }).fill("20");
+  await submit(page);
+  await advance(page);
+
+  await page.getByRole("button", { name: "Sell", exact: true }).click();
+  await page.getByLabel("Order type").selectOption("trailing_stop");
+  await page.getByLabel("Shares", { exact: true }).fill("20");
+  await page.getByLabel("Trail (% below the high)").fill("4");
+  await page
+    .getByRole("button", { name: "Preview sell order", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText("Trailing 4%");
+  await page
+    .getByRole("button", { name: "Place sell order", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+
+  await page.getByRole("tab", { name: /^Open orders/ }).click();
+  await expect(page.locator("tbody")).toContainText("4% trail");
+  await expect(page.locator("tbody")).toContainText("trailing-stop");
+  expect(errors).toEqual([]);
+});
+
+test("a margin account sells short, carries the borrow, and buys it back", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await open(page);
+
+  // A cash account says so, and refuses a sale it cannot cover.
+  await expect(page.locator(".sim-account-metrics")).not.toContainText(
+    "MARGIN",
+  );
+
+  await page.getByLabel("New simulation run").click();
+  await page.getByLabel("Account type").selectOption("margin");
+  await page.getByRole("button", { name: "Create new paper account" }).click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expect(page.locator(".sim-account-metrics")).toContainText("MARGIN");
+  await expect(page.locator(".sim-account-metrics")).toContainText(
+    "Buying power",
+  );
+
+  await page.locator(".sim-quick-trade .sell").click();
+  await page.getByLabel("Shares", { exact: true }).fill("40");
+  // Selling stock it does not own is borrowing, and the ticket says so.
+  await expect(page.locator(".sim-ticket")).toContainText("This sale borrows");
+  await expect(page.locator(".sim-ticket")).toContainText("40 shares");
+  await expect(page.locator(".sim-ticket")).toContainText("40 shares short");
+  await submit(page, "sell");
+  await advance(page);
+
+  await page.getByRole("tab", { name: /^Positions/ }).click();
+  const position = page
+    .getByRole("tabpanel", { name: "Positions" })
+    .locator("tbody tr")
+    .first();
+  await expect(position).toContainText("-40");
+  await expect(page.locator(".sim-account-metrics")).not.toContainText(
+    "Gross $0.00",
+  );
+
+  // Close buys the borrowed stock back rather than selling more of it.
+  await position.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(page.locator(".sim-ticket")).toContainText("Preview buy order");
+  await submit(page, "buy");
+  await advance(page);
+  await page.getByRole("tab", { name: /^Positions/ }).click();
+  await expect(
+    page.getByRole("tabpanel", { name: "Positions" }).locator("tbody tr"),
+  ).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

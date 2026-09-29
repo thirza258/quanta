@@ -9,12 +9,17 @@ The schedule is a pure function of the run seed, so replaying a run reproduces
 the identical feed, and no item is ever released ahead of the run's cursor.
 """
 
+import hashlib
+import re
 from dataclasses import dataclass, field
 
 import numpy as np
 
 from quanta.services.simulator_fundamentals import next_report, opening_book
 from quanta.services.simulator_universe import BY_SYMBOL, COMPANIES, SECTORS
+
+# Every company reports once a quarter, on the same cycle however long a run runs.
+QUARTER_SESSIONS = 63
 
 WIRES = [
     "Quanta Newswire",
@@ -151,7 +156,7 @@ COMPANY_TEMPLATES = {
         ],
         [
             "{n} sued over {s} contracts; {amount} claimed",
-            "{n} takes a {amount} charge to resolve {s} claims",
+            "{n} takes a charge of {amount} to resolve {s} claims",
         ],
     ),
     "supply": (
@@ -166,13 +171,13 @@ COMPANY_TEMPLATES = {
     ),
     "capital": (
         [
-            "{n} announces a {amount} share repurchase",
+            "{n} announces a share repurchase of {amount}",
             "{n} raises its dividend by {pct}%",
             "{n} refinances debt at a lower coupon",
         ],
         [
             "{n} suspends its dividend to fund {s} investment",
-            "{n} prices a {amount} equity offering below market",
+            "{n} prices an equity offering of {amount} below market",
             "{n} draws on its credit facility to bridge a working-capital gap",
         ],
     ),
@@ -247,24 +252,36 @@ MACRO_TEMPLATES = {
 OPEN_WRAP = "Opening bell: {index} starts the session {dir}"
 CLOSE_WRAP = "Closing bell: {index} ends the session {dir}"
 
-# category -> (probability weight, magnitude low, magnitude high, drift bars)
+# Every item carries an integer score. One point moves the price it applies to by
+# one basis point, so a +250 point headline is a modeled +2.50% move: 58% of it on
+# the bar the item is dated, the rest drifting over the bars that follow. Nothing
+# is inferred by a model at request time; the score is drawn here and the price
+# engine simply applies it.
+POINT = 0.0001
+
+# category -> (probability weight, points low, points high, drift bars)
 COMPANY_EVENTS = {
-    "guidance": (0.13, 0.016, 0.055, 120),
-    "analyst": (0.22, 0.004, 0.019, 45),
-    "product": (0.14, 0.007, 0.032, 80),
-    "regulatory": (0.08, 0.010, 0.048, 100),
-    "legal": (0.06, 0.008, 0.038, 90),
-    "supply": (0.10, 0.008, 0.030, 70),
-    "capital": (0.10, 0.005, 0.024, 60),
-    "deal": (0.05, 0.030, 0.110, 140),
-    "leadership": (0.05, 0.003, 0.017, 40),
+    "guidance": (0.13, 160, 550, 120),
+    "analyst": (0.22, 40, 190, 45),
+    "product": (0.14, 70, 320, 80),
+    "regulatory": (0.08, 100, 480, 100),
+    "legal": (0.06, 80, 380, 90),
+    "supply": (0.10, 80, 300, 70),
+    "capital": (0.10, 50, 240, 60),
+    "deal": (0.05, 300, 1100, 140),
+    "leadership": (0.05, 30, 170, 40),
 }
-TIERS = ((0.05, "high"), (0.018, "medium"), (0.0, "low"))
+TIERS = ((400, "high"), (120, "medium"), (0, "low"))
 
 
-def _tier(magnitude: float) -> str:
+def _tier(points: int) -> str:
+    """Impact tier from the absolute score, so the label and the number agree.
+
+    A macroeconomic release reaches every company, but the tier describes what it
+    does to one price, which is what the score measures.
+    """
     for threshold, label in TIERS:
-        if magnitude >= threshold:
+        if abs(points) >= threshold:
             return label
     return "low"
 
@@ -336,8 +353,9 @@ def _excite(room, index, magnitude, span, symbols, scale=1.0):
         room.volume[symbol][window] += min(6.0, 2.2 * weight) * np.exp(-steps / max(span / 5.0, 1))
 
 
-def _apply(room, index, magnitude, sign, span, market=False, sector=None, symbol=None):
-    """Split a shock into an immediate move and a decaying follow-through."""
+def _apply(room, index, points, sign, span, market=False, sector=None, symbol=None):
+    """Split a scored shock into an immediate move and a decaying follow-through."""
+    magnitude = abs(points) * POINT
     target = room.market if market else room.sector[sector] if sector else room.company[symbol]
     length = len(target)
     if index >= length:
@@ -365,28 +383,45 @@ def _money(value):
     return f"${value / 1000:.2f}bn" if value >= 1000 else f"${value}m"
 
 
+# A template writes "a {s}"; the segment that lands in the slot decides whether
+# that reads as "a" or "an". Fixing it after substitution keeps the templates
+# readable instead of doubling each one.
+_ARTICLE = re.compile(r"\b([Aa])n? (?=[aeiouAEIOU])|\b([Aa])n (?=[^aeiouAEIOU\s$0-9])")
+
+
+def _articles(text: str) -> str:
+    def swap(match):
+        if match.group(1):
+            return f"{match.group(1)}n "
+        return f"{match.group(2)} "
+
+    return _ARTICLE.sub(swap, text)
+
+
 def _fill(rng, template, company=None, sector=None, body=None, pct=(0.2, 14.0)):
     segments = SEGMENTS.get(sector or (company.sector if company else ""), ["core"])
     quarter = int(rng.integers(4))
-    return template.format(
-        n=company.name if company else "",
-        p=_possessive(company.name) if company else "",
-        t=company.symbol if company else "",
-        s=_pick(rng, segments),
-        sector=sector or (company.sector if company else ""),
-        q=QUARTERS[quarter],
-        qa=QUARTERS_ADJ[quarter],
-        r=_pick(rng, REGIONS),
-        b=_pick(rng, BROKERS),
-        a=_pick(rng, ANALYSTS),
-        body=body or "",
-        index=INDEX,
-        pct=round(float(rng.uniform(*pct)), 1),
-        amount=_money(int(rng.integers(40, 4800))),
-        jobs=int(rng.integers(20, 420)),
-        bps=int(_pick(rng, [25, 50])),
-        target=f"${company.price * rng.uniform(0.7, 1.4):,.2f}" if company else "",
-        dir="",
+    return _articles(
+        template.format(
+            n=company.name if company else "",
+            p=_possessive(company.name) if company else "",
+            t=company.symbol if company else "",
+            s=_pick(rng, segments),
+            sector=sector or (company.sector if company else ""),
+            q=QUARTERS[quarter],
+            qa=QUARTERS_ADJ[quarter],
+            r=_pick(rng, REGIONS),
+            b=_pick(rng, BROKERS),
+            a=_pick(rng, ANALYSTS),
+            body=body or "",
+            index=INDEX,
+            pct=round(float(rng.uniform(*pct)), 1),
+            amount=_money(int(rng.integers(40, 4800))),
+            jobs=int(rng.integers(20, 420)),
+            bps=int(_pick(rng, [25, 50])),
+            target=f"${company.price * rng.uniform(0.7, 1.4):,.2f}" if company else "",
+            dir="",
+        )
     )
 
 
@@ -403,9 +438,45 @@ def _summary(rng, category, company, headline):
     )
 
 
-def schedule(seed: int, sessions: int, session_bars: int) -> Newsroom:
+def report_session(seed: int, symbol: str) -> int:
+    """The first session in which a company reports. It repeats every quarter.
+
+    Derived from the seed and the ticker alone, so the reporting calendar is the
+    same however far into a run the sessions it covers are generated.
+    """
+    digest = hashlib.sha256(f"quanta-calendar:{seed}:{symbol}".encode()).hexdigest()
+    # The first season falls inside the opening month so a new account meets
+    # earnings early; after that each company reports on its own quarterly cycle.
+    return 3 + int(digest[:8], 16) % 18
+
+
+def report_slot(seed: int, symbol: str, cursor: int, session_bars: int) -> tuple[int, int]:
+    """Position and bar of the next report a company has not yet printed.
+
+    Fixed by the seed and the ticker alone, so the answer does not move as more of
+    the market is generated. A diary entry is knowable before the result exists;
+    tying it to block depth would make the same run show a different calendar
+    depending on how far ahead the engine happened to have run.
+    """
+    first = report_session(seed, symbol)
+    current = int(cursor) // session_bars
+    position = 0 if current < first else (current - first) // QUARTER_SESSIONS + 1
+    return position, (first + position * QUARTER_SESSIONS) * session_bars
+
+
+def schedule(
+    seed: int, first_session: int, sessions: int, session_bars: int, books=None
+) -> Newsroom:
+    """Headlines and shocks for the sessions [first_session, first_session + sessions).
+
+    A run has no fixed end, so the tape is produced a block of sessions at a time.
+    Each block draws from a stream keyed to its own first session, and carries the
+    reporting books forward, so a block generated later is identical to the same
+    block generated earlier.
+    """
     total = sessions * session_bars
-    rng = np.random.default_rng((seed * 2654435761 + 0x5EED) % (2**63))
+    offset = first_session * session_bars
+    rng = np.random.default_rng([seed, first_session])
     room = Newsroom(
         market=np.zeros(total),
         sector={name: np.zeros(total) for name in SECTORS},
@@ -419,34 +490,36 @@ def schedule(seed: int, sessions: int, session_bars: int) -> Newsroom:
     weights = weights / weights.sum()
 
     def emit(index, **item):
-        events.append({"index": int(index), **item})
+        # Indices leave this function absolute; the shock arrays stay block-local.
+        events.append({"index": int(offset + index), **item})
 
-    # Reporting season. Every company publishes one quarter during the run, at a
-    # session open, so the print lands with the gap it causes.
-    room.books = {c.symbol: opening_book(c, rng) for c in COMPANIES}
-    room.calendar = {
-        c.symbol: int(rng.integers(3, max(4, sessions - 1))) * session_bars for c in COMPANIES
-    }
+    # Reporting season. Every company publishes once a quarter, at a session open,
+    # so the print lands with the gap it causes.
+    room.books = books if books is not None else {c.symbol: opening_book(c, rng) for c in COMPANIES}
+    room.calendar = {c.symbol: report_session(seed, c.symbol) for c in COMPANIES}
     reporting = {}
-    for symbol, index in room.calendar.items():
-        reporting.setdefault(index // session_bars, []).append(symbol)
+    for symbol, first in room.calendar.items():
+        for session in range(sessions):
+            absolute = first_session + session
+            if absolute >= first and (absolute - first) % QUARTER_SESSIONS == 0:
+                reporting.setdefault(session, []).append(symbol)
 
     for session in range(sessions):
         base = session * session_bars
         # Macro releases land near the open and mid-session, and move every name.
-        for slot, offset in enumerate((0, int(session_bars * 0.52))):
+        for slot, minute in enumerate((0, int(session_bars * 0.52))):
             topic = _pick(rng, list(MACRO_TEMPLATES))
             good = bool(rng.random() < 0.5)
-            magnitude = float(rng.uniform(0.002, 0.011))
+            points = int(rng.integers(20, 110))
             sign = 1 if good else -1
-            index = min(total - 1, base + offset + int(rng.integers(0, 4)))
+            index = min(total - 1, base + minute + int(rng.integers(0, 4)))
             headline = _fill(
                 rng,
                 MACRO_TEMPLATES[topic][0 if good else 1][0],
                 body=MACRO_BODIES[topic],
                 pct=(0.1, 4.5),
             )
-            _apply(room, index, magnitude, sign, int(session_bars * 1.2), market=True)
+            _apply(room, index, points, sign, int(session_bars * 1.2), market=True)
             emit(
                 index,
                 scope="macro",
@@ -462,12 +535,13 @@ def schedule(seed: int, sessions: int, session_bars: int) -> Newsroom:
                 ),
                 source=_pick(rng, WIRES),
                 sentiment="positive" if good else "negative",
-                impact=_tier(magnitude * 4),
+                impact=_tier(points),
+                points=sign * points,
                 slot=slot,
             )
         # A session wrap at the open and the close keeps the tape populated.
-        for offset, template in ((1, OPEN_WRAP), (session_bars - 2, CLOSE_WRAP)):
-            index = min(total - 1, base + offset)
+        for minute, template in ((1, OPEN_WRAP), (session_bars - 2, CLOSE_WRAP)):
+            index = min(total - 1, base + minute)
             emit(
                 index,
                 scope="market",
@@ -481,16 +555,17 @@ def schedule(seed: int, sessions: int, session_bars: int) -> Newsroom:
                 source=_pick(rng, WIRES),
                 sentiment="neutral",
                 impact="low",
+                points=0,
                 slot=0,
             )
         for sector in SECTORS:
             if rng.random() > 0.45:
                 continue
             good = bool(rng.random() < 0.5)
-            magnitude = float(rng.uniform(0.003, 0.018))
+            points = int(rng.integers(30, 180))
             index = min(total - 1, base + int(rng.integers(0, session_bars)))
             headline = _fill(rng, _pick(rng, SECTOR_TEMPLATES[0 if good else 1]), sector=sector)
-            _apply(room, index, magnitude, 1 if good else -1, 140, sector=sector)
+            _apply(room, index, points, 1 if good else -1, 140, sector=sector)
             emit(
                 index,
                 scope="sector",
@@ -504,20 +579,23 @@ def schedule(seed: int, sessions: int, session_bars: int) -> Newsroom:
                 ),
                 source=_pick(rng, WIRES),
                 sentiment="positive" if good else "negative",
-                impact=_tier(magnitude * 3),
+                impact=_tier(points),
+                points=(1 if good else -1) * points,
                 slot=0,
             )
         for symbol in reporting.get(session, []):
             company = BY_SYMBOL[symbol]
             book = room.books[symbol]
             surprise = float(np.clip(rng.normal(0.008, 0.062), -0.28, 0.28))
-            index = min(total - 1, room.calendar[symbol])
-            quarter = next_report(company, book, rng, surprise, index, len(book))
+            index = min(total - 1, session * session_bars)
+            quarter = next_report(company, book, rng, surprise, offset + index, len(book))
             book.append(quarter)
             growth = quarter["revenue"] / book[-5]["revenue"] - 1
-            magnitude = min(
-                0.14,
-                abs(surprise) * 0.62 * min(1.8, max(0.5, company.volatility / 0.40)) + 0.004,
+            # A one-percentage-point surprise is worth about 62 points before the
+            # company's own volatility scales it, and the print is capped at 1,400.
+            points = min(
+                1400,
+                int(abs(surprise) * 6200 * min(1.8, max(0.5, company.volatility / 0.40))) + 40,
             )
             headline = EARNINGS_TEMPLATES[0 if surprise >= 0 else 1][int(rng.integers(2))].format(
                 n=company.name,
@@ -526,7 +604,7 @@ def schedule(seed: int, sessions: int, session_bars: int) -> Newsroom:
                 eps=f"${quarter['eps']:,.2f}",
                 consensus=f"${quarter['consensus_eps']:,.2f}",
             )
-            _apply(room, index, magnitude, 1 if surprise >= 0 else -1, 170, symbol=symbol)
+            _apply(room, index, points, 1 if surprise >= 0 else -1, 170, symbol=symbol)
             emit(
                 index,
                 scope="company",
@@ -541,7 +619,8 @@ def schedule(seed: int, sessions: int, session_bars: int) -> Newsroom:
                 ),
                 source=FILINGS,
                 sentiment="positive" if surprise >= 0 else "negative",
-                impact=_tier(magnitude),
+                impact=_tier(points),
+                points=(1 if surprise >= 0 else -1) * points,
                 slot=0,
             )
             # A preview two sessions earlier publishes only the expectation.
@@ -565,6 +644,7 @@ def schedule(seed: int, sessions: int, session_bars: int) -> Newsroom:
                 source=_pick(rng, WIRES),
                 sentiment="neutral",
                 impact="none",
+                points=0,
                 slot=0,
             )
         for company in COMPANIES:
@@ -573,14 +653,14 @@ def schedule(seed: int, sessions: int, session_bars: int) -> Newsroom:
                 _, low, high, span = COMPANY_EVENTS[category]
                 good = bool(rng.random() < (0.40 if category in ("regulatory", "legal") else 0.51))
                 # A utility does not move like a quantum-computing venture on the
-                # same kind of headline, so scale the shock to the company.
-                magnitude = float(rng.uniform(low, high)) * min(
-                    1.8, max(0.45, company.volatility / 0.40)
+                # same kind of headline, so scale the score to the company.
+                points = int(
+                    rng.integers(low, high) * min(1.8, max(0.45, company.volatility / 0.40))
                 )
                 index = min(total - 1, base + int(rng.integers(0, session_bars)))
                 template = _pick(rng, COMPANY_TEMPLATES[category][0 if good else 1])
                 headline = _fill(rng, template, company=company)
-                _apply(room, index, magnitude, 1 if good else -1, span, symbol=company.symbol)
+                _apply(room, index, points, 1 if good else -1, span, symbol=company.symbol)
                 emit(
                     index,
                     scope="company",
@@ -591,7 +671,8 @@ def schedule(seed: int, sessions: int, session_bars: int) -> Newsroom:
                     summary=_summary(rng, category, company, headline),
                     source=FILINGS if category == "capital" else _pick(rng, WIRES),
                     sentiment="positive" if good else "negative",
-                    impact=_tier(magnitude),
+                    impact=_tier(points),
+                    points=(1 if good else -1) * points,
                     slot=0,
                 )
             for _ in range(int(rng.poisson(0.75 * company.news_rate))):
@@ -608,6 +689,7 @@ def schedule(seed: int, sessions: int, session_bars: int) -> Newsroom:
                     source=_pick(rng, WIRES),
                     sentiment="neutral",
                     impact="none",
+                    points=0,
                     slot=0,
                 )
     events.sort(key=lambda e: (e["index"], e["scope"], e["symbol"] or "", e["headline"]))
@@ -637,6 +719,28 @@ def released(room: Newsroom, cursor: int, symbol=None, sector=None, limit=60) ->
         items.append(event)
         if len(items) >= limit:
             break
+    return items
+
+
+def news_window(room: Newsroom, first: int, cursor: int, symbol=None, sector=None) -> list[dict]:
+    """Released items inside [first, cursor], oldest first.
+
+    The same relevance filter `released` applies, bounded at both ends so a chart
+    can mark only the events inside the window it is actually drawing.
+    """
+    items = []
+    for event in room.events:
+        if event["index"] < first:
+            continue
+        if event["index"] > cursor:
+            break
+        if symbol and not (
+            event["symbol"] == symbol
+            or (event["scope"] == "sector" and event["sector"] == sector)
+            or event["scope"] in ("macro", "market")
+        ):
+            continue
+        items.append(event)
     return items
 
 

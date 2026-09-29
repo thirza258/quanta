@@ -13,6 +13,10 @@ import type {
   DeskView,
   Fundamentals,
   MarketIndicators,
+  MissionCatalog,
+  MissionProgress,
+  MonitorView,
+  NewsMarker,
   NewsFeed,
   RunCalendar,
   Preferences,
@@ -25,6 +29,9 @@ import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { ApiError } from "@/shared/api/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+/** Bars a chart holds at once. The API bounds this too. */
+const CHART_BARS = 1500;
+
 type Pending = {
   path: string;
   method: string;
@@ -50,6 +57,9 @@ export function useTradingTerminal() {
     [marketError, setMarketError] = useState(""),
     [marketRetry, setMarketRetry] = useState(0);
   const [overlays, setOverlays] = useState<MarketIndicators>({});
+  const [markers, setMarkers] = useState<NewsMarker[]>([]);
+  const [mission, setMission] = useState<MissionProgress | null>(null),
+    [missionCatalog, setMissionCatalog] = useState<MissionCatalog | null>(null);
   const [desk, setDesk] = useState<DeskView | null>(null),
     [calendar, setCalendar] = useState<RunCalendar | null>(null),
     [analytics, setAnalytics] = useState<SymbolAnalytics | null>(null);
@@ -57,6 +67,9 @@ export function useTradingTerminal() {
     [fundamentals, setFundamentals] = useState<Fundamentals | null>(null),
     [fundamentalsError, setFundamentalsError] = useState(""),
     [deskError, setDeskError] = useState("");
+  const [monitor, setMonitor] = useState<MonitorView | null>(null),
+    [monitorError, setMonitorError] = useState(""),
+    [screen, setScreen] = useState("all");
   const suggestedWatchlist = useRef<string[]>([]);
   const [connectionError, setConnectionError] = useState("");
   const loadSequence = useRef(0);
@@ -94,6 +107,13 @@ export function useTradingTerminal() {
   const wantsStatements = tab === "Company" || exportOpen;
   const wantsDesk = sideTab === "Desk" || tab === "Performance" || exportOpen;
   const wantsCalendar = tab === "Calendar" || exportOpen;
+  // A monitor window declares what it needs; the hook fetches the union of those
+  // in one request, so a second and third window cost no extra round trips.
+  const openPanes = (prefs.panes ?? [])
+    .slice(0, Math.max(0, (prefs.monitors ?? 1) - 1))
+    // News already streams into the terminal on its own feed.
+    .filter((pane) => pane !== "news");
+  const paneKey = [...new Set(openPanes)].sort().join(",");
   const [tool, setTool] = useState<DrawingKind | "cursor">("cursor"),
     [selectedDrawing, setSelectedDrawing] = useState<string | null>(null);
   const [chartAction, setChartAction] = useState<{
@@ -107,6 +127,8 @@ export function useTradingTerminal() {
   const [historyVersion, setHistoryVersion] = useState(0);
   const [newConfig, setNewConfig] = useState({
     mode: "synthetic",
+    mission: searchParams.get("mission") ?? "",
+    account: "cash",
     seed: "",
     symbol: "",
     commission: "1",
@@ -276,13 +298,21 @@ export function useTradingTerminal() {
       .map(indicatorSpec)
       .filter(Boolean)
       .join(",");
-    simApi<{ bars: Candle[]; indicators: MarketIndicators }>(
-      `/runs/${run.id}/market?symbol=${encodeURIComponent(prefs.symbol)}&interval=${prefs.interval}&cursor=${run.cursor}&indicators=${encodeURIComponent(specs)}`,
+    // A generated run has no end, so the chart asks for a window of the most
+    // recent bars rather than every observation behind the cursor.
+    simApi<{
+      bars: Candle[];
+      indicators: MarketIndicators;
+      markers: NewsMarker[];
+      from_bar: number;
+    }>(
+      `/runs/${run.id}/market?symbol=${encodeURIComponent(prefs.symbol)}&interval=${prefs.interval}&cursor=${run.cursor}&limit=${CHART_BARS}&indicators=${encodeURIComponent(specs)}`,
     )
       .then((data) => {
         if (active) {
           setBars(data.bars);
           setOverlays(data.indicators ?? {});
+          setMarkers(data.markers ?? []);
         }
       })
       .catch((e) => {
@@ -334,6 +364,61 @@ export function useTradingTerminal() {
       clearTimeout(timer);
     };
   }, [run?.id, run?.cursor, prefs.symbol, wantsDesk]);
+  useEffect(() => {
+    if (!run || !paneKey) {
+      setMonitor(null);
+      return;
+    }
+    let active = true;
+    const timer = setTimeout(() => {
+      void simApi<MonitorView>(
+        `/runs/${run.id}/monitor?panes=${paneKey}&symbol=${encodeURIComponent(
+          prefs.symbol,
+        )}&screen=${encodeURIComponent(screen)}`,
+      )
+        .then((view) => {
+          if (active) {
+            setMonitor(view);
+            setMonitorError("");
+          }
+        })
+        .catch((e) => {
+          if (active) {
+            setMonitor(null);
+            setMonitorError((e as Error).message);
+          }
+        });
+    }, 280);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [run?.id, run?.cursor, prefs.symbol, paneKey, screen]);
+  useEffect(() => {
+    if (!run?.config.mission) {
+      setMission(null);
+      return;
+    }
+    let active = true;
+    const timer = setTimeout(() => {
+      void simApi<MissionProgress>(`/runs/${run.id}/mission`)
+        .then((view) => {
+          if (active) setMission(view);
+        })
+        .catch(() => {
+          if (active) setMission(null);
+        });
+    }, 260);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [run?.id, run?.version, run?.config.mission]);
+  useEffect(() => {
+    void simApi<MissionCatalog>("/missions")
+      .then(setMissionCatalog)
+      .catch(() => {});
+  }, []);
   useEffect(() => {
     if (!run || !wantsCalendar) return;
     let active = true;
@@ -407,6 +492,7 @@ export function useTradingTerminal() {
   }, [run?.id, run?.cursor, prefs.symbol, run?.config.mode, wantsStatements]);
   useEffect(() => {
     setNews(null);
+    setMission(null);
     setDesk(null);
     setCalendar(null);
     setAnalytics(null);
@@ -536,7 +622,10 @@ export function useTradingTerminal() {
     const timer = setInterval(() => {
       if (busyRef.current || pendingRef.current) return;
       const current = runRef.current;
-      if (!current || current.cursor >= current.total_bars - 1) {
+      if (
+        !current ||
+        (!current.endless && current.cursor >= current.total_bars - 1)
+      ) {
         setPlaying(false);
         return;
       }
@@ -728,12 +817,18 @@ export function useTradingTerminal() {
     setSideTab("Trade");
     setMobileTab("Trade");
   }
-  function closePosition(symbol: string, quantity: number) {
+  function closePosition(symbol: string, quantity: number, short = false) {
     setPlaying(false);
     setPrefs({
       symbol,
       rightOpen: true,
-      ticket: { ...emptyTicket(), side: "sell", quantity: String(quantity) },
+      // Closing a short means buying the borrowed stock back. Selling would add
+      // to it, which is the opposite of what the button says.
+      ticket: {
+        ...emptyTicket(),
+        side: short ? "buy" : "sell",
+        quantity: String(quantity),
+      },
     });
     setSideTab("Trade");
     setMobileTab("Trade");
@@ -753,12 +848,24 @@ export function useTradingTerminal() {
         ...(t.kind === "stop" || t.kind === "stop_limit"
           ? { stop_price: t.stop }
           : {}),
+        ...(t.kind === "trailing_stop" ? { trail_percent: t.trail } : {}),
+        // Exits ride along with the entry, so the risk plan is written before
+        // the fill rather than chased after it.
+        ...(t.bracket && t.side === "buy" && t.kind !== "trailing_stop"
+          ? {
+              ...(t.takeProfit ? { take_profit: t.takeProfit } : {}),
+              ...(t.stopLoss ? { stop_loss: t.stopLoss } : {}),
+              ...(t.stopTrail ? { stop_loss_trail: t.stopTrail } : {}),
+            }
+          : {}),
         tif: t.tif,
         note: t.note,
         lesson: t.lesson,
       },
       "POST",
-      "Order accepted. Advance replay to observe its fill.",
+      t.bracket && t.side === "buy"
+        ? "Order accepted with its exits attached. They arm when it fills."
+        : "Order accepted. Advance replay to observe its fill.",
     );
     if (result) {
       setPreview(false);
@@ -797,6 +904,8 @@ export function useTradingTerminal() {
         id: crypto.randomUUID(),
         mode: newConfig.mode,
         ...(newConfig.seed.trim() ? { seed: Number(newConfig.seed) } : {}),
+        ...(newConfig.mission ? { mission: newConfig.mission } : {}),
+        account: newConfig.mission ? "cash" : newConfig.account,
         ...(newConfig.mode === "historical"
           ? { symbol: newConfig.symbol }
           : {}),
@@ -868,13 +977,20 @@ export function useTradingTerminal() {
     connectionError,
     bars,
     overlays,
+    markers,
     desk,
     deskError,
     calendar,
+    mission,
+    missionCatalog,
     analytics,
     news,
     fundamentals,
     fundamentalsError,
+    monitor,
+    monitorError,
+    screen,
+    setScreen,
     jump,
     runCommand,
     commandFunctions: FUNCTIONS,

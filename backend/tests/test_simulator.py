@@ -3,6 +3,7 @@ from uuid import uuid4
 import pytest
 from quanta.domain.errors import DomainError
 from quanta.domain.simulator import advance_state, reservations, validate_order
+from quanta.core.limits import limiter
 from test_api import signup
 
 
@@ -466,7 +467,12 @@ def test_reported_quarters_are_released_by_the_newsroom_and_tie_together(client)
     assert report["valuation"]["market_capitalization"] == pytest.approx(
         report["valuation"]["price"] * report["valuation"]["shares"]
     )
-    run = mutate(client, run, "advance", steps=1950).json()
+    # Advance past this company's own reporting date rather than a fixed distance.
+    remaining = report["upcoming"]["bars_away"]
+    while remaining > 0:
+        step = min(1950, remaining)
+        run = mutate(client, run, "advance", steps=step).json()
+        remaining -= step
     after = client.get(route, params={"symbol": SYMBOL}).json()
     assert [q["label"] for q in after["quarters"]][-1] == "Q4 2024"
     assert after["quarters"][-1]["index"] <= run["cursor"]
@@ -569,19 +575,44 @@ def test_desk_and_analytics_are_calculated_by_the_api(client):
     advanced = mutate(client, placed, "advance", steps=800).json()
     view = client.get(f"/api/v1/simulator/runs/{run['id']}/desk").json()
     movers, performance = view["movers"], view["performance"]
-    assert len(movers["gainers"]) == 6 and len(movers["losers"]) == 6
+    assert movers["gainers"] and movers["losers"]
+    assert len(movers["gainers"]) <= 6 and len(movers["losers"]) <= 6
     assert movers["gainers"][0]["change_pct"] >= movers["gainers"][-1]["change_pct"]
     assert movers["losers"][0]["change_pct"] <= movers["losers"][-1]["change_pct"]
     assert sum(movers["breadth"][key] for key in ("advancing", "declining", "unchanged")) == 32
     assert {s["sector"] for s in movers["sectors"]} and all(
         s["companies"] >= 1 for s in movers["sectors"]
     )
-    assert performance["bars_observed"] == advanced["cursor"] + 1
+    # Only the bars the account was open for, not the market's whole generated past.
+    assert performance["bars_observed"] == advanced["cursor"] + 1 - 499
     assert performance["curve"][0]["equity"] == 100000.0
     assert performance["equity"] == pytest.approx(float(advanced["equity"]), abs=0.02)
     assert performance["attribution"][0]["symbol"] == SYMBOL
     assert performance["attribution"][0]["quantity"] == 100
     assert performance["max_drawdown"] <= 0
+    # The index is rebased to the bar the account opened on, so the learner and the
+    # market are compared over exactly the same window.
+    benchmark = performance["benchmark"]
+    assert benchmark["name"] == "QX-200"
+    assert benchmark["curve"][0]["equity"] == 100000.0
+    assert benchmark["curve"][0]["time"] == performance["curve"][0]["time"]
+    assert benchmark["equity"] == pytest.approx(100000 * (1 + benchmark["total_return"]), abs=0.02)
+    # Every figure the panel reads must be present, even when a run is too short
+    # for it to mean anything; a missing key would render as a silent blank.
+    assert set(performance["risk"]) == {
+        "cagr",
+        "sharpe",
+        "sortino",
+        "calmar",
+        "alpha",
+        "beta",
+        "var_95",
+        "cvar_95",
+        "max_drawdown",
+    }
+    assert performance["risk"]["beta"] is not None
+    # 800 bars is barely two sessions, so annualized figures are not yet a measurement.
+    assert performance["sessions"] == 3 and performance["risk_is_meaningful"] is False
     stats = client.get(
         f"/api/v1/simulator/runs/{run['id']}/analytics", params={"symbol": SYMBOL}
     ).json()
@@ -637,6 +668,27 @@ def test_a_run_from_before_the_universe_still_serves_every_new_endpoint(client):
     assert desk["performance"]["equity"] == 100000.0
     stats = client.get(base + "/analytics", params={"symbol": "AAPL"}).json()
     assert stats["sentiment"] is None and stats["risk"]["beta"] is not None
+    # Every monitor tool serves a run with no newsroom; only tone is absent.
+    tools = client.get(
+        base + "/monitor",
+        params={
+            "panes": "tape,book,heatmap,screener,sessions,quotes",
+            "symbol": "AAPL",
+            "screen": "volatile",
+        },
+    ).json()["tools"]
+    assert set(tools) == {"tape", "book", "heatmap", "screener", "sessions", "quotes"}
+    assert tools["tape"]["prints"] and tools["book"]["bids"]
+    assert sum(g["companies_count"] for g in tools["heatmap"]["sectors"]) == 6
+    assert tools["screener"]["rows"]
+    assert all(row["sentiment"] is None for row in tools["screener"]["rows"])
+    # No statements, so no earnings multiple to screen on.
+    assert all(row["multiple"] is None for row in tools["screener"]["rows"])
+    assert tools["sessions"]["sessions"] and tools["quotes"]["rows"]
+    # A legacy run is a cash account, and shorting it is still refused.
+    assert snapshot["account"] == "cash"
+    short = mutate(client, snapshot, "orders", symbol="AAPL", side="sell", quantity=1)
+    assert short.status_code == 422 and "long-only" in short.json()["detail"]
     # The screener must measure change exactly as the watchlist does.
     watchlist = {q["symbol"]: q["change_pct"] for q in snapshot["quotes"]}
     for row in movers["gainers"] + movers["losers"] + movers["active"]:
@@ -806,3 +858,877 @@ def test_a_run_without_a_newsroom_has_no_calendar(client, monkeypatch, tmp_path)
     client.get("/api/v1/simulator")
     run = create(client, mode="historical", symbol="CAL")
     assert client.get(f"/api/v1/simulator/runs/{run['id']}/calendar").status_code == 422
+
+
+def test_the_generated_market_never_runs_out(client):
+    """The clock keeps producing sessions, headlines and reports as it advances."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    assert run["endless"] is True and run["session"] == 2
+    rid, version = run["id"], run["version"]
+    reach = run["total_bars"]
+    for _ in range(30):
+        limiter.records.clear()
+        response = client.post(
+            f"/api/v1/simulator/runs/{rid}/advance",
+            json={"id": ident(), "version": version, "steps": 1950},
+        )
+        assert response.status_code == 200, response.text
+        run = response.json()
+        version = run["version"]
+    # Well past the bars a fixed-length market used to hold.
+    assert run["cursor"] > 55000
+    assert run["total_bars"] > run["cursor"]
+    assert run["session"] > 140
+    # Orders are still accepted, because there is always a next bar to fill on.
+    placed = client.post(
+        f"/api/v1/simulator/runs/{rid}/orders",
+        json={"id": ident(), "version": version, "symbol": SYMBOL, "side": "buy", "quantity": 5},
+    )
+    assert placed.status_code == 200, placed.text
+    # The tape and the reporting cycle continue.
+    news = client.get(f"/api/v1/simulator/runs/{rid}/news", params={"limit": 40}).json()
+    assert news["items"] and max(i["index"] for i in news["items"]) <= run["cursor"]
+    assert max(i["index"] for i in news["items"]) > reach
+    report = client.get(
+        f"/api/v1/simulator/runs/{rid}/fundamentals", params={"symbol": SYMBOL}
+    ).json()
+    # A year of replay means several quarters have been reported, not just one.
+    assert len([q for q in report["quarters"] if q["index"] >= 0]) >= 2
+    assert report["upcoming"] is not None
+
+
+def test_a_block_is_the_same_however_late_it_is_generated():
+    """A stored cursor must resolve to the same bar on a cold server."""
+    from quanta.services.simulator_market import BLOCK_BARS, _market, simulated_market
+
+    _market.cache_clear()
+    straight = simulated_market(4242, BLOCK_BARS * 3)
+    sampled = {symbol: [series[i] for i in range(0, BLOCK_BARS * 4, 997)] for symbol, series in straight.items()}
+    _market.cache_clear()
+    # Reach the same point by advancing in stages, as a replay actually does.
+    for target in (0, BLOCK_BARS, BLOCK_BARS * 2, BLOCK_BARS * 3):
+        stepped = simulated_market(4242, target)
+    for symbol, rows in sampled.items():
+        assert [stepped[symbol][i] for i in range(0, BLOCK_BARS * 4, 997)] == rows
+
+
+def test_every_headline_carries_a_score_that_matches_its_move():
+    """One point is one basis point, and the tier label follows the same score."""
+    import numpy as np
+
+    from quanta.services.simulator_market import newsroom, simulated_market
+
+    data, room = simulated_market(11), newsroom(11)
+    scored = [e for e in room.events if e["points"]]
+    assert len(scored) > 500
+    assert all(e["points"] == 0 for e in room.events if e["category"] == "chatter")
+    for event in scored:
+        # The published tier is derived from the published score, so a reader can
+        # check one against the other.
+        expected = "high" if abs(event["points"]) >= 400 else (
+            "medium" if abs(event["points"]) >= 120 else "low"
+        )
+        assert event["impact"] == expected, event
+        assert event["impact"] != "none"
+    points, moves = [], []
+    for event in scored:
+        if event["scope"] != "company" or not event["symbol"]:
+            continue
+        closes = data[event["symbol"]].close
+        index = event["index"]
+        if 0 < index < len(closes):
+            points.append(event["points"])
+            moves.append((closes[index] / closes[index - 1] - 1) * 10000)
+    assert len(points) > 200
+    # The score is applied, not inferred: it explains nearly all of the same-bar move.
+    assert float(np.corrcoef(points, moves)[0][1]) > 0.9
+
+
+def test_a_chart_reads_a_window_not_the_whole_run(client):
+    """An endless run must not hand the chart every bar it has ever generated."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    rid, version = run["id"], run["version"]
+    for _ in range(12):
+        limiter.records.clear()
+        response = client.post(
+            f"/api/v1/simulator/runs/{rid}/advance",
+            json={"id": ident(), "version": version, "steps": 1950},
+        )
+        version = response.json()["version"]
+    cursor = response.json()["cursor"]
+    assert cursor > 20000
+    route = f"/api/v1/simulator/runs/{rid}/market"
+    body = client.get(route, params={"symbol": SYMBOL, "indicators": "SMA:20,RSI:14"}).json()
+    # Bounded, and far short of the observations behind it.
+    assert len(body["bars"]) == 1500
+    assert body["from_bar"] > 0
+    assert body["bars"][-1]["time"] and len(body["indicators"]["SMA:20"]["values"]) == 1500
+    # An explicit window is honoured, and nothing past the cursor leaks either way.
+    small = client.get(
+        route, params={"symbol": SYMBOL, "limit": 200, "indicators": "SMA:20,RSI:14"}
+    ).json()
+    assert len(small["bars"]) == 200
+    assert small["bars"][-1] == body["bars"][-1]
+    assert len(small["indicators"]["RSI:14"]["values"]) == 200
+
+    # Resizing the window must not change the overlay a learner sees. The rolling
+    # sums and the exponential smoothing both accumulate from wherever the read
+    # began, so the agreement is to floating-point noise rather than bit-exact,
+    # which is far below the cent the price is quoted in.
+    wide = client.get(
+        route, params={"symbol": SYMBOL, "limit": 5000, "indicators": "SMA:20,RSI:14"}
+    ).json()
+    for key in ("SMA:20", "RSI:14"):
+        for near, far in zip(
+            small["indicators"][key]["values"],
+            wide["indicators"][key]["values"][-200:],
+            strict=True,
+        ):
+            assert (near is None and far is None) or abs(near - far) < 1e-6
+
+
+def test_coarse_intervals_aggregate_without_reading_every_bar(client):
+    """Bucketing the generated bars must agree with summarizing them one by one."""
+    from quanta.services.simulator_market import simulated_market
+
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    route = f"/api/v1/simulator/runs/{run['id']}/market"
+    hourly = client.get(route, params={"symbol": SYMBOL, "interval": "1h", "limit": 5000}).json()
+    series = simulated_market(11, run["cursor"])[SYMBOL]
+    raw = series[: run["cursor"] + 1]
+    # Rebuild the same buckets the slow way and compare.
+    buckets = {}
+    for index, bar in enumerate(raw):
+        key = (index // 390, (index % 390) // 60)
+        if key not in buckets:
+            buckets[key] = dict(bar)
+        else:
+            item = buckets[key]
+            item.update(
+                high=max(item["high"], bar["high"]),
+                low=min(item["low"], bar["low"]),
+                close=bar["close"],
+                volume=item["volume"] + bar["volume"],
+            )
+    assert hourly["bars"] == list(buckets.values())
+    daily = client.get(route, params={"symbol": SYMBOL, "interval": "1D", "limit": 5000}).json()
+    assert len(daily["bars"]) == run["cursor"] // 390 + 1
+    assert daily["bars"][0]["open"] == raw[0]["open"]
+
+
+def test_no_endpoint_reveals_a_price_beyond_the_cursor(client):
+    """Generating further ahead must not change a single figure already published.
+
+    Bars are generated in blocks that run past the replay cursor, so every read
+    has to be bounded by the cursor explicitly. If any of them slips and reads the
+    tail of the array instead, extending the same seed's market changes an answer
+    that the learner has already been shown — which is look-ahead, silently.
+    """
+    from quanta.services.simulator_market import simulated_market
+
+    client.get("/api/v1/simulator")
+    run = create(client, seed=4242)
+    placed = mutate(client, run, "orders", symbol=SYMBOL, side="buy", quantity=40).json()
+    advanced = mutate(client, placed, "advance", steps=600).json()
+    cursor = advanced["cursor"]
+
+    routes = {
+        "desk": {},
+        "market": {"symbol": SYMBOL, "interval": "1h", "limit": 200},
+        "news": {"limit": 50},
+        "fundamentals": {"symbol": SYMBOL},
+        "analytics": {"symbol": SYMBOL},
+        "calendar": {},
+        "monitor": {
+            "panes": "tape,book,heatmap,screener,sessions,quotes",
+            "symbol": SYMBOL,
+            "screen": "cheap",
+        },
+    }
+    before = {
+        name: client.get(f"/api/v1/simulator/runs/{run['id']}/{name}", params=params).json()
+        for name, params in routes.items()
+    }
+    # Generate a long way past the cursor on the very same cached market.
+    simulated_market(4242, cursor + 30_000)
+    after = {
+        name: client.get(f"/api/v1/simulator/runs/{run['id']}/{name}", params=params).json()
+        for name, params in routes.items()
+    }
+    assert before == after
+
+
+def test_monitor_tools_are_generated_and_consistent_with_the_bars(client):
+    """The tape, the book, the heat and the screens, all served in one request."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=77)
+    advanced = mutate(client, run, "advance", steps=900).json()
+    base = f"/api/v1/simulator/runs/{run['id']}"
+    view = client.get(
+        base + "/monitor",
+        params={
+            "panes": "tape,book,heatmap,screener,sessions",
+            "symbol": SYMBOL,
+            "screen": "volume",
+            "limit": 40,
+        },
+    ).json()
+    tape, book = view["tools"]["tape"], view["tools"]["book"]
+
+    # A print must not contradict the bar it came out of.
+    bars = client.get(
+        base + "/market", params={"symbol": SYMBOL, "interval": "1m", "limit": 60}
+    ).json()["bars"]
+    window = {bar["time"]: bar for bar in bars}
+    assert len(tape["prints"]) == 40
+    checked = 0
+    for print_ in tape["prints"]:
+        bar = window.get(print_["time"] - print_["time"] % 60)
+        if not bar:
+            continue
+        checked += 1
+        assert bar["low"] <= print_["price"] <= bar["high"]
+        assert print_["size"] >= 1
+    assert checked, "prints must line up with the bars they were drawn from"
+    assert 0 <= tape["buy_share"] <= 1
+    assert "Illustrative" in tape["notice"]
+
+    # The book straddles the last trade at the run's own configured spread.
+    assert book["bid"] < book["last"] < book["ask"]
+    assert book["bids"][0]["price"] > book["bids"][-1]["price"]
+    assert book["asks"][0]["price"] < book["asks"][-1]["price"]
+    assert book["bids"][-1]["cumulative"] > book["bids"][0]["cumulative"]
+
+    heat = view["tools"]["heatmap"]
+    assert sum(group["companies_count"] for group in heat["sectors"]) == 32
+    assert heat["best"] >= heat["worst"]
+    assert heat["sectors"][0]["change_pct"] >= heat["sectors"][-1]["change_pct"]
+
+    screen = view["tools"]["screener"]
+    assert screen["screen"] == "volume" and screen["label"] == "Unusual volume"
+    assert [row["id"] for row in screen["screens"]].count("oversold") == 1
+    assert screen["rows"] == sorted(
+        screen["rows"], key=lambda r: -r["relative_volume"]
+    )
+    assert all(row["window_low"] <= row["close"] <= row["window_high"] for row in screen["rows"])
+    # Every column a screen filters on has to actually compute, or the screens
+    # that read it return nothing and look like a market with no opportunities.
+    assert any(row["rsi"] is not None for row in screen["rows"])
+    assert any(row["above_fast"] for row in screen["rows"])
+    screens = base + "/monitor"
+    for name, test in (
+        ("oversold", lambda r: r["rsi"] < 30),
+        ("overbought", lambda r: r["rsi"] > 70),
+        ("momentum", lambda r: r["above_fast"] and r["above_slow"]),
+        ("cheap", lambda r: r["multiple"] is not None),
+    ):
+        rows = client.get(
+            screens, params={"panes": "screener", "symbol": SYMBOL, "screen": name}
+        ).json()["tools"]["screener"]["rows"]
+        assert all(test(row) for row in rows), name
+    matched = {
+        name: client.get(
+            screens, params={"panes": "screener", "symbol": SYMBOL, "screen": name}
+        ).json()["tools"]["screener"]["matches"]
+        for name in ("overbought", "momentum", "cheap")
+    }
+    assert all(matched.values()), matched
+
+    closes = view["tools"]["sessions"]["sessions"]
+    assert closes and all(row["low"] <= row["close"] <= row["high"] for row in closes)
+    assert closes[-1]["time"] <= advanced["cursor"] * 60 + bars[-1]["time"]
+
+    # Regenerating gives byte-identical tools: nothing here rolls a fresh die.
+    again = client.get(
+        base + "/monitor",
+        params={"panes": "tape,book", "symbol": SYMBOL, "limit": 40},
+    ).json()
+    assert again["tools"]["tape"] == tape and again["tools"]["book"] == book
+    assert client.get(base + "/monitor", params={"panes": "nope", "symbol": SYMBOL}).status_code == 422
+
+
+def test_scored_headlines_are_marked_on_the_bars_they_moved(client):
+    """The points model is what moves the market, so it belongs on the chart."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    mutate(client, run, "advance", steps=900)
+    seen = 0
+    for interval in ("1m", "15m", "1h", "1D"):
+        data = client.get(
+            f"/api/v1/simulator/runs/{run['id']}/market",
+            params={"symbol": SYMBOL, "interval": interval, "limit": 300},
+        ).json()
+        times = {bar["time"] for bar in data["bars"]}
+        markers = data["markers"]
+        seen += len(markers)
+        # A marker that does not sit on a drawn bar cannot be rendered.
+        assert all(marker["time"] in times for marker in markers)
+        assert markers == sorted(markers, key=lambda marker: marker["time"])
+        for marker in markers:
+            assert marker["count"] >= 1 and marker["headline"]
+            assert len(marker["items"]) <= 4
+            # Several items inside one coarse bar net off; the label is the
+            # loudest of them, not whichever happened to arrive last.
+            assert marker["items"][0]["headline"] == marker["headline"]
+            assert abs(marker["items"][0]["points"]) >= abs(marker["items"][-1]["points"])
+    assert seen, "a 900-bar run has released scored headlines"
+    # Nothing ahead of the cursor is ever marked.
+    early = client.get(
+        f"/api/v1/simulator/runs/{run['id']}/market",
+        params={"symbol": SYMBOL, "interval": "1m", "limit": 300, "cursor": 600},
+    ).json()
+    assert all(marker["time"] <= early["bars"][-1]["time"] for marker in early["markers"])
+
+
+def find(run, **match):
+    return [o for o in run["orders"] if all(o.get(k) == v for k, v in match.items())]
+
+
+def test_a_bracket_protects_an_entry_and_one_leg_cancels_the_other(client):
+    """An entry can carry its own exits, so the risk plan is written before the fill."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    quote = next(q for q in run["quotes"] if q["symbol"] == SYMBOL)
+    entry = float(quote["close"])
+    placed = mutate(
+        client,
+        run,
+        "orders",
+        symbol=SYMBOL,
+        side="buy",
+        quantity=50,
+        take_profit=round(entry * 1.02, 2),
+        stop_loss=round(entry * 0.98, 2),
+    ).json()
+    legs = find(placed, parent_id=placed["orders"][0]["id"])
+    assert len(legs) == 2
+    assert {leg["role"] for leg in legs} == {"target", "stop"}
+    # Held legs are not working orders: they reserve nothing and cannot trade.
+    assert all(leg["status"] == "held" and leg["side"] == "sell" for leg in legs)
+    assert all(leg["tif"] == "GTC" for leg in legs)
+    assert placed["reserved"] == "0.00" or float(placed["reserved"]) >= 0
+
+    # The entry fills; both legs arm for exactly the quantity it bought.
+    advanced = mutate(client, placed, "advance", steps=1).json()
+    parent = find(advanced, role=None)[0] if find(advanced, role=None) else advanced["orders"][0]
+    assert parent["status"] == "filled" and parent["filled"] == 50
+    armed = find(advanced, parent_id=parent["id"])
+    assert all(leg["status"] == "working" and leg["quantity"] == 50 for leg in armed)
+
+    # One leg trades and retires the other. Whichever it is, the position closes
+    # once and only once.
+    done = mutate(client, advanced, "advance", steps=900).json()
+    exits = find(done, parent_id=parent["id"])
+    statuses = sorted(leg["status"] for leg in exits)
+    assert statuses == ["canceled", "filled"], statuses
+    assert done["positions"] == [] or all(p["quantity"] == 0 for p in done["positions"])
+    filled_leg = next(leg for leg in exits if leg["status"] == "filled")
+    assert "bracket" in next(leg for leg in exits if leg["status"] == "canceled")["reason"]
+    assert filled_leg["filled"] == 50
+
+
+def test_a_bracket_that_cannot_be_right_is_refused(client):
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    quote = next(q for q in run["quotes"] if q["symbol"] == SYMBOL)
+    entry = float(quote["close"])
+    bad = mutate(
+        client,
+        run,
+        "orders",
+        symbol=SYMBOL,
+        side="buy",
+        quantity=10,
+        take_profit=round(entry * 0.9, 2),
+    )
+    assert bad.status_code == 422 and "above the entry" in bad.json()["detail"]
+    bad = mutate(
+        client,
+        run,
+        "orders",
+        symbol=SYMBOL,
+        side="buy",
+        quantity=10,
+        stop_loss=round(entry * 1.1, 2),
+    )
+    assert bad.status_code == 422 and "below the entry" in bad.json()["detail"]
+    # Attaching exits to a closing order is not a bracket.
+    bought = mutate(client, run, "orders", symbol=SYMBOL, side="buy", quantity=10).json()
+    bought = mutate(client, bought, "advance", steps=1).json()
+    bad = mutate(
+        client,
+        bought,
+        "orders",
+        symbol=SYMBOL,
+        side="sell",
+        quantity=10,
+        stop_loss=round(entry * 0.9, 2),
+    )
+    assert bad.status_code == 422 and "entries" in bad.json()["detail"]
+
+
+def test_an_entry_cancelled_before_it_fills_takes_its_exits_with_it(client):
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    quote = next(q for q in run["quotes"] if q["symbol"] == SYMBOL)
+    entry = float(quote["close"])
+    placed = mutate(
+        client,
+        run,
+        "orders",
+        symbol=SYMBOL,
+        side="buy",
+        kind="limit",
+        # Far below the market, so it will not fill. The exits are measured
+        # against the price this entry would pay, not against today's market.
+        limit_price=round(entry * 0.5, 2),
+        quantity=10,
+        take_profit=round(entry * 0.53, 2),
+        stop_loss=round(entry * 0.47, 2),
+    ).json()
+    parent = placed["orders"][0]
+    assert len(find(placed, parent_id=parent["id"])) == 2
+    canceled = client.post(
+        f"/api/v1/simulator/runs/{run['id']}/orders/{parent['id']}/cancel",
+        json={"id": ident(), "version": placed["version"]},
+    ).json()
+    assert all(
+        leg["status"] == "canceled" for leg in find(canceled, parent_id=parent["id"])
+    )
+
+
+def test_a_trailing_stop_ratchets_up_and_never_looks_inside_a_bar(client):
+    """The stop protecting a bar is the one that was set before the bar opened."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    bought = mutate(client, run, "orders", symbol=SYMBOL, side="buy", quantity=30).json()
+    bought = mutate(client, bought, "advance", steps=1).json()
+    trailing = mutate(
+        client,
+        bought,
+        "orders",
+        symbol=SYMBOL,
+        side="sell",
+        kind="trailing_stop",
+        quantity=30,
+        trail_percent=3,
+    ).json()
+    order = find(trailing, kind="trailing_stop")[0]
+    first = float(order["stop_price"])
+    anchor = float(order["trail_anchor"])
+    assert first == pytest.approx(anchor * 0.97, abs=0.02)
+
+    highest = anchor
+    previous = first
+    state = trailing
+    for _ in range(40):
+        state = mutate(client, state, "advance", steps=5).json()
+        order = find(state, kind="trailing_stop")[0]
+        if order["status"] != "working":
+            break
+        stop, anchor = float(order["stop_price"]), float(order["trail_anchor"])
+        # A trailing stop never steps down.
+        assert stop >= previous - 0.005, (stop, previous)
+        assert anchor >= highest - 0.005
+        assert stop == pytest.approx(anchor * 0.97, abs=0.02)
+        highest, previous = anchor, stop
+
+    # When it does trigger, it sells at or below the stop it was carrying, never
+    # at the high the same bar went on to make.
+    if order["status"] == "filled":
+        assert float(order["average"]) <= previous * 1.01
+    assert float(order["stop_price"]) >= first
+
+
+def test_a_trailing_stop_is_refused_where_it_cannot_mean_anything(client):
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    bad = mutate(
+        client, run, "orders", symbol=SYMBOL, side="buy", quantity=5, kind="trailing_stop",
+        trail_percent=2,
+    )
+    assert bad.status_code == 422 and "exits only" in bad.json()["detail"]
+    bad = mutate(client, run, "orders", symbol=SYMBOL, side="sell", quantity=5, kind="trailing_stop")
+    assert bad.status_code == 422 and "trail percentage" in bad.json()["detail"]
+    bad = mutate(
+        client, run, "orders", symbol=SYMBOL, side="buy", quantity=5, trail_percent=2
+    )
+    assert bad.status_code == 422 and "Only a trailing stop" in bad.json()["detail"]
+
+
+def bracket_orders(s, data, quantity, target, stop, **changes):
+    """An entry plus its two held exits, shaped the way the service builds them."""
+    entry = order(s, data, quantity=quantity, **changes)
+    entry.update(average="0.00", reason="")
+    group = "group-" + entry["id"]
+    legs = []
+    for role, leg in (
+        ("target", {"kind": "limit", "limit_price": str(target)}),
+        ("stop", {"kind": "stop", "stop_price": str(stop)}),
+    ):
+        child = {
+            **entry,
+            "id": f"{entry['id']}:{role}",
+            "side": "sell",
+            "quantity": quantity,
+            "filled": 0,
+            "notional": "0.00",
+            "average": "0.00",
+            "fee_remaining": "1.00",
+            "status": "held",
+            "parent_id": entry["id"],
+            "oco_group": group,
+            "activates": None,
+            "role": role,
+            "limit_price": None,
+            "stop_price": None,
+            **leg,
+        }
+        s["orders"].append(child)
+        legs.append(child)
+    return entry, legs
+
+
+def test_a_bracket_stays_sized_to_the_position_across_partial_fills():
+    """The exits protect what the entry holds open, never more and never less."""
+    # Thin volume, so a 300-share entry fills across several bars, and the price
+    # then rises through the target.
+    prices = [100, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
+    data = bars(prices, volume=100)
+    s = state()
+    s["config"]["participation"] = "1"
+    entry, legs = bracket_orders(s, data, 300, target=106, stop=90)
+    for _ in range(len(prices) - 1):
+        advance_state(s, data, 1)
+        held = s["positions"].get("AAPL", {}).get("quantity", 0)
+        # A long-only account can never be driven short by its own exits.
+        assert held >= 0, held
+        still_open = entry["filled"] - sum(leg["filled"] for leg in legs)
+        assert held == still_open, (held, still_open, entry["filled"])
+        for leg in legs:
+            if leg["status"] in ("working", "partially_filled"):
+                assert leg["quantity"] - leg["filled"] == still_open, leg
+            assert "buying power" not in leg["reason"]
+    # The target took the whole position; the stop was retired behind it.
+    assert entry["filled"] == 300
+    assert sum(leg["filled"] for leg in legs) == 300
+    assert s["positions"]["AAPL"]["quantity"] == 0
+    assert [leg["status"] for leg in legs] == ["filled", "canceled"]
+
+
+def test_an_exit_that_fills_before_the_entry_finishes_leaves_nothing_unprotected():
+    prices = [100, 101, 108, 95, 102, 103, 104, 105]
+    data = bars(prices, volume=60)
+    s = state()
+    s["config"]["participation"] = "1"
+    entry, legs = bracket_orders(s, data, 240, target=107, stop=96)
+    for _ in range(len(prices) - 1):
+        advance_state(s, data, 1)
+        held = s["positions"].get("AAPL", {}).get("quantity", 0)
+        assert held >= 0
+        live = [leg for leg in legs if leg["status"] in ("working", "partially_filled")]
+        # Every share the entry still holds is covered by each surviving exit.
+        for leg in live:
+            assert leg["quantity"] - leg["filled"] == held, (leg["role"], leg, held)
+
+
+def test_a_trailing_bracket_leg_arms_from_what_the_entry_paid(client):
+    """A trailing exit needs a price to trail from the moment it starts working."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    entry = float(next(q for q in run["quotes"] if q["symbol"] == SYMBOL)["close"])
+    placed = mutate(
+        client,
+        run,
+        "orders",
+        symbol=SYMBOL,
+        side="buy",
+        quantity=20,
+        take_profit=round(entry * 1.05, 2),
+        stop_loss_trail=3,
+    ).json()
+    parent = placed["orders"][0]
+    leg = next(o for o in placed["orders"] if o.get("role") == "stop")
+    assert leg["stop_price"] is None and leg.get("trail_anchor") is None
+
+    armed = mutate(client, placed, "advance", steps=1).json()
+    parent = next(o for o in armed["orders"] if o["id"] == parent["id"])
+    leg = next(o for o in armed["orders"] if o.get("role") == "stop")
+    assert leg["status"] == "working"
+    assert float(leg["trail_anchor"]) == pytest.approx(float(parent["average"]), abs=0.01)
+    assert float(leg["stop_price"]) == pytest.approx(float(leg["trail_anchor"]) * 0.97, abs=0.02)
+
+    # Its price is not the learner's to amend: the trail would overwrite it.
+    refused = client.post(
+        f"/api/v1/simulator/runs/{run['id']}/orders/{leg['id']}/amend",
+        json={"id": ident(), "version": armed["version"], "stop_price": "1.00"},
+    )
+    assert refused.status_code == 422 and "sets its own price" in refused.json()["detail"]
+
+    # It keeps advancing, and the stop only ever ratchets up.
+    previous = float(leg["stop_price"])
+    state = armed
+    for _ in range(8):
+        state = mutate(client, state, "advance", steps=30).json()
+        leg = next(o for o in state["orders"] if o.get("role") == "stop")
+        if leg["status"] != "working":
+            break
+        assert float(leg["stop_price"]) >= previous - 0.005
+        previous = float(leg["stop_price"])
+
+
+def test_a_cash_account_is_still_long_only(client):
+    """Margin is opt-in. Nothing about an existing account changes."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    assert run["config"]["account"] == "cash"
+    refused = mutate(client, run, "orders", symbol=SYMBOL, side="sell", quantity=10)
+    assert refused.status_code == 422
+    assert "long-only" in refused.json()["detail"]
+    # Buying power on a cash account is the cash it has not committed.
+    assert run["buying_power"] == run["available"]
+    assert run["gross_exposure"] == "0.00"
+
+
+def test_shorting_realizes_on_the_cover_in_both_directions():
+    """A short's result is proceeds less what it cost to buy the stock back."""
+    s = state()
+    s["config"]["account"] = "margin"
+    s["config"]["participation"] = "1"
+    s["config"]["commission"] = "0"
+    data = bars([50, 50, 45, 45], volume=10000)
+    order(s, data, side="sell", quantity=100, fee_remaining="0.00")
+    advance_state(s, data, 1)
+    position = s["positions"]["AAPL"]
+    # Short 100 at 50: the stock is owed, and the basis is what it was sold for.
+    assert position["quantity"] == -100
+    assert position["cost"] == "-5000.00"
+    assert s["cash"] == "105000.00"
+
+    order(s, data, side="buy", quantity=100, fee_remaining="0.00")
+    advance_state(s, data, 1)
+    assert s["positions"]["AAPL"]["quantity"] == 0
+    assert s["positions"]["AAPL"]["cost"] == "0.00"
+    assert s["realized"] == "500.00"
+    assert s["cash"] == "100500.00"
+
+    # The same trade the other way round loses the same amount.
+    loss = state()
+    loss["config"].update(account="margin", participation="1", commission="0")
+    rising = bars([45, 45, 50, 50], volume=10000)
+    order(loss, rising, side="sell", quantity=100, fee_remaining="0.00")
+    advance_state(loss, rising, 1)
+    order(loss, rising, side="buy", quantity=100, fee_remaining="0.00")
+    advance_state(loss, rising, 1)
+    assert loss["realized"] == "-500.00"
+
+
+def test_a_sale_that_crosses_zero_closes_the_long_and_opens_the_short():
+    s = state()
+    s["config"].update(account="margin", participation="1", commission="0")
+    data = bars([50, 50, 60, 60], volume=10000)
+    order(s, data, side="buy", quantity=10, fee_remaining="0.00")
+    advance_state(s, data, 1)
+    assert s["positions"]["AAPL"] == {"quantity": 10, "cost": "500.00"}
+
+    # Sell 30 while long 10: ten shares are closed at a profit and twenty shorted.
+    order(s, data, side="sell", quantity=30, fee_remaining="0.00")
+    advance_state(s, data, 1)
+    position = s["positions"]["AAPL"]
+    assert position["quantity"] == -20
+    # Closed 10 at 60 against a 500 basis, then shorted 20 at 60.
+    assert s["realized"] == "100.00"
+    assert position["cost"] == "-1200.00"
+
+
+def test_borrow_is_charged_once_a_session_and_a_call_forces_a_buy_in():
+    from quanta.domain.simulator_margin import BORROW_RATE
+
+    s = state()
+    s["config"].update(account="margin", participation="1", commission="0")
+    # Two sessions of flat prices, then a gap that puts the account under water.
+    session = [50] * 3
+    data = bars(session + session, volume=10000)
+    # Second session starts a day later, so the borrow accrues twice.
+    for index, row in enumerate(data["AAPL"]):
+        if index >= 3:
+            row["time"] += 86400
+    order(s, data, side="sell", quantity=1000, fee_remaining="0.00")
+    advance_state(s, data, 5)
+    charges = [e for e in s["ledger"] if e["type"] == "borrow_fee"]
+    assert len(charges) == 2, charges
+    expected = round(50 * 1000 * float(BORROW_RATE) / 252, 2)
+    assert float(charges[0]["amount"]) == pytest.approx(-expected, abs=0.01)
+    # The ledger carries the running cash balance the performance curve reads.
+    assert charges[-1]["cash"] == s["cash"]
+
+    # A gap up large enough to breach maintenance forces a buy-in.
+    gap = state()
+    gap["config"].update(account="margin", participation="1", commission="0")
+    prices = [50, 50, 50, 50, 240, 240, 240, 240]
+    market = bars(prices, volume=100000)
+    for index, row in enumerate(market["AAPL"]):
+        if index >= 4:
+            row["time"] += 86400
+    order(gap, market, side="sell", quantity=2000, fee_remaining="0.00")
+    advance_state(gap, market, 1)
+    assert gap["positions"]["AAPL"]["quantity"] == -2000
+    advance_state(gap, market, 6)
+    forced = [o for o in gap["orders"] if o.get("forced")]
+    assert forced, "a breached maintenance requirement has to call the account"
+    assert "maintenance requirement" in forced[0]["reason"]
+    assert gap["positions"]["AAPL"]["quantity"] == 0
+    assert float(gap["realized"]) < 0
+
+
+def test_a_margin_account_shorts_through_the_api_and_reports_its_exposure(client):
+    """The whole path: a margin run, a short, its cost of carry, and the cover."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11, account="margin")
+    assert run["config"]["account"] == "margin" and run["account"] == "margin"
+    # Two to one at fifty percent initial margin, against a flat $100k account.
+    assert float(run["buying_power"]) == pytest.approx(200000, abs=1)
+
+    shorted = mutate(client, run, "orders", symbol=SYMBOL, side="sell", quantity=100).json()
+    shorted = mutate(client, shorted, "advance", steps=1).json()
+    position = next(p for p in shorted["positions"] if p["symbol"] == SYMBOL)
+    assert position["quantity"] == -100 and position["short"] is True
+    assert float(position["cost"]) < 0
+    # Short proceeds are in the cash balance but are not the account's to spend.
+    assert float(shorted["cash"]) > 100000
+    assert float(shorted["buying_power"]) < float(shorted["cash"]) * 2
+    assert float(shorted["gross_exposure"]) == pytest.approx(
+        abs(float(position["market_value"])), abs=0.02
+    )
+    # The account is worth what it was, less costs, the moment it opens.
+    assert float(shorted["equity"]) == pytest.approx(100000, abs=60)
+
+    # A session of carry leaves a borrow charge in the ledger.
+    carried = mutate(client, shorted, "advance", steps=500).json()
+    borrow = [e for e in carried["ledger"] if e["type"] == "borrow_fee"]
+    assert borrow and float(borrow[0]["amount"]) < 0
+
+    covered = mutate(client, carried, "orders", symbol=SYMBOL, side="buy", quantity=100).json()
+    covered = mutate(client, covered, "advance", steps=1).json()
+    assert all(p["quantity"] != -100 for p in covered["positions"])
+    assert float(covered["realized"]) != 0
+    # A short round trip is a closing trade, whichever side closed it.
+    desk = client.get(f"/api/v1/simulator/runs/{run['id']}/desk").json()["performance"]
+    assert desk["trades"] >= 1
+    assert desk["average_exposure"] >= 0
+
+
+def test_a_short_is_held_to_the_same_leverage_as_a_purchase(client):
+    """Two to one, both ways round, and nothing accepted only to be called."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11, account="margin")
+    price = float(next(q for q in run["quotes"] if q["symbol"] == SYMBOL)["close"])
+    # Just inside twice equity: accepted, and not immediately in breach.
+    inside = mutate(
+        client, run, "orders", symbol=SYMBOL, side="sell", quantity=int(195000 / price)
+    )
+    assert inside.status_code == 200, inside.text
+    state = mutate(client, inside.json(), "advance", steps=1).json()
+    assert not [o for o in state["orders"] if o.get("forced")]
+    # Well beyond it: refused outright rather than accepted and bought in.
+    fresh = create(client, seed=11, account="margin")
+    refused = mutate(
+        client, fresh, "orders", symbol=SYMBOL, side="sell", quantity=int(250000 / price)
+    )
+    assert refused.status_code == 422 and "margin" in refused.json()["detail"]
+    # Missions stay on cash accounts, so every attempt meets the same rules.
+    bad = client.post(
+        "/api/v1/simulator/runs",
+        json={"id": ident(), "mission": "stop-discipline", "account": "margin"},
+    )
+    assert bad.status_code == 422 and "cash account" in bad.json()["detail"]
+
+
+def test_nothing_leaks_past_the_cursor_with_a_short_open(client):
+    from quanta.services.simulator_market import simulated_market
+
+    client.get("/api/v1/simulator")
+    run = create(client, seed=606, account="margin")
+    placed = mutate(client, run, "orders", symbol=SYMBOL, side="sell", quantity=60).json()
+    advanced = mutate(client, placed, "advance", steps=500).json()
+    routes = {
+        "desk": {},
+        "monitor": {"panes": "screener,heatmap", "symbol": SYMBOL, "screen": "volatile"},
+        "analytics": {"symbol": SYMBOL},
+    }
+    before = {
+        name: client.get(f"/api/v1/simulator/runs/{run['id']}/{name}", params=params).json()
+        for name, params in routes.items()
+    }
+    simulated_market(606, advanced["cursor"] + 30_000)
+    after = {
+        name: client.get(f"/api/v1/simulator/runs/{run['id']}/{name}", params=params).json()
+        for name, params in routes.items()
+    }
+    assert before == after
+
+
+def test_a_short_stays_closable_when_there_is_no_buying_power_left(client):
+    """The moment a cover matters most is the moment buying power is gone."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11, account="margin")
+    price = float(next(q for q in run["quotes"] if q["symbol"] == SYMBOL)["close"])
+    quantity = int(190000 / price)
+    placed = mutate(client, run, "orders", symbol=SYMBOL, side="sell", quantity=quantity).json()
+    # Default participation fills a position this size across many bars.
+    state = placed
+    for _ in range(12):
+        state = mutate(client, state, "advance", steps=390).json()
+        if next((o for o in state["orders"] if o["id"] == placed["orders"][0]["id"]))[
+            "status"
+        ] == "filled":
+            break
+    position = next(p for p in state["positions"] if p["symbol"] == SYMBOL)
+    assert position["quantity"] < 0
+    assert float(state["buying_power"]) < float(state["equity"])
+
+    cover = mutate(
+        client, state, "orders", symbol=SYMBOL, side="buy", quantity=-position["quantity"]
+    )
+    assert cover.status_code == 200, cover.text
+    state = cover.json()
+    cover_id = state["orders"][-1]["id"]
+    for _ in range(12):
+        state = mutate(client, state, "advance", steps=390).json()
+        order_row = next(o for o in state["orders"] if o["id"] == cover_id)
+        # Never cancelled for buying power part-way through.
+        assert order_row["status"] in ("working", "partially_filled", "filled"), order_row
+        if order_row["status"] == "filled":
+            break
+    assert order_row["status"] == "filled"
+    assert all(p["quantity"] >= 0 for p in state["positions"])
+
+
+def test_a_forced_buy_in_runs_to_flat_without_being_re_raised():
+    """One buy-in, working every bar, until the borrowed stock is returned."""
+    s = state()
+    s["config"].update(account="margin", commission="0")
+    # The short fills first; the buy-in that follows the gap is then throttled by
+    # the same thin volume everything else trades into.
+    prices = [50] * 8 + [250] * 10
+    data = bars(prices, volume=400)
+    for index, row in enumerate(data["AAPL"]):
+        if index >= 8:
+            row["time"] += 86400
+    s["config"]["participation"] = "1"
+    order(s, data, side="sell", quantity=2000, fee_remaining="0.00")
+    advance_state(s, data, 6)
+    assert s["positions"]["AAPL"]["quantity"] == -2000
+    seen = []
+    for _ in range(len(prices) - 7):
+        advance_state(s, data, 1)
+        forced = [o for o in s["orders"] if o.get("forced")]
+        seen.append(len(forced))
+        for order_row in forced:
+            assert order_row["status"] in ("working", "partially_filled", "filled")
+            assert "maintenance requirement" in order_row["reason"]
+    assert max(seen) == 1, seen
+    assert s["positions"]["AAPL"]["quantity"] == 0

@@ -3,6 +3,12 @@ import type { SimOrder } from "./types";
 export const working = (o: SimOrder) =>
   ["working", "partially_filled"].includes(o.status);
 
+/** A bracket leg placed with an entry and waiting for it to fill. */
+export const held = (o: SimOrder) => o.status === "held";
+
+/** Anything the blotter's open tab should still be watching. */
+export const live = (o: SimOrder) => working(o) || held(o);
+
 export const dollars = (value: string | number) =>
   new Intl.NumberFormat("en-US", {
     style: "currency",

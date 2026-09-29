@@ -9,7 +9,8 @@ export type Candle = {
 
 export type Interval = "1m" | "5m" | "15m" | "1h" | "1D";
 
-export type OrderKind = "market" | "limit" | "stop" | "stop_limit";
+export type OrderKind =
+  "market" | "limit" | "stop" | "stop_limit" | "trailing_stop";
 
 export type SimOrder = {
   id: string;
@@ -19,7 +20,15 @@ export type SimOrder = {
   quantity: number;
   limit_price: string | null;
   stop_price: string | null;
+  trail_percent?: string | null;
+  trail_anchor?: string | null;
   tif: "DAY" | "GTC";
+  /** Set on an exit attached to an entry, naming the entry it protects. */
+  parent_id?: string | null;
+  oco_group?: string | null;
+  role?: "target" | "stop" | null;
+  /** The bar an armed bracket leg can first trade on. */
+  activates?: number | null;
   filled: number;
   status: string;
   average: string;
@@ -52,6 +61,9 @@ export type Position = {
   market_value: string;
   unrealized: string;
   available: number;
+  /** Shares a close acts on, whichever way the position faces. */
+  closable: number;
+  short: boolean;
 };
 
 export type DrawingKind =
@@ -84,6 +96,14 @@ export type Ticket = {
   quantity: string;
   limit: string;
   stop: string;
+  /** Trail for a trailing stop, as a percentage of the best price reached. */
+  trail: string;
+  /** Exits attached to an entry, sent with it and held until it fills. */
+  bracket: boolean;
+  takeProfit: string;
+  stopLoss: string;
+  /** A trailing stop leg instead of a fixed one, as a percentage. */
+  stopTrail: string;
   tif: "DAY" | "GTC";
   note: string;
   lesson: string;
@@ -105,6 +125,142 @@ export type Preferences = {
   walkthrough?: boolean;
   newsScope?: "all" | "symbol";
   statement?: "income" | "balance" | "cash" | "ratios" | "peers";
+  /** How many windows the chart region is split into: 1, 2 or 3. */
+  monitors?: 1 | 2 | 3;
+  /** The tool shown in the second and third windows. */
+  panes?: MonitorTool[];
+  /** Whether scored headlines are marked on the price chart. */
+  newsMarkers?: boolean;
+};
+
+export type NewsMarker = {
+  time: number;
+  /** Net basis points of modeled impact on this bar, summed across its items. */
+  points: number;
+  count: number;
+  headline: string;
+  items: {
+    headline: string;
+    points: number;
+    scope: string;
+    impact: string;
+  }[];
+};
+
+export type MonitorTool =
+  "tape" | "book" | "heatmap" | "screener" | "sessions" | "quotes" | "news";
+
+export type TapePrint = {
+  time: number;
+  price: number;
+  size: number;
+  side: "buy" | "sell" | "—";
+  index: number;
+};
+
+export type MonitorTools = {
+  tape?: {
+    symbol: string;
+    name: string;
+    sector: string | null;
+    prints: TapePrint[];
+    volume: number;
+    buy_share: number | null;
+    notice: string;
+  };
+  book?: {
+    symbol: string;
+    last: number;
+    bid: number;
+    ask: number;
+    spread: number;
+    bids: { price: number; size: number; cumulative: number }[];
+    asks: { price: number; size: number; cumulative: number }[];
+    imbalance: number | null;
+    notice: string;
+  };
+  heatmap?: {
+    sectors: {
+      sector: string;
+      change_pct: number;
+      notional: number;
+      companies_count: number;
+      companies: {
+        symbol: string;
+        name: string;
+        close: number;
+        change_pct: number;
+        relative_volume: number | null;
+        notional: number;
+        sentiment: number | null;
+      }[];
+    }[];
+    companies: number;
+    best: number;
+    worst: number;
+    weighting: string;
+  };
+  screener?: {
+    screen: string;
+    label: string;
+    description: string;
+    screens: { id: string; label: string; description: string }[];
+    matches: number;
+    rows: {
+      symbol: string;
+      name: string;
+      sector: string | null;
+      close: number;
+      change_pct: number;
+      relative_volume: number | null;
+      volatility: number | null;
+      sentiment: number | null;
+      rsi: number | null;
+      above_fast: boolean;
+      above_slow: boolean;
+      range_position: number | null;
+      multiple: number | null;
+      window_high: number;
+      window_low: number;
+    }[];
+    window_bars: number;
+    session_bars: number;
+  };
+  sessions?: {
+    symbol: string;
+    sessions: {
+      time: number;
+      open: number;
+      high: number;
+      low: number;
+      close: number;
+      volume: number;
+      change_pct: number;
+    }[];
+    volatility: number | null;
+    prior_close: number;
+  };
+  quotes?: {
+    rows: {
+      symbol: string;
+      name: string;
+      sector: string | null;
+      close: number;
+      change: number;
+      change_pct: number;
+      volume: number;
+      relative_volume: number | null;
+      sentiment: number | null;
+    }[];
+  };
+};
+
+export type MonitorView = {
+  tools: MonitorTools;
+  symbol: string;
+  cursor: number;
+  version: number;
+  disclosure: string;
 };
 
 export type SimRun = {
@@ -114,16 +270,25 @@ export type SimRun = {
   guest: boolean;
   cursor: number;
   total_bars: number;
+  /** A generated market keeps producing sessions; an import is bounded. */
+  endless: boolean;
+  session: number | null;
   clock: number;
   cash: string;
   reserved: string;
   available: string;
   equity: string;
+  /** What the account is carrying, counting a short at what it owes. */
+  gross_exposure: string;
+  /** Cash on a cash account; twice equity less gross on a margin one. */
+  buying_power: string;
+  account: "cash" | "margin";
   realized: string;
   config: {
     mode: "synthetic" | "historical";
     seed: number;
     universe?: string;
+    mission?: string | null;
     symbol: string | null;
     base_interval: string;
     source: string;
@@ -240,6 +405,25 @@ export type DeskView = {
       fills: number;
     }[];
     bars_observed: number;
+    benchmark: {
+      name: string;
+      equity: number;
+      total_return: number;
+      curve: { time: number; equity: number }[];
+    };
+    sessions: number;
+    risk: {
+      cagr: number | null;
+      sharpe: number | null;
+      sortino: number | null;
+      calmar: number | null;
+      alpha: number | null;
+      beta: number | null;
+      var_95: number | null;
+      cvar_95: number | null;
+      max_drawdown: number | null;
+    };
+    risk_is_meaningful: boolean;
   };
   cursor: number;
   version: number;
@@ -281,6 +465,42 @@ export type SymbolAnalytics = {
   sentiment: { session: SentimentReading; week: SentimentReading } | null;
 };
 
+export type MissionProgress = {
+  id: string;
+  title: string;
+  subtitle: string;
+  brief: string;
+  lessons: string[];
+  symbol: string;
+  objectives: {
+    id: string;
+    title: string;
+    detail: string;
+    met: boolean;
+    progress: string;
+  }[];
+  met: number;
+  total: number;
+  complete: boolean;
+  cursor: number;
+  version: number;
+  disclosure: string;
+};
+
+export type MissionCatalog = {
+  missions: {
+    id: string;
+    title: string;
+    subtitle: string;
+    lessons: string[];
+    brief: string;
+    symbol: string;
+    name: string;
+    objectives: { id: string; title: string; detail: string }[];
+  }[];
+  disclosure: string;
+};
+
 export type RunCalendar = {
   economic: {
     index: number;
@@ -300,8 +520,10 @@ export type RunCalendar = {
     time: number;
     bars_away: number;
     released: boolean;
-    consensus_eps: number;
-    consensus_revenue: number;
+    // Null until the quarter is scheduled: the date is knowable before the
+    // street has published an estimate for it.
+    consensus_eps: number | null;
+    consensus_revenue: number | null;
     eps?: number;
     revenue?: number;
     eps_surprise?: number | null;
@@ -347,6 +569,8 @@ export type NewsItem = {
   source: string;
   sentiment: "positive" | "negative" | "neutral";
   impact: "high" | "medium" | "low" | "none";
+  /** Signed score. One point is one basis point of modeled price move. */
+  points: number;
 };
 
 export type SentimentReading = {

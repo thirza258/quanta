@@ -14,6 +14,13 @@ class RunCreate(Model):
     mode: Literal["synthetic", "historical"] = "synthetic"
     # Omitted: derived from the run identifier so every new account differs.
     seed: StrictInt | None = Field(default=None, ge=0, le=1000000)
+    # A lesson-linked practice mission. It fixes the market so everyone attempting
+    # the same mission meets the same one.
+    mission: str | None = Field(default=None, max_length=40)
+    # A cash account can only sell what it owns. A margin account can borrow
+    # stock to sell, and pays for the privilege. Runs made before this existed
+    # are cash accounts, which is what they always were.
+    account: Literal["cash", "margin"] = "cash"
     symbol: str | None = Field(default=None, max_length=20)
     commission: Decimal = Field(default=Decimal("1"), ge=0, le=100, decimal_places=2)
     slippage_bps: Decimal = Field(default=Decimal("2"), ge=0, le=100)
@@ -29,10 +36,19 @@ class Mutation(Model):
 class OrderCreate(Mutation):
     symbol: str = Field(max_length=20)
     side: Literal["buy", "sell"]
-    kind: Literal["market", "limit", "stop", "stop_limit"] = "market"
+    kind: Literal["market", "limit", "stop", "stop_limit", "trailing_stop"] = "market"
     quantity: StrictInt = Field(gt=0, le=1000000)
     limit_price: Decimal | None = Field(default=None, gt=0, le=100000000, decimal_places=2)
     stop_price: Decimal | None = Field(default=None, gt=0, le=100000000, decimal_places=2)
+    # A trailing stop follows the best price reached since it started working,
+    # by a percentage rather than a fixed amount, so the same order behaves the
+    # same way on a $9 stock and a $900 one.
+    trail_percent: Decimal | None = Field(default=None, gt=0, le=50, decimal_places=2)
+    # An exit attached to an entry. Both legs are created with the entry and
+    # wait, held, until it fills; whichever triggers first cancels the other.
+    take_profit: Decimal | None = Field(default=None, gt=0, le=100000000, decimal_places=2)
+    stop_loss: Decimal | None = Field(default=None, gt=0, le=100000000, decimal_places=2)
+    stop_loss_trail: Decimal | None = Field(default=None, gt=0, le=50, decimal_places=2)
     tif: Literal["DAY", "GTC"] = "GTC"
     note: str = Field(default="", max_length=2000)
     lesson: str = Field(default="", max_length=40)

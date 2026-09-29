@@ -7,6 +7,7 @@ import type {
   Indicator,
   Interval,
   MarketIndicators,
+  NewsMarker,
   SimRun,
 } from "@/features/simulator/model/types";
 import type {
@@ -37,6 +38,9 @@ type Props = {
   chartType: "candles" | "bars" | "line";
   indicators: Indicator[];
   overlays: MarketIndicators;
+  /** Scored headlines already released, grouped onto the bars they moved. */
+  news: NewsMarker[];
+  showNews: boolean;
   drawings: Drawing[];
   onDrawings: (d: Drawing[]) => void;
   tool: DrawingKind | "cursor";
@@ -335,10 +339,34 @@ export default function SimChart(props: Props) {
             ]
           : [];
       });
-    markers.current.setMarkers(entries);
+    // News and fills share one marker plugin, so both lists go in together —
+    // setting either alone would erase the other.
+    const drawn = new Set(times);
+    const headlines = props.showNews
+      ? props.news
+          .filter((marker) => drawn.has(marker.time) && marker.points !== 0)
+          .map((marker) => ({
+            time: marker.time as UTCTimestamp,
+            position: (marker.points > 0 ? "belowBar" : "aboveBar") as
+              "belowBar" | "aboveBar",
+            // Faded against the fill arrows: the account's own trades stay the
+            // loudest thing on the chart.
+            color: marker.points > 0 ? "#2f7f70" : "#a8545f",
+            shape: "circle" as const,
+            text:
+              (marker.points > 0 ? "+" : "") +
+              marker.points +
+              (marker.count > 1 ? ` (${marker.count})` : ""),
+          }))
+      : [];
+    markers.current.setMarkers(
+      [...headlines, ...entries].sort((a, b) => a.time - b.time),
+    );
   }, [
     props.bars,
     props.run.fills,
+    props.news,
+    props.showNews,
     props.symbol,
     props.interval,
     props.chartType,
