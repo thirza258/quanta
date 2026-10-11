@@ -132,13 +132,15 @@ CASES = {item["id"]: item for item in [
 
 
 def attach_real_world_cases(catalog):
+    from case_applications_ethics import APPLICATIONS as ethics
+    from case_applications_evaluation import APPLICATIONS as evaluation
     from case_applications_investing import APPLICATIONS as investing
     from case_applications_quant import APPLICATIONS as quant
     from case_applications_systems import APPLICATIONS as systems
-    from case_applications_evaluation import APPLICATIONS as evaluation
-    from case_applications_ethics import APPLICATIONS as ethics
+    from lab_workshop import APPLICATIONS as lab
+    from simulator_workshop import APPLICATIONS as simulator
 
-    rows = investing + quant + systems + evaluation + ethics
+    rows = investing + quant + systems + evaluation + ethics + simulator + lab
     applications = {}
     for lesson_id, case_id, connection, task, walkthrough in rows:
         if lesson_id in applications:

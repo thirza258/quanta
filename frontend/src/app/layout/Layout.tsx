@@ -125,7 +125,9 @@ export default function Layout() {
       ? "Learning room"
       : location.pathname.startsWith("/exams")
         ? "Assessment room"
-        : "Reference library");
+        : location.pathname.startsWith("/resources")
+          ? "Learning resources"
+          : "Reference library");
   if (!ready) return <Loading label="Opening your workspace…" />;
   return (
     <div

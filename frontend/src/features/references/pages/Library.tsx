@@ -36,14 +36,14 @@ const references = [
     "Security Analysis",
     "Benjamin Graham & David Dodd · 1940 edition",
     "The foundations of intrinsic value, earning power, senior claims, and margin of safety. Quanta’s lessons are original explanations, not reproductions of the textbook.",
-    "Tracks 01 & 04",
+    "Security analysis",
     "https://www.mheducation.com/highered/mhp/product/security-analysis-classic-1940-edition.html",
   ],
   [
     "Quantitative Investment Analysis",
     "CFA Institute · Fourth edition",
     "Probability, estimation, regression, time series, portfolio construction, and quantitative risk management.",
-    "Tracks 02 & 03",
+    "Statistics & econometrics",
     "https://www.wiley-vch.de/en/areas-interest/finance-economics-law/finance-investments-13fi/investments-securities-13fi3/quantitative-investment-analysis-978-1-119-74362-0",
   ],
   [
@@ -64,7 +64,7 @@ const references = [
     "Uniswap Protocol Documentation",
     "Uniswap Labs",
     "Pool invariants, concentrated liquidity, swaps, and protocol mechanics.",
-    "Track 06",
+    "Web3",
     "https://docs.uniswap.org/",
   ],
 ];
@@ -89,6 +89,12 @@ export default function Library() {
       <h1>Reference library</h1>
       <p className="page-subtitle">
         A small, considered collection for deeper study.
+      </p>
+      <p className="library-resources-link">
+        Looking for books, courses and data to keep learning, from free to paid?{" "}
+        <Link className="text-link" to="/resources">
+          Browse learning resources
+        </Link>
       </p>
       <div className="reference-list">
         {references.map(([title, author, description, tag, href]) => (

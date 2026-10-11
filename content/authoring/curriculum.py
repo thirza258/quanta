@@ -10,12 +10,14 @@ from econometrics_course import build_econometrics
 from evaluation_course import build_algorithm_evaluation
 from foundations import build_foundations
 from intelligent_investor import build_intelligent_investor
+from lab_workshop import build_lab_workshop
 from learning_guidance import attach_learning_guidance
 from news_to_markets import build_news_to_markets
 from quantitative_analysis import build_quantitative_analysis
 from real_world_cases import attach_real_world_cases
 from research_depth import attach_research_depth
 from security_analysis import build_security_analysis
+from simulator_workshop import build_simulator_workshop
 from stock_bots import build_stock_bots
 from stock_ml_course import build_stock_ml
 from strategy_course import build_strategy_lab
@@ -617,6 +619,10 @@ catalog.insert(
 # Conduct comes straight after the fundamentals: a learner should know whose
 # interest a trade serves before learning how to value or automate one.
 catalog.insert(1, build_trading_ethics())
+# The tool workshops follow conduct: learners practise in the simulator and the lab
+# with their charter in hand, before the valuation and strategy courses use those tools.
+catalog.insert(2, build_simulator_workshop())
+catalog.insert(3, build_lab_workshop())
 catalog.insert(
     next(i for i, track in enumerate(catalog) if track["id"] == "stock-bots") + 1,
     build_c_hpc_trading(),

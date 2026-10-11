@@ -14,6 +14,7 @@ const StrategyLab = lazy(() => import("@/features/research/pages/StrategyLab"));
 const Notebook = lazy(() => import("@/features/notebook/pages/Notebook"));
 const Experiments = lazy(() => import("@/features/research/pages/Experiments"));
 const Library = lazy(() => import("@/features/references/pages/Library"));
+const Resources = lazy(() => import("@/features/references/pages/Resources"));
 const ExamRoom = lazy(() => import("@/features/assessments/pages/ExamRoom"));
 const Certifications = lazy(
   () => import("@/features/certifications/pages/Certifications"),
@@ -61,6 +62,7 @@ export default function App() {
               <Route path="notebook" element={<Notebook />} />
               <Route path="experiments" element={<Experiments />} />
               <Route path="library" element={<Library />} />
+              <Route path="resources" element={<Resources />} />
               <Route path="methodology" element={<Library />} />
               <Route
                 path="*"
