@@ -182,6 +182,27 @@ Exercise: write your band and cost assumption, then double the cost; the scaling
              'Compares rebalancing with buy-and-hold over a 30-year dataset from the United States, United Kingdom and Germany; frequent rebalancing improved risk-adjusted performance in every country.'),
         ],
     ),
+    "11.11": (
+        r"""The lesson's two funds share a gross return, yet research shows that buyers often miss the gap. Barber, Odean and Zheng studied mutual fund flows over 30 years: flows were negatively related to front-end loads but unrelated to operating expenses, and their analyses point to marketing and advertising costs often embedded in those expenses. The fee that compounds in the lesson's formula may therefore be the one buyers see least (our inference).
+
+Choi, Laibson and Madrian ran a cleaner test. Subjects split $10,000 among four S&P 500 index funds, with rewards tied to the portfolio's later return. Search costs for fees mattered, but even without them subjects overwhelmingly failed to minimize fees; they leaned heavily on annualized returns since inception, and fees paid fell with financial literacy.
+
+Rankings tell less than they seem to. Carhart found that persistence in equity funds' returns is almost completely explained by common stock-return factors and investment expenses, except for strong underperformance by the worst funds. The yardstick matters too: Burlacu and co-authors estimate the average active fund's alpha (return beyond its benchmark) at −128 basis points a year against a market index, but an insignificant +23 against a reference portfolio built for uninformed investors.
+
+By our arithmetic, the lesson's pair ends at 10,000 × 1.058²⁰ ≈ 30,883 and 10,000 × 1.045²⁰ ≈ 24,117, so the dearer fund finishes about 22% lower. At a 4% gross return the shortfall is still about 22%.
+
+Exercise: list every charge for one fund, name the benchmark you compare it with, and rerun the formula with a gross return 2 points lower. Note what moves, the amount or the percentage shortfall.""",
+        [
+            ('paper', 'Barber, Odean & Zheng', 2005, 'Out of Sight, Out of Mind: The Effects of Expenses on Mutual Fund Flows', 'https://doi.org/10.1086/497042',
+             'Thirty years of fund flows: investors respond to salient loads and commissions but not to operating expenses, which often carry marketing and advertising costs.'),
+            ('paper', 'Choi, Laibson & Madrian', 2010, 'Why Does the Law of One Price Fail? An Experiment on Index Mutual Funds', 'https://doi.org/10.1093/rfs/hhp097',
+             'Incentivized experiment on four S&P 500 index funds: subjects overwhelmingly failed to minimize fees, even without search costs, and leaned on returns since inception.'),
+            ('paper', 'Carhart', 1997, 'On Persistence in Mutual Fund Performance', 'https://doi.org/10.1111/j.1540-6261.1997.tb03808.x',
+             'Survivor-bias-free test of whether past fund rankings last: common factors and expenses almost completely explain persistence, apart from the worst performers.'),
+            ('arxiv', 'Burlacu, Fontaine & Jimenez-Garcès', 2022, "Why do investors buy shares of actively managed equity mutual funds? Considering the Correct Reference Portfolio from an Uninformed Investor's Perspective", 'https://arxiv.org/abs/2212.02307',
+             "Shows that the average active fund's alpha is negative against a market index but insignificant against a reference portfolio for uninformed investors, so the benchmark choice matters."),
+        ],
+    ),
     "11.12": (
         r"""The lesson's formula makes average cost an amount-weighted harmonic mean of the prices paid. With equal purchases it sits below the simple average price whenever prices differ: 6.667 against 7.5 in the lesson. That is arithmetic, not a return advantage: it compares your cost with a statistic, not with a lump sum or no purchase.
 
@@ -214,6 +235,61 @@ Exercise: in one annual report, copy every reconciling item with its sign, searc
              'In 40,679 firm-years, accrual-based earnings were less persistent than cash-based earnings, yet prices behaved as if investors fixated on the earnings headline.'),
             ('official', 'U.S. SEC', None, 'Regulation S-K Item 10(e): Use of non-GAAP financial measures in Commission filings (17 CFR 229.10)', 'https://www.law.cornell.edu/cfr/text/17/229.10',
              'Rule text requiring a prominent GAAP comparison and a quantitative reconciliation, and barring items labelled non-recurring that are likely to recur within two years.'),
+        ],
+    ),
+    "11.14": (
+        r"""Two different problems sit behind the lesson's checklist, and both have been measured.
+
+Conflicted advice. Mullainathan and co-authors sent trained auditors to financial advisers with portfolios whose biases either matched the adviser's financial interest, such as returns-chasing, or ran against it, such as company stock or very low-fee index funds. Advisers failed to de-bias clients and often reinforced biases that suited them: they encouraged returns-chasing and pushed higher-fee active funds, even for clients who arrived with diversified, low-fee portfolios. Checking pays, though. Egan and co-authors covered the universe of U.S. financial advisers from 2005 to 2015: 7% had misconduct records, more than 15% at some of the largest firms, and prior offenders were five times as likely as the average adviser to commit new misconduct. A big name is no substitute for reading the record (our inference).
+
+Fraud. Bartoletti and co-authors describe a Ponzi scheme as repaying users only with the investments of new users, so it implodes soon after users stop joining. Moore and co-authors followed online Ponzi schemes called HYIPs through nine months of aggregator-site data and found longer lifetimes with lower interest payments, so a lower promised rate may only lengthen a scheme's life, not make it safe (our inference). By our arithmetic, the lesson's 3% a month, reinvested, owes a deposit of 100 about 589 after five years (1.03⁶⁰ ≈ 5.89). That does not prove fraud; it shows what the promoter must be able to fund if depositors ask for their money.
+
+Exercise: for one offer, write who holds the money, where the return is earned and what the regulator's register shows. If any answer rests only on the promoter's say-so, stop.""",
+        [
+            ('paper', 'Mullainathan, Nöth & Schoar', 2012, 'The Market for Financial Advice: An Audit Study', 'https://doi.org/10.3386/w17929',
+             'Audit study of financial advisers: they often reinforced client biases that served their own interests, pushing higher-fee active funds even when the client held a low-fee, diversified portfolio.'),
+            ('paper', 'Egan, Matvos & Seru', 2016, 'The Market for Financial Adviser Misconduct', 'https://doi.org/10.3386/w22050',
+             'Working-paper version covering U.S. advisers from 2005 to 2015: misconduct records reach more than 15% at some large firms, and prior offenders are about five times as likely to offend again.'),
+            ('arxiv', 'Bartoletti, Carta, Cimoli & Saia', 2017, 'Dissecting Ponzi schemes on Ethereum: identification, analysis, and impact', 'https://arxiv.org/abs/1703.03779',
+             "Defines the mechanism behind a promised-return fraud: early users are repaid only from new users' money, so the scheme implodes once joining stops."),
+            ('paper', 'Moore, Han & Clayton', 2012, 'The Postmodern Ponzi Scheme: Empirical Analysis of High-Yield Investment Programs', 'https://doi.org/10.1007/978-3-642-32946-3_4',
+             'Studies online Ponzi schemes (HYIPs) using nine months of aggregator data and finds that lower promised interest goes with longer lifetimes.'),
+        ],
+    ),
+    "11.15": (
+        r"""A journal entry needs a date because memory edits itself. In Fischhoff's experiments, learning how things turned out raised the likelihood judges assigned to the reported events. They were largely unaware of it, so they overestimated what they would have known without the outcome, and what others did know. A buyer at 70 who later sees 100 may recall being surer than 60% (our inference); Fischhoff argued that such unawareness restricts learning from the past.
+
+Disconfirmation has experimental support. Koriat, Lichtenstein and Fischhoff tested whether overconfidence comes from justifying a chosen answer by focusing on supporting evidence. Subjects chose an answer to a two-alternative question, then listed a supporting reason, a contradicting one, or both; only the contradicting reason made confidence more appropriate. Their questions were not investments, so transfer is our inference. For the lesson's thesis, write the strongest reason the value is 50 before the reason it is 100.
+
+Scoring turns a journal into a test. A forecast is calibrated when stated probabilities match observed frequencies (Dimitriadis and co-authors). In a two-year geopolitical forecasting tournament, Mellers and co-authors found that training in probability, teaming and tracking all improved calibration and resolution, the power to tell events from non-events. The Brier score is the squared gap between a probability and the outcome coded 1 or 0, lower being better. The lesson's 60% call scores 0.16 if the 100 arrives and 0.36 if not; perfectly calibrated, it averages 0.24, barely better than a coin flip's 0.25 (our arithmetic), so one outcome says little.
+
+Exercise: log date, probability and resolution rule for each call, and once you have a few dozen resolved, compare each stated probability, such as 60%, with how often those calls came true.""",
+        [
+            ('paper', 'Fischhoff', 1975, 'Hindsight is not equal to foresight: The effect of outcome knowledge on judgment under uncertainty', 'https://doi.org/10.1037/0096-1523.1.3.288',
+             'Experiments showing that outcome knowledge inflates the likelihood judges say they would have given and that they are largely unaware of it. Abstract read from the 2003 reprint, DOI 10.1136/qhc.12.4.304.'),
+            ('paper', 'Koriat, Lichtenstein & Fischhoff', 1980, 'Reasons for confidence', 'https://doi.org/10.1037/0278-7393.6.2.107',
+             'Experiments on overconfidence: listing a reason that contradicts your chosen answer improved the appropriateness of confidence, while listing only supporting reasons did not.'),
+            ('paper', 'Mellers et al.', 2014, 'Psychological Strategies for Winning a Geopolitical Forecasting Tournament', 'https://doi.org/10.1177/0956797614524255',
+             'Two-year probability-forecasting tournament in which training, teaming and tracking improved both calibration and resolution, showing that forecast quality can be measured and improved.'),
+            ('arxiv', 'Dimitriadis, Gneiting & Jordan', 2020, 'Evaluating probabilistic classifiers: Reliability diagrams and score decompositions revisited', 'https://arxiv.org/abs/2008.03033',
+             'Defines a calibrated probability forecast as one whose stated probabilities match later observed frequencies, and supplies reliability diagrams and Brier score decompositions to check it.'),
+        ],
+    ),
+    "11.16": (
+        r"""The CFA Institute's guide to investment policy statements for individuals shows what a plan can still lack. It asks who determines, executes and monitors the policy, and for a process, identified in advance, for refreshing the statement as circumstances or markets change. It also asks for an evaluation horizon, a minimum period that clarifies when underperformance needs action. It cautions that generic templates almost inevitably overlook factors specific to the investor, so treat this course's plan as a skeleton. Its sample liquidity clause, in examples it calls entirely fictitious, keeps up to 15 percent of a portfolio liquidatable on five days' notice; the lesson's household holds 54 of 120 million, 45%, in near-term and reserve pools (our arithmetic).
+
+Rules need a form. Gollwitzer and Sheeran pooled 94 independent tests and found that if-then plans that settle in advance when, where and how you will act on a goal had a medium-to-large effect on goal attainment (effect size d = 0.65). The abstract describes goal striving in general, so applying it to investing is our inference. Write "if the reserve falls below 24 million, refill it before any new purchase" rather than "keep a reserve".
+
+Pools have costs. Campbell, Capponi and Parashar model a household with a random-deadline precautionary goal and a fixed-deadline accumulation goal. Saving for emergencies crowds out growth-oriented investment; pre-committing to fund a goal costs flexibility, and giving each goal its own account costs fungibility, the ability to move money between goals. Our inference: separate pools buy clarity at that price, so say what happens when one runs short.
+
+Exercise: for each pool, write one if-then rule, one trigger for reviewing the policy, and the evaluation horizon over which you will judge results.""",
+        [
+            ('official', 'CFA Institute', 2010, 'Elements of an Investment Policy Statement for Individual Investors', 'https://rpc.cfainstitute.org/sites/default/files/-/media/documents/article/position-paper/investment-policy-statement-individual-investors.pdf',
+             'Professional template for a written policy: governance, a review process set in advance, an evaluation horizon, liquidity and rebalancing rules, and a caution against generic templates.'),
+            ('paper', 'Gollwitzer & Sheeran', 2006, 'Implementation Intentions and Goal Achievement: A Meta-analysis of Effects and Processes', 'https://doi.org/10.1016/S0065-2601%2806%2938002-1',
+             'Meta-analysis of 94 independent tests: if-then plans that fix the situation and the response in advance raised goal attainment with a medium-to-large effect.'),
+            ('arxiv', 'Campbell, Capponi & Parashar', 2026, 'Portfolio Choice with Competing Precautionary and Accumulation Goals', 'https://arxiv.org/abs/2606.03158',
+             'Household model with an emergency-type goal and a fixed-deadline goal: precautionary saving crowds out growth investment, and pre-commitment and separate accounts each cost flexibility or fungibility.'),
         ],
     ),
 }
