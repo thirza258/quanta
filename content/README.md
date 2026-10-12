@@ -17,3 +17,23 @@ The [C and high-performance bot course](../docs/C_HPC_COURSE.md) follows Python 
 The [algorithm evaluation/reporting course](../docs/ALGORITHM_EVALUATION.md) is last, after stock ML, using `10.x`. Its project owns the report generator, example valuations/timings/manifest and report rubric. Generated personal report outputs are ignored; only the explicit original source files enter the downloadable archive.
 
 The [careful-investor companion](../docs/INTELLIGENT_INVESTOR.md) appears before Security Analysis with `11.x` lesson IDs. Its workbook contains original cases and a plan, not the book. The [expanded Strategy Lab](../docs/STRATEGY_LAB_COURSE.md) preserves legacy `4.1`–`4.4` first practice keys and upgrades its final to version 2; its local project exports valuations directly to the final reporting course.
+
+## Research extensions
+
+`authoring/research_depth.py` appends a final *Go deeper: what the research says* section to each lesson that has a verified note. It runs in `curriculum.py` after the learning guidance and before `attach_references`, so every cited source reaches the lesson footer and the reference library. A course's notes live in `authoring/research_<course>.py` as `(body, sources)` pairs keyed by lesson ID. Lessons are added individually as each one is verified; a lesson without a note has no section. The build rejects:
+- unknown lesson IDs;
+- duplicated bodies;
+- links, tables or numbered lists inside a body;
+- more than one display equation;
+- non-https or versioned arXiv URLs;
+- a source cited twice in one note.
+
+Write each note in Quanta's own words, at the course's level, tied to the lesson's worked example, with 2–4 sources and at least one arXiv paper where a relevant one exists. Before a note is merged:
+- every arXiv ID and DOI must match its registry title and year;
+- every figure in the text must be backed by a verbatim snippet of its source, and that snippet must be re-fetched and found.
+
+`backend/tests/test_research_depth.py` checks the rendered sections.
+
+## Tool workshops
+
+The [simulator and lab workshops](../docs/TOOL_WORKSHOPS.md) use the `13.x` and `14.x` namespaces and follow Trading ethics. Their steps quote the exact UI labels and their figures come from running the engine with default inputs. If the simulator's or the lab's labels, defaults or execution rules change, update these lessons in the same change.

@@ -47,9 +47,11 @@ def test_original_worksheets_match_independent_arithmetic(lesson_id, expected):
 
 
 def test_order_and_legacy_strategy_subjects():
-    assert [c["id"] for c in CATALOG[:5]] == [
+    assert [c["id"] for c in CATALOG[:7]] == [
         "trading-fundamentals",
         "trading-ethics",
+        "simulator-workshop",
+        "lab-workshop",
         "intelligent-investor",
         "security-analysis",
         "news-to-markets",

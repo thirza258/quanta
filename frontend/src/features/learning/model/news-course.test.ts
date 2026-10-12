@@ -8,7 +8,7 @@ describe("news-to-company learning progression", () => {
   it("follows Security Analysis without renumbering existing lesson URLs", () => {
     const index = tracks.findIndex((track) => track.id === "security-analysis");
     expect(tracks[index + 1]).toBe(course);
-    expect(trackLabel(course)).toBe("TRACK 04");
+    expect(trackLabel(course)).toBe("TRACK 06");
     expect(course.modules[0].id).toBe("8.1");
     expect(tracks[index + 2].modules[0].id).toBe("2.1");
     expect(

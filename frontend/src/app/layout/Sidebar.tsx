@@ -4,6 +4,7 @@ import {
   ArrowUpRight,
   ChevronRight,
   CircleHelp,
+  GraduationCap,
   Library,
   LogOut,
   Search,
@@ -92,6 +93,16 @@ export default function Sidebar({
           <Library size={18} strokeWidth={1.7} />
           <span>Reference library</span>
           <ArrowUpRight className="trailing-icon" size={14} />
+        </NavLink>
+        <NavLink
+          to="/resources"
+          className="nav-item"
+          aria-label="Learning resources"
+          title={collapsed ? "Learning resources" : undefined}
+          onClick={onClose}
+        >
+          <GraduationCap size={18} strokeWidth={1.7} />
+          <span>Learning resources</span>
         </NavLink>
         <NavLink
           to="/methodology"

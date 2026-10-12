@@ -32,6 +32,7 @@ const urls = [
   { loc: `${baseUrl}/notebook`, changefreq: "monthly", priority: "0.7" },
   { loc: `${baseUrl}/experiments`, changefreq: "monthly", priority: "0.7" },
   { loc: `${baseUrl}/library`, changefreq: "monthly", priority: "0.7" },
+  { loc: `${baseUrl}/resources`, changefreq: "monthly", priority: "0.7" },
   { loc: `${baseUrl}/methodology`, changefreq: "monthly", priority: "0.7" },
 ];
 

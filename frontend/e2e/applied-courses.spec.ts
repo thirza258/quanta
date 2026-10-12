@@ -18,6 +18,8 @@ const courses = catalog.filter((course) =>
     "algorithm-evaluation",
     "strategy-lab",
     "intelligent-investor",
+    "simulator-workshop",
+    "lab-workshop",
   ].includes(course.id),
 );
 
@@ -32,6 +34,8 @@ test("curriculum places careful investing before Security Analysis and searches 
   for (const [index, slug] of [
     "trading-fundamentals",
     "trading-ethics",
+    "simulator-workshop",
+    "lab-workshop",
     "intelligent-investor",
     "security-analysis",
     "news-to-markets",
@@ -155,7 +159,11 @@ for (const course of courses) {
                 ? "Strategy rubric total: 100"
                 : course.id === "intelligent-investor"
                   ? "Investor plan rubric total: 100"
-                  : "Planned study hours: 12.0",
+                  : course.id === "simulator-workshop"
+                    ? "Simulator review checklist: 12 of 12"
+                    : course.id === "lab-workshop"
+                      ? "Lab research loop steps: 12 of 12"
+                      : "Planned study hours: 12.0",
     );
   });
 

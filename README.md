@@ -1,6 +1,6 @@
 # Quanta
 
-A focused investment learning workspace built from [PRD.md](PRD.md). The local platform has **thirteen courses spanning market fundamentals, trading ethics, careful investing, security analysis, news, econometrics, strategy research, Python and C/HPC bots, Web3, stock machine learning, and a final algorithm evaluation/reporting track**, with a Docker deployment that includes the web app, API, PostgreSQL, and Redis.
+A focused investment learning workspace built from [PRD.md](PRD.md). The local platform has **fifteen courses spanning market fundamentals, trading ethics, hands-on workshops for the trading simulator and strategy lab, careful investing, security analysis, news, econometrics, strategy research, Python and C/HPC bots, Web3, stock machine learning, and a final algorithm evaluation/reporting track**, with a Docker deployment that includes the web app, API, PostgreSQL, and Redis.
 
 ## Run with Docker
 
@@ -50,10 +50,13 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 
 ## What works
 
-- Thirteen courses and 316 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
+- Fifteen courses and 340 original reading modules, beginning with **Trading & market fundamentals**: eight beginner lessons, worked examples, 24 practice questions, key-term glossaries, and optional Python examples.
 - **[Real-world applications in every lesson](docs/REAL_WORLD_CASES.md)**: 300 distinct tasks and worked explanations built around 35 Indonesian and global cases, with primary references, dated event context, unit links, and notebook prompts. Documented events and illustrative exercise data are clearly distinguished.
 - Seventy-seven open-book assessments with 572 original exam questions, including four checkpoints and a new final for each expanded book course.
 - **Lesson-linked practice missions** in the simulator: six fixed scenarios reachable straight from the lessons they serve, each with a brief and three objectives judged on the server from the run's own state. Objectives describe process — a limit entry, a thesis on every order, a position cap, a session held through a print — and never read P&L, because a profitable breach of a rule is still a breach.
+- **[Research extensions in lessons](content/README.md#research-extensions)**: a closing *Go deeper: what the research says* section that adds the mechanisms, findings and disagreements behind a lesson, written in Quanta's own words from 2–4 verified sources with at least one arXiv paper where a relevant one exists. 69 lessons carry one so far — every lesson of Trading & market fundamentals, Trading ethics and Algorithm evaluation, plus the first verified lessons of Intelligent investor, News, Strategy lab, Econometrics and Stock bots — drawing on 223 distinct sources (60 arXiv papers). Every cited paper is matched against arXiv or Crossref, and every figure against a verbatim snippet of its source, before it is merged; further lessons are added one by one as they pass.
+- **[Trading simulator & strategy lab workshops](docs/TOOL_WORKSHOPS.md)**: two 12-lesson, 6-hour courses placed straight after trading ethics. The simulator workshop covers runs and seeds, the replay clock, the simulated newsroom, every order type, fill pricing, margin and short selling, company accounts, desk analytics, performance against the QX-200 and a charter-week capstone, and links all six practice missions. The lab workshop covers every Strategy lab tool — synthetic markets and scenarios, the guided Python runtime, backtest mechanics and metrics, valuation, the factor studio, robustness sweeps, the paper broker's guards, the AMM simulator, saved experiments and the notebook — with every default figure checked against the running engine.
+- **[Learning resources](/resources)**: 52 books, courses, datasets and tools for going further, arranged from free to paid with topic filters and search, each linked to the Quanta courses it extends and checked against its provider's page.
 - **[Trading ethics & market conduct](docs/TRADING_ETHICS.md)**: 16 lessons / 8 hours placed immediately after the fundamentals, so a learner settles whose interest a trade serves before learning to value or automate one. Four units cover duty and disclosure, market integrity, conduct in automated and quantitative work, and care, refusal and record. Every lesson ends in an explicit **do and do not** rule with a threshold and a check, and the course builds to a personal trading charter. 32 practice questions, four checkpoints and a 16-question final, referenced to CFA Institute, SEC, FINRA, ESMA and GIPS primary sources.
 - **[The intelligent & careful investor](docs/INTELLIGENT_INVESTOR.md)**: 16 lessons / 8 hours directly before Security Analysis, inspired by Graham’s *The Intelligent Investor*. Covers temperament, speculation, liquidity, diversification, margin of safety, allocation, costs and independent judgment, with 32 practice questions, four checkpoints, a final and an original investor-plan workbook.
 - **[Security Analysis](docs/BOOK_COURSES.md)**: 24 lessons following the 1940 book’s seven parts, separate modern extensions, 48 practice questions, and an investment committee capstone.
@@ -178,7 +181,7 @@ Interactive API documentation is at `/docs` on the development API URL. The publ
 | Method | Route | Purpose |
 | --- | --- | --- |
 | GET | `/api/v1/health` | API/database/Redis readiness |
-| GET | `/api/v1/courses` | All thirteen courses, including exams and sourced real-world cases |
+| GET | `/api/v1/courses` | All fifteen courses, including exams, sourced real-world cases and research extensions |
 | POST | `/api/v1/auth/register`, `/login`, `/logout` | Account lifecycle (same `/auth` prefix) |
 | GET/POST/PUT | `/api/v1/simulator/...` | [Persistent trading account, observed prices and overlays, simulated news, generated statements, desk analytics, orders, replay, preferences, and journals](docs/SIMULATOR.md#http-interface) |
 | GET | `/api/v1/auth/me` | Current session profile |

@@ -1,13 +1,15 @@
 """Sourced research extensions: a deeper, cited section at the end of every lesson.
 
-Each course has a data module (``research_<course>.py``) that maps its lesson IDs
-to an original explanation and the papers, standards, and documentation behind it.
-Rebuilds fail on missing, unknown, or duplicated lessons and on citations that would
-not render as a clean, attributable link, rather than silently skipping a lesson.
+A course's data module (``research_<course>.py``) maps lesson IDs to an original
+explanation and the papers, standards, and documentation behind it. Notes are added
+lesson by lesson as each one is verified; a lesson without a note simply has no
+extension yet. Rebuilds fail on unknown or duplicated lessons and on citations that
+would not render as a clean, attributable link.
 """
 
 import re
 from importlib import import_module
+from importlib.util import find_spec
 from math import ceil
 
 HEADING = "## Go deeper: what the research says"
@@ -92,21 +94,21 @@ def render(body, sources):
 
 
 def load_notes(course_id):
-    return import_module(module_name(course_id)).NOTES
+    name = module_name(course_id)
+    return import_module(name).NOTES if find_spec(name) else {}
 
 
 def attach_research_depth(catalog):
-    """Append each lesson's research section; run before references are collected."""
+    """Append each verified lesson's research section; run before references are collected."""
     bodies = {}
     for course in catalog:
         notes = load_notes(course["id"])
         lesson_ids = {module["id"] for module in course["modules"]}
-        if set(notes) != lesson_ids:
-            raise ValueError(
-                f"Research coverage mismatch in {course['id']}: missing "
-                f"{sorted(lesson_ids - notes.keys())}, extra {sorted(notes.keys() - lesson_ids)}"
-            )
+        if unknown := sorted(notes.keys() - lesson_ids):
+            raise ValueError(f"Research notes for unknown lessons in {course['id']}: {unknown}")
         for module in course["modules"]:
+            if module["id"] not in notes:
+                continue
             body, sources = notes[module["id"]]
             validate(module["id"], body, sources)
             key = " ".join(body.split())

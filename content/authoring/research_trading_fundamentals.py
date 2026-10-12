@@ -80,7 +80,7 @@ $$g \approx \mu - \tfrac{1}{2}\sigma^{2}$$
 
 so two assets with the same average return can grow at very different rates. A position that gains 50% and then loses 50% has an arithmetic average of zero but ends 25% lower. Ole Peters describes this as the difference between an ensemble average, taken across many parallel investors, and a time average, experienced by one investor through time. For multiplicative wealth, the time average is the one you live through. It also sets a sensible limit on leverage: beyond some point, extra exposure raises the expected return while lowering the growth rate an individual actually experiences.
 
-Compounding also skews long-horizon results. Bessembinder studied 25,967 U.S. common stocks from 1926 to 2016 and found that most had lifetime buy-and-hold returns below one-month Treasury bills. The best-performing 4% of companies accounted for the entire net wealth the market created over Treasury bills. One implication for a beginner is that a portfolio of a few stocks can easily miss the rare, very large winners that drive the market's average.
+Compounding also skews long-horizon results. Bessembinder studied the common stocks in the main U.S. research database since 1926 and found that most had lifetime buy-and-hold returns below one-month Treasury bills. The best-performing 4% of companies accounted for the entire net wealth the market created over Treasury bills. One implication for a beginner is that a portfolio of a few stocks can easily miss the rare, very large winners that drive the market's average.
 
 Costs compound in the same way. The SEC's investor bulletin illustrates a $100,000 portfolio growing 4% a year for 20 years: with a 0.25% annual fee it ends near $208,000, with 0.50% near $198,000, and with 1.00% near $179,000. A fee that looks small in one year removes a growing base of future returns.
 
@@ -89,7 +89,7 @@ When you study any return series, report both its arithmetic mean and its compou
             ("arxiv", "Peters", 2009, "Optimal leverage from non-ergodicity", "https://arxiv.org/abs/0902.2965",
              "Distinguishes time-average from ensemble-average growth and derives an optimal leverage from the former."),
             ("paper", "Bessembinder", 2018, "Do stocks outperform Treasury bills?", "https://doi.org/10.1016/j.jfineco.2018.06.004",
-             "Lifetime returns of nearly 26,000 U.S. stocks: most trailed Treasury bills while a few created the market's net gains."),
+             "Lifetime returns of U.S. common stocks since 1926: most trailed Treasury bills while a few created the market's net gains."),
             ("official", "U.S. SEC · Investor.gov", None, "How Fees and Expenses Affect Your Investment Portfolio", "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated",
              "Worked illustration of how annual fees of 0.25%, 0.50% and 1% compound over 20 years."),
         ],

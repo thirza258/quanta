@@ -6,7 +6,12 @@ The catalog generator applies them once, after assembling the complete curriculu
 
 import re
 
+from lab_workshop import COURSE_GUIDE as LAB_GUIDE
+from simulator_workshop import COURSE_GUIDE as SIMULATOR_GUIDE
+
 COURSE_GUIDES = {
+    "simulator-workshop": SIMULATOR_GUIDE,
+    "lab-workshop": LAB_GUIDE,
     "trading-fundamentals": (
         "Learn what stocks are, how trades work, and how to measure returns and risk. Build a simple practice plan before moving to investment strategies.",
         "Start here if financial news and investing terms feel unfamiliar. You will follow a decision from the beginning: understand what you are buying, see how an order becomes a trade, calculate the result, and consider what could go wrong. The examples use fictional companies and small numbers so you can concentrate on the ideas.\n\nRead the explanation first, then work through the example with a calculator or on paper. When you meet a new term, check the lesson's glossary. Try the practice questions before opening their feedback, and use your notebook to explain your answer in your own words. Python is optional; you can complete the course without writing code.\n\nThe eight lessons build toward your own fictional investment and trading plan. The checkpoint and final exam help you check your understanding. You can review a lesson or retake an exam whenever you need more practice.",
