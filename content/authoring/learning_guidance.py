@@ -13,12 +13,12 @@ COURSE_GUIDES = {
     "simulator-workshop": SIMULATOR_GUIDE,
     "lab-workshop": LAB_GUIDE,
     "trading-fundamentals": (
-        "Learn what stocks are, how trades work, and how to measure returns and risk. Build a simple practice plan before moving to investment strategies.",
-        "Start here if financial news and investing terms feel unfamiliar. You will follow a decision from the beginning: understand what you are buying, see how an order becomes a trade, calculate the result, and consider what could go wrong. The examples use fictional companies and small numbers so you can concentrate on the ideas.\n\nRead the explanation first, then work through the example with a calculator or on paper. When you meet a new term, check the lesson's glossary. Try the practice questions before opening their feedback, and use your notebook to explain your answer in your own words. Python is optional; you can complete the course without writing code.\n\nThe eight lessons build toward your own fictional investment and trading plan. The checkpoint and final exam help you check your understanding. You can review a lesson or retake an exam whenever you need more practice.",
+        "Your starting point for financial markets: master shares, market mechanics, order execution, returns, business statements, and risk management.",
+        "Start here if financial news, ticker charts, and investing terminology feel unfamiliar or overwhelming. This course is designed to guide you step-by-step from foundational principles to practical market decisions—with zero prior finance, math, or programming experience required.\n\nYou will follow an investment decision from the ground up across four structured units:\n• Unit 1 (Ownership & Financial Foundations): Distinguish saving, investing, and trading, and discover what owning a share of common equity really means.\n• Unit 2 (Market Structure & Order Mechanics): Trace how orders route through brokers and exchanges to become trades, read live bid-ask quotes, and choose the right order instruction (market, limit, stop).\n• Unit 3 (Returns, Costs & Financial Analysis): Calculate true net returns after all fees and dividends, understand how compounding and losses work, and learn how to read core financial statements to evaluate a business before buying.\n• Unit 4 (Risk Controls & Trading Plan Design): Protect your capital using disciplined position sizing and diversification, avoid common behavioral traps, and draft your very first structured paper-trading plan.\n\nEvery lesson features step-by-step worked examples using simple numbers and relatable everyday analogies. Work through the numbers with a calculator or on paper, test your understanding with interactive practice questions, and review key terms in each lesson's glossary. Interactive Python code snippets are provided for hands-on experimentation, but you can complete the entire course without writing code.",
     ),
     "trading-ethics": (
-        "Decide whose interest a trade serves, recognise the conduct that damages a market, and write your own trading do's and don'ts.",
-        "Most of the hard moments in trading are not calculations. They are situations where the profitable action and the right action point in different directions, and where the pressure to decide quickly is highest. This course works through those situations one at a time, so that your answer is already settled before you meet them.\n\nEach lesson starts with a principle and the rule or standard that expresses it, then gives you a short calculation that makes the stakes concrete: what a conflicted recommendation costs, how many days of volume a promoter must sell, how many orders a broken system sends before a limit stops it. Work the arithmetic, because a number is harder to argue away than a feeling. Then write one rule into your charter, with a threshold and a way to check it afterwards.\n\nThe scenarios are fictional and use rupiah amounts, but the rules they point to are real primary sources from securities regulators and professional bodies. Those rules differ by country, licence and role, so treat this course as education and check your own regulator before you act. By the end you will have a short personal charter of do's and don'ts that you wrote yourself, which is the only kind you are likely to follow.",
+        "Master duties of loyalty, resolve conflicts of interest, protect market integrity against manipulation, and build your own auditable personal trading charter.",
+        "The most difficult challenges in financial markets are rarely pure mathematical calculations. They are high-pressure moments where personal profit and ethical duty pull in opposite directions—and where market noise tempts you to compromise your principles. This course prepares you in advance, establishing rigorous ethical frameworks so your choices are already settled before temptation arises.\n\nAcross four structured units, you will examine real-world market dilemmas through primary regulatory standards (CFA Institute, SEC, FINRA, ESMA) and concrete arithmetic:\n• Unit 1 (Duty, conflict and disclosure): Establish agency relationships and the fiduciary duty of loyalty, expose hidden trailer fees and calculate total cost of ownership, disclose material personal conflicts prominently, and enforce strict client trading priority over personal accounts.\n• Unit 2 (Market integrity): Master the two-prong test for material non-public information (MNPI), distinguish legitimate mosaic research from insider trading, identify manipulative quoting patterns (spoofing, layering, wash trading), expose predatory pump-and-dump exit liquidity math, and measure best execution using implementation shortfall.\n• Unit 3 (Conduct in automated and quantitative work): Enforce human accountability for algorithmic systems, configure pre-trade risk controls and emergency kill switches, eliminate p-hacking and multiple-testing bias in backtests, ensure dataset provenance and point-in-time vintage hygiene, and present GIPS-compliant performance records net of all fees.\n• Unit 4 (Care, refusal and record): Separate objective risk capacity from emotional risk tolerance, detect Ponzi structures and refuse unauthorized instructions, build auditable written escalation trails, and draft your own operational, checkable trading charter.\n\nEvery scenario, company, and rupiah amount in this course is invented to illustrate real regulatory standards and quantitative dilemmas. This course is for educational purposes and does not constitute legal or compliance advice; regulatory obligations depend on your specific jurisdiction, license, and role. By the end, you will synthesize your learning into a personal written charter of auditable rules that you can check after every trading day.",
     ),
     "intelligent-investor": (
         "Build patient investing habits, understand the risks you can afford, and write a practical investment plan inspired by The Intelligent Investor.",
@@ -69,14 +69,14 @@ COURSE_GUIDES = {
 # The first lesson in each unit supplies the conceptual bridge to its new topic.
 # Beginner lessons each introduce a distinct topic, so each has its own bridge.
 UNIT_INTRODUCTIONS = {
-    "0.1": "Think of money as having a job to do. Some money may be needed for an upcoming expense; other money may be available for a goal years away. Saving, investing, and trading describe different ways of using that money. Before comparing returns, understand the purpose and the uncertainty involved. The example below starts with a simple change in value so you can learn how to describe a result clearly.",
-    "0.2": "Imagine dividing ownership of a business into many small pieces. A share is one of those pieces. The number of pieces you own and the total number that exist determine your ownership fraction. The price of one piece is a separate question. Keeping ownership, share price, and total company value apart will make the calculations in this lesson much easier to follow.",
-    "0.3": "A stock-market trade involves several people and several stages. The company originally issues shares, but later investors can trade those shares with each other. Your broker helps you submit an order, a trading venue helps match buyers and sellers, and settlement completes the transfer. Follow where the money goes in the example before trying to remember the names of the different institutions.",
-    "0.4": "The price shown on a stock chart is usually the price of an earlier trade. It is useful information, but it is not a promise that you can buy or sell at that price now. To understand the choice in front of you, look at the current buyers, sellers, quantities, and the instructions attached to your order. This lesson connects those details to the price you might actually receive.",
-    "0.5": "A higher selling price is only the beginning of a return calculation. Money can also leave the account through fees or enter it through dividends. Write down every cash movement before calculating a percentage. Then ask how long the investment lasted. This approach helps you compare outcomes without confusing a price increase with the amount you actually kept.",
-    "0.6": "Before buying part of a business, try to describe how it earns money. Who pays it, what does it spend, and when does the cash arrive? Financial statements organize those questions in different ways. This lesson introduces a few useful numbers, then shows why you need to read them together. A single ratio is a starting point for a question, rather than a complete judgment about the business.",
-    "0.7": "Risk is about the ways an outcome can differ from your plan, including losses you cannot comfortably absorb. Position sizing asks how much money to commit to one idea. Diversification asks how the different ideas in a portfolio can fail together. Start with a concrete loss scenario, calculate its effect on the account, and then examine what happens if the scenario is worse than expected.",
-    "0.8": "You now know the basic language of ownership, orders, returns, and risk. The next step is to connect those ideas in one written decision. A plan should be specific enough that you can review it later without relying on memory. Use a fictional trade to practise: explain what you expect, how you would act, what could prove you wrong, and when you will review the evidence.",
+    "0.1": "Before looking at charts or numbers, think of money as having a specific job to do. Some money must be preserved for near-term expenses or emergencies, while other money can be invested for goals years away. Saving, investing, and trading are three fundamentally different ways of putting capital to work: saving prioritizes capital preservation; investing focuses on long-term wealth compounding through business growth; trading seeks to capture short-term price fluctuations. Before calculating any return, start by understanding your financial goal, your timeframe, and the uncertainty involved.",
+    "0.2": "Imagine dividing a growing business into many equal ownership slices—each slice is a share of stock. The number of shares you hold divided by the total shares outstanding determines your exact ownership percentage. Crucially, the price of one individual share is a completely separate question from what the entire company is worth. Keeping ownership fraction, individual share price, and total company market capitalization distinct will make all the concepts in this lesson intuitive and easy to follow.",
+    "0.3": "Buying a share of stock is not like buying an item from a store, where your money goes directly to the manufacturer. When you trade in stock markets, the company only receives funding once—during its primary-market offering when new shares are issued. After that, existing shares trade between investors on the secondary market. Your broker, the exchange, market makers, and clearinghouses coordinate behind the scenes to execute and settle each transaction. Follow where the money flows in this lesson to understand how modern markets actually function.",
+    "0.4": "The price you see on a financial chart is simply a historical record of the most recent trade—it is not a guaranteed menu price for your next transaction. To understand what price you will actually pay or receive right now, you need to look at current buyers (the Bid) and current sellers (the Ask), along with the quantity available at each price level. This lesson explains how bid-ask quotes work, how to read candlestick bars (OHLCV), and how to select the right order instruction for your goals.",
+    "0.5": "A stock rising from $100 to $110 looks like a straightforward 10% gain, but your true financial outcome depends on what actually enters and leaves your account. Brokerage commissions, exchange fees, bid-ask spreads, and cash dividends all impact the bottom line. Furthermore, sequential investment returns multiply through time rather than simply adding up—meaning that losing 10% after gaining 10% leaves you with less money than you started with. This lesson walks you through true net return accounting and the essential mathematics of compounding.",
+    "0.6": "Before buying shares in any company, ask yourself a foundational question: How does this business actually make money? Does it sell products for more than it costs to produce them, and does it actually collect cash from its customers? Financial statements provide the answers. The Income Statement acts as a movie of operating profitability over time, the Balance Sheet gives a point-in-time snapshot of assets and debts, and the Cash Flow Statement acts as the ultimate reality check on cash in the bank.",
+    "0.7": "In financial textbooks, risk is often defined as price volatility. In the real world, however, true risk is the danger of permanent loss of capital that you cannot afford. Position sizing answers: 'Given my account size and where I plan to exit if my idea is wrong, exactly how many shares should I buy?' Diversification asks: 'If one investment runs into trouble, will my other assets protect me, or will they all crash together?' This lesson teaches you how to size positions systematically and plan for market gaps before committing capital.",
+    "0.8": "You have now mastered the foundational vocabulary of stocks, markets, quotes, returns, financial statements, and risk management. The final step is uniting these tools into a structured, testable paper-trading plan. A written plan acts as an objective pre-commitment contract with yourself: it defines your thesis, order instructions, stop-loss, and invalidating conditions before market emotions take over. This lesson guides you through drafting your first plan and choosing your next advanced course.",
     "11.1": "Being an intelligent investor does not mean predicting every price movement. It means making decisions you can explain and managing the emotions that might pull you away from your plan. Begin with a familiar situation: two people make money decisions and receive different outcomes. We need to examine their reasons and circumstances before deciding which process was better.",
     "11.5": "A portfolio should serve a person's needs. Start this unit by separating upcoming spending from longer-term goals and considering how a loss would affect each one. Willingness to take risk describes how you feel; capacity to take risk depends on what your finances can withstand. These questions give diversification and a margin of safety a practical purpose.",
     "11.9": "Choosing a product is easier after you have decided what role it should play. An allocation policy describes how the portfolio divides its money and why that division suits the goal. The lessons in this unit connect that policy to rebalancing, fund costs, and regular contributions. Write the policy in language you could still understand during a stressful market.",
@@ -164,78 +164,123 @@ UNIT_INTRODUCTIONS = {
 # These passages explain the actual numbers and conclusions in the existing case.
 # They are inserted inside the worked-example section, before the next topic.
 WORKED_EXPLANATIONS = {
-    "0.1": """### Follow the calculation
+    "0.1": """### Step-by-step breakdown of the calculation
 
-Start with the amount Maya put in: $200. That is the starting value and the number we use as the comparison point. If she sells for $220, subtract the starting value to find the gain: $220 − $200 = $20. The gain tells us how many dollars she made, but it does not yet tell us how large the gain was relative to the investment.
+1. **Identify the starting capital**: Maya begins by investing $200. This initial outlay is our baseline comparison point and serves as the denominator in our return calculation.
+2. **Calculate the dollar gain or loss**: If she sells the asset for $220, subtract the starting capital from the ending proceeds: $220 − $200 = $20. Maya made a $20 dollar profit.
+3. **Compute the percentage return**: Divide the $20 gain by the $200 initial capital: $20 / $200 = 0.10. Multiply by 100 to express this as a percentage: **+10%**. In plain language, Maya earned 10 cents for every dollar she committed over this holding period.
+4. **Follow the loss scenario**: If the price falls and she sells for $170 instead, her net change is $170 − $200 = −$30. Dividing −$30 by the original $200 gives −0.15, or **−15%**. Notice that the denominator remains the original $200 baseline.
 
-To find the return, divide the $20 gain by the $200 she invested. The answer is 0.10. Multiplying by 100 converts that decimal into 10%. In words, Maya gained 10 cents for every dollar she invested during this period.
+These introductory numbers deliberately exclude transaction fees and dividends so you can master the core return formula first. Later lessons will layer in those cash flows. Always state the exact timeframe when reporting returns, because a 10% return in one month represents a completely different performance pace than 10% over five years.""",
+    "0.2": """### Step-by-step breakdown of ownership math
 
-Now follow the loss case in the same order. Selling for $170 gives a change of $170 − $200 = −$30. Dividing −$30 by $200 gives −0.15, or −15%. The negative sign tells us that she lost money. Notice that we still divide by the original $200, because we are measuring the result relative to the money she committed.
+Let's address three distinct questions using Harbor Foods:
 
-These examples deliberately leave out fees and dividends so you can learn the basic calculation first. Later lessons add those cash movements. For now, practise explaining both the dollar result and the percentage result, and always state the period over which they occurred.""",
-    "0.2": """### Separate the three questions
+1. **What is the entire company's equity worth on the open market?**
+   Multiply all 1,000,000 shares outstanding by the quoted share price of $20. This gives the **$20 million market capitalization**. This figure represents the aggregate value that the public market assigns to all common shares today; it does not mean the company has $20 million sitting in a bank vault.
+2. **What fraction of the business does Maya own?**
+   Divide Maya's 100 shares by the 1,000,000 total shares outstanding: 100 / 1,000,000 = 0.0001, which equals **0.01%** (one hundredth of one percent). Owning shares gives you a proportionate claim on corporate earnings and voting rights, but not the right to take company physical property.
+3. **What is Maya's holding worth, and what dividend does she receive?**
+   - Market value of holding: 100 shares × $20 = **$2,000**.
+   - Dividend payout: A declared $0.50 cash dividend per share yields 100 × $0.50 = **$50.00** in cash, paid directly into her brokerage account before taxes.
 
-**What is the whole share class worth at the quoted price?** Multiply all 1,000,000 shares by $20. That gives the $20 million market capitalization. This is the market's total quoted value of those shares. It does not mean the company has $20 million sitting in its bank account.
+Finally, compare the second company with 100 million shares trading at $2. While its $2 share price appears "cheaper" at first glance, its total market capitalization is $200 million (100,000,000 × $2). The market values that second company at ten times the overall value of Harbor Foods! Always multiply share price by share count before comparing company valuations.""",
+    "0.3": """### Step-by-step breakdown: Follow the money
 
-**What fraction does the investor own?** Divide the investor's 100 shares by the 1,000,000 shares outstanding. The fraction is 0.0001, which is 0.01% after multiplying by 100. Owning a small fraction of the shares is different from owning a particular factory or being able to withdraw the company's cash.
+Notice how the cash moves differently across the two transactions:
 
-**What is the investor's holding worth?** Multiply 100 shares by the $20 quote to get $2,000. If the declared dividend is $0.50 per share, multiply that amount by the same 100 shares to get $50 before taxes. The share price and the dividend answer different questions: one values the holding at a quote; the other describes a cash distribution.
+1. **Transaction 1 (Primary Market - Capital Formation)**:
+   Harbor Foods creates and issues 100,000 brand-new shares at $20 each. Multiplying 100,000 by $20 yields **$2 million** before underwriting costs. Because Harbor Foods is the issuing entity, that $2 million flows directly into the company's corporate treasury to fund new business operations, factories, or hiring.
+2. **Transaction 2 (Secondary Market - Share Trading)**:
+   Maya purchases 50 existing shares from Leo at $21 each through a stock broker. The total trade value is 50 × $21 = **$1,050**. Here, Leo is the seller. Maya's $1,050 payment goes through the clearinghouse to Leo (minus broker commissions). Harbor Foods receives **zero dollars** from this trade, because no new shares were created—existing shares merely changed owners.
 
-Finally, compare the second company. Its $2 share price looks smaller, but there are 100 million shares. Multiplying them gives a $200 million market capitalization. You must consider both price and share count before comparing the market values of businesses.""",
-    "0.3": """### Follow the money through each trade
+This distinction explains why a stock can trade millions of shares every day without the company receiving continuous cash injections. The secondary market provides liquidity and price discovery for existing owners, which in turn makes investors willing to fund companies in the primary market in the first place.""",
+    "0.4": """### Step-by-step breakdown: Reading the quote from both sides
 
-In the first transaction, Harbor Foods creates new shares and sells them to raise money. Multiply 100,000 shares by $20 to get $2 million before offering costs. The company receives that money because it is the issuer selling the new shares. This is the primary-market stage.
+Let's dissect the fictional quote (Bid: $49.90 for 100 shares | Ask: $50.10 for 80 shares):
 
-In the second transaction, the shares already exist. Maya is buying 50 of Leo's shares, so multiply 50 by $21 to get $1,050. Leo is the seller in this transaction. The payment goes to the selling side, while ownership of the shares passes to Maya through the trading and settlement process. Harbor Foods does not issue additional shares or raise additional capital through this particular trade.
+1. **Understand who is on each side**:
+   - The **Bid ($49.90)** is the highest price a prospective buyer is currently willing to pay. If you want to sell immediately, this is your price.
+   - The **Ask ($50.10)** is the lowest price a prospective seller is currently willing to accept. If you want to buy immediately, this is your price.
+2. **Calculate the Bid-Ask Spread**:
+   $$\\text{Spread} = \\text{Ask} - \\text{Bid} = \\$50.10 - \\$49.90 = \\$0.20 \\text{ per share}$$
+3. **Calculate the round-trip cost of immediate execution**:
+   If you buy 10 shares at the market ask ($50.10), you pay $501.00. If you immediately turn around and sell those 10 shares at the market bid ($49.90), you receive $499.00. Even though quotes didn't move, you lost **$2.00** ($0.20 × 10 shares). This is the cost of crossing the spread for immediate execution.
+4. **Why displayed quantity (depth) matters**:
+   The ask quote only offers 80 shares at $50.10. If you submit a market order to buy 200 shares, the first 80 shares will fill at $50.10, but the remaining 120 shares must fill at higher available asks on the order book (e.g., $50.15, $50.25). This price slippage raises your average purchase price above the initial quote.
 
-The distinction explains why a company can have an actively traded stock without receiving the proceeds of every market purchase. Investors are changing who owns the existing shares. The company can still benefit or suffer from changes in market conditions, but that is a different question from who receives the payment in this example.
-
-When reading the table, translate “claim” into “what the holder is entitled to.” A stock represents an ownership interest. A bond represents contractual obligations owed to a lender. A fund share represents an interest in the fund's portfolio. Start with that relationship before comparing the possible returns.""",
-    "0.4": """### Read the quote from each side
-
-The bid of $49.90 is the displayed price on the buying side. The ask of $50.10 is the displayed price on the selling side. If you want to buy immediately, you are trying to trade with a seller, so the ask is the relevant starting point. If you want to sell immediately, you are trying to trade with a buyer, so start with the bid.
-
-Subtract the bid from the ask: $50.10 − $49.90 = $0.20 per share. In the unchanged-quote example, buying 10 shares costs $501 and immediately selling them brings $499. The $2 difference comes from buying at the ask and selling at the bid in this unchanged-quote example. It is the same as 10 × $0.20; do not subtract a second spread charge from those already-used fill prices.
-
-Quantity matters too. The displayed ask covers 80 shares, while the proposed order asks for 200. The quote tells us about those 80 shares, so it cannot establish the price for the remaining 120. Other sellers, updated quotes, and the order instruction determine what happens next.
-
-A limit order makes the acceptable price explicit. It can protect that price condition, but it cannot guarantee that a willing counterparty will appear. Keep the price condition and the chance of execution separate.""",
+A limit order protects you against this slippage by setting a strict price cap, but at the risk that the order might not fill if sellers refuse to meet your price.""",
     "0.5": """### Build the return from cash movements
 
-It helps to draw two columns: money paid out and money received. At entry, the shares cost 10 × $100 = $1,000 and the fee costs $2. The total paid out is therefore $1,002. This is the initial outlay used in the denominator.
+To avoid confusion when calculating investment returns, set up two clear columns tracking all cash movements: money paid out versus money received.
 
-At exit, selling 10 shares for $110 produces $1,100 before the exit fee. Subtract the $2 fee to obtain $1,098 of net sale proceeds. The investor also received $10 in dividends during the holding period. Total money received is therefore $1,098 + $10 = $1,108.
+1. **Cash Outlay (Money Paid Out at Entry)**:
+   - Share purchase: 10 shares × $100 = $1,000
+   - Brokerage entry fee: $2
+   - **Total initial outlay = $1,002**. This total cash outlay is the initial outlay used in the denominator of our net return calculation.
+2. **Cash Inflows (Money Received During Holding and Exit)**:
+   - Gross sale proceeds: 10 shares × $110 = $1,100
+   - Minus brokerage exit fee: −$2
+   - **Net sale proceeds = $1,098**
+   - Plus cash dividends received while holding: **+$10**
+   - **Total cash received = $1,098 + $10 = $1,108**
+3. **Calculate Net Profit and Net Return**:
+   - Dollar net profit = Total cash received − Initial outlay = $1,108 − $1,002 = **$106**
+   - Net percentage return = $106 / $1,002 ≈ 0.1058, or **10.58%** before taxes.
 
-Subtract the original $1,002 from $1,108 to find the $106 net gain. Dividing $106 by $1,002 gives approximately 0.1058, or 10.58%. A calculation based only on the move from $100 to $110 would describe the share-price return and leave out the dividends and fees included here.
+Notice that looking only at the share price move ($100 to $110, or +10%) would miss the $10 in dividends and the $4 in total brokerage fees. Tracking complete cash flows gives your true financial return.
 
-Once you can account for one holding period, move to a sequence of periods. The ending balance from the first period becomes the starting balance for the next. This is the key to compounding: each percentage change applies to an updated amount. The next example shows why adding the period returns can produce the wrong answer.""",
-    "0.6": """### Connect each number to the business
+Once you can account for a single holding period, remember that sequential periods multiply through compounding: a 10% gain followed by a 10% loss results in a net 1% loss ($100 × 1.10 × 0.90 = $99), proving that percentage losses hurt more than equal percentage gains help.""",
+    "0.6": """### Step-by-step breakdown: Connecting accounting to business reality
 
-Revenue is the amount Cedar Tools records from sales. Net income is what remains in the stated accounting result after the relevant expenses. The two numbers describe different stages, so use the $2 million net income—not the $12 million revenue—when calculating earnings per share in this case.
+Let's trace Cedar Tools' numbers to see how the statements connect:
 
-Divide $2 million by 1 million weighted-average diluted shares to get $2 of earnings per share. The share-count measure accounts for the period and the dilution included in the example. At a price of $30, dividing $30 by $2 gives a P/E of 15. In ordinary language, the quoted price is 15 times this measure of annual earnings per share.
+1. **Calculate Earnings Per Share (EPS)**:
+   Cedar Tools generated $12 million in sales revenue and finished with $2 million in Net Income after all expenses. Divide Net Income by the 1,000,000 weighted-average diluted shares:
+   $$\\text{EPS} = \\frac{\\$2,000,000}{1,000,000 \\text{ shares}} = \\$2.00 \\text{ per share}$$
+   Always use Net Income—not revenue—to calculate earnings per share.
+2. **Calculate the Price-to-Earnings Ratio (P/E)**:
+   With shares trading at $30, divide the share price by EPS:
+   $$\\text{P/E} = \\frac{\\$30}{\\$2.00} = 15$$
+   In ordinary language, investors are willing to pay $15 today for every $1 of Cedar Tools' current annual net earnings.
+3. **Examine the Balance Sheet Equity**:
+   $$\\text{Book Equity} = \\text{Assets} − \\text{Liabilities} = \\$15\\text{M} − \\$9\\text{M} = \\$6\\text{M}$$
+   Book equity represents the net accounting residual of the business. It is a historical accounting calculation, not a guarantee of liquidation value.
+4. **The Critical Reality Check: Operating Cash Flow**:
+   Now compare the $2 million reported Net Income with the **$0.4 million in Operating Cash Flow**. Why the $1.6 million gap? Cedar Tools may have recorded sales to customers who have not yet paid (building up accounts receivable). This is not necessarily fraud, but it warrants careful investigation into customer collection times and inventory turnover before assuming the reported profit is healthy.""",
+    "0.7": """### Step-by-step breakdown: Sizing a position around risk
 
-The balance sheet answers another question. Subtract $9 million of liabilities from $15 million of assets to get $6 million of book equity. Book equity is an accounting remainder. It does not automatically equal the price someone would pay for the company or the cash available for distribution.
+Let's walk through how professional risk management determines trade size:
 
-Now compare the $2 million profit with only $0.4 million of operating cash flow. Sales may have been recorded before customers paid. The useful next step is to investigate the money owed by customers and the timing of collection. This is why you read profit, cash flow, and the balance sheet together.""",
-    "0.7": """### Distinguish the position from the planned loss
+1. **Establish your risk budget**:
+   In a $10,000 paper trading account, you decide to risk at most 1% of your total capital on this single idea:
+   $$\\text{Risk Budget} = 1\\% \\times \\$10,000 = \\$100$$
+2. **Determine risk per share**:
+   You plan to buy at $50 and place a stop-loss exit trigger at $48.
+   $$\\text{Risk Per Share} = \\$50 − \\$48 = \\$2.00$$
+3. **Calculate position quantity**:
+   $$\\text{Shares to Buy } (q) = \\frac{\\text{Risk Budget}}{\\text{Risk Per Share}} = \\frac{\\$100}{\\$2.00} = 50 \\text{ shares}$$
+4. **Compare position value versus risk budget**:
+   Buying 50 shares at $50 requires **$2,500** of cash (25% of your total account capital). However, your planned risk is strictly **$100** (1% of the account), because your plan is to exit if the stock drops to $48.
+5. **The Market Gap Reality Check**:
+   What happens if the company reports bad news overnight and opens the next morning at $45? Your stop order triggers and sells at $45. Your actual loss is:
+   $$50 \\text{ shares} \\times (\\$50 − \\$45) = \\$250 \\text{ (2.5\\% of the account)}$$
+   This proves that stop-loss orders help manage risk, but they do not eliminate overnight gap risk. Always consider whether your total position size ($2,500) is safe in a worst-case scenario.""",
+    "0.8": """### Step-by-step breakdown: Designing a disciplined trading plan
 
-The $100 in the example is a budget for one stated loss scenario. It is not the amount being spent on shares. The assumed difference between the entry and exit is $50 − $48 = $2 per share. Dividing the $100 scenario budget by $2 gives 50 shares.
+Ari's paper-trading plan for Harbor Foods demonstrates how to turn vague sentiment into a structured, reviewable decision:
 
-Buying those 50 shares at $50 requires $2,500 before costs. That is 25% of the $10,000 paper account. Meanwhile, the planned $100 loss is 1% of the account. Both percentages can be correct because one measures the position's purchase value and the other measures a particular planned loss.
-
-Now change the exit price to $45. The loss per share becomes $50 − $45 = $5. Across 50 shares, that is $250 before costs. The original sizing arithmetic has not stopped working; its assumed exit price did not occur. This is the reason to examine a worse-fill scenario before deciding that a position is manageable.
-
-Diversification asks a further question: what if several positions fall for the same reason? Holding many names helps less when they share the same underlying exposure. Consider how positions interact as well as how much is committed to each one.""",
-    "0.8": """### Turn the example into a reviewable decision
-
-Ari's idea is that customers will pay more promptly, improving collections. That is the hypothesis: a claim about what may happen. To make it useful, write down what evidence would support it and what evidence would weaken it. Another deterioration in receivables and operating cash flow would challenge the reason for the trade.
-
-The order is a separate instruction. Ten shares with a $20 buy limit require roughly $200 plus costs if they fill at that limit. If sellers keep asking more than $20, Ari may receive no shares. A convincing research idea does not change that order condition.
-
-The exit plan is also conditional. Moving from $20 to $18 would lose $2 on each of 10 shares, or $20 before costs. An actual $15 exit would lose $5 per share, or $50. Writing both cases helps Ari see the difference between an intended action and the outcome the market may allow.
-
-When you write your own fictional plan, use full sentences before abbreviating it into a checklist. Explain why the evidence matters, what action follows from it, and what would make you wait. A later review should compare the outcome with the reasons recorded before the trade.""",
+1. **Define the Hypothesis and Invalidating Evidence**:
+   - Hypothesis: Customer collections will normalize, restoring operating cash flow.
+   - Invalidating evidence: Another quarterly filing showing deteriorating receivables or negative operating cash flow. Defining what proves you wrong upfront prevents rationalizing a failing position later.
+2. **Set Precise Order Instructions and Capital Limits**:
+   - Instruction: Buy 10 shares using a **$20 Buy Limit**. Reserving $200 plus estimated fees.
+   - Execution rule: If market sellers demand more than $20, the order stays unfilled. A disciplined trader accepts missing a trade rather than overpaying.
+3. **Plan the Exit and Stress-Test Gap Risk**:
+   - Base stop exit: Trigger at $18, representing a planned loss of 10 × ($20 − $18) = $20 before costs.
+   - Gap stress test: In an unexpected gap down to $15, the loss becomes 10 × ($20 − $15) = $50. Knowing this worst-case number in advance ensures the trade size won't damage the account.
+4. **Schedule the Review**:
+   - Review date: After Harbor Foods releases its next audited quarterly report. Evaluate whether the thesis held true, whether the plan was followed, and record the outcome honestly regardless of profit or loss.""",
     "1.1": """### Read the margin of safety in plain language
 
 In the equation, P is the price and V is the estimated value. Dividing P by V tells you what fraction of that estimate you would pay. Subtracting that fraction from 1 gives the discount. With P = $60 and V = $100, you would pay 60% of the estimate, leaving a 40% discount.
