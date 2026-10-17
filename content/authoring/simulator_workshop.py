@@ -210,8 +210,10 @@ APPLICATIONS = [
 
 
 def text(value):
-    """Join hard-wrapped source lines into paragraphs separated by one blank line."""
-    return "\n\n".join(" ".join(part.split()) for part in value.strip().split("\n\n"))
+    """Normalize indentation and whitespace for markdown text."""
+    import textwrap
+
+    return textwrap.dedent(value).strip()
 
 
 CLOSING = (
@@ -283,7 +285,7 @@ def build_simulator_workshop():
 
         Trading friction is modeled explicitly using four realistic parameters:
         $$f = \frac{s + \sigma / 2}{10{,}000},\qquad \text{Round-Trip Cost} = 2c + Q \cdot (P_{\text{buy}} - P_{\text{sell}})$$
-        Here $c$ is the flat commission per order ($1 by default), $s$ is slippage in basis points (2 bps default), $\sigma$ is the bid-ask spread in basis points (2 bps default), and $\pi$ is the volume participation cap (0.01 or 1% default). One basis point (bps) equals 0.01% ($1/10{,}000$). Every new run creates a fresh $100,000 account; it never resets your existing account in place. Earlier runs are safely preserved in your run history for review and CSV export.
+        Here $c$ is the flat commission per order ($1 by default), $s$ is slippage in basis points (2 bps default), $\sigma$ is the bid-ask spread in basis points (2 bps default), and $\pi$ is the volume participation cap (0.01 or 1% default). One basis point (bps) equals 0.01% (1/10,000). Every new run creates a fresh $100,000 account; it never resets your existing account in place. Earlier runs are safely preserved in your run history for review and CSV export.
         """,
         r"""
         Suppose the next bar opens at $148.50 and you place a market order to buy 10 shares using the default cost settings.
@@ -302,11 +304,11 @@ def build_simulator_workshop():
            $$P_{\text{sell}} = 148.50 \times (1 - 0.0003) = 148.45545 \implies \$148.46$$
         2. Total cash credited on sale:
            $$10 \times \$148.46 - \$1.00\text{ (commission)} = \$1{,}484.60 - \$1.00 = \$1{,}483.60$$
-           Final cash ends at $\$98{,}513.60 + \$1{,}483.60 = \$99{,}997.20$.
+           Final cash ends at $98,513.60 + $1,483.60 = $99,997.20.
 
         The market price did not change by a single cent, yet your round trip cost $2.80:
-        • Spread and slippage drag: $10 \times (\$148.54 - \$148.46) = \$0.80$.
-        • Commission drag: $2 \times \$1.00 = \$2.00$.
+        • Spread and slippage drag: 10 × ($148.54 − $148.46) = $0.80.
+        • Commission drag: 2 × $1.00 = $2.00.
 
         If you increase slippage and spread to 10 bps each, friction jumps to 15 bps (0.0015). The same round trip fills at $148.72 and $148.28, costing $6.40. This proves that a trading result is meaningless without recording the cost settings that produced it.
         """,
@@ -719,27 +721,27 @@ print("Tone:", round(signed / total_weight, 2))
         • Limit Order: Sets an absolute ceiling on the price you will pay (or floor on what you will accept). A buy limit fills at the Open if the Open is already at or below your limit. Otherwise, it fills only if the market trades strictly through your limit price ($Low < Limit$). A mere price touch ($Low = Limit$) will not fill because the simulator does not assume your order was first in the queue.
         """,
         r"""
-        Suppose the last closed bar printed at $148.50, and you preview a market buy for 10 shares under default cost settings ($c = \$1.00, f = 0.0003$).
+        Suppose the last closed bar printed at $148.50, and you preview a market buy for 10 shares under default cost settings ($c = $1.00, $f = 0.0003$).
 
         1. Cash Reservation Calculation:
            The ticket estimates the maximum debit using the last close plus friction, rounded up to the cent:
            $$P_{\text{reserve}} = \lceil 148.50 \times 1.0003 \rceil_{0.01} = \lceil 148.54455 \rceil = \$148.55$$
            $$\text{Estimated Debit} = 10 \times \$148.55 + \$1.00 = \$1{,}485.50 + \$1.00 = \$1{,}486.50$$
-           Upon clicking **Place buy order**, Reserved cash displays $1,486.50, and Available cash falls to $\$100{,}000 - \$1{,}486.50 = \$98{,}513.50$. You own zero shares.
+           Upon clicking **Place buy order**, Reserved cash displays $1,486.50, and Available cash falls to $100,000 - $1,486.50 = $98,513.50. You own zero shares.
 
         2. Next-Bar Fill Execution:
            Suppose the next bar opens higher at $148.62. The market order executes at that open plus friction:
            $$P_{\text{fill}} = \operatorname{round}(148.62 \times 1.0003) = \operatorname{round}(148.6645) = \$148.66$$
-           Total settled cost: $10 \times \$148.66 + \$1.00 = \$1{,}487.60$.
+           Total settled cost: 10 × $148.66 + $1.00 = $1,487.60.
            The $1,486.50 reservation is released, and your settled cash balance becomes:
            $$\$100{,}000 - \$1{,}487.60 = \$98{,}512.40$$
-           Average cost per share recorded in your portfolio is $\$1{,}487.60 / 10 = \$148.76$ (including commission).
+           Average cost per share recorded in your portfolio is $1,487.60 / 10 = $148.76 (including commission).
 
         3. Limit Order Comparison:
-           Now place a buy limit order for 10 shares at $148.20. Reserved cash is $10 \times \$148.20 + \$1.00 = \$1{,}483.00$.
+           Now place a buy limit order for 10 shares at $148.20. Reserved cash is 10 × $148.20 + $1.00 = $1,483.00.
            • Scenario A (Strict Penetration): Next bar opens at $148.45 and prints a low of $148.10. Because the price traded strictly below your limit ($148.10 < 148.20$), the order fills at your limit price of $148.20.
            • Scenario B (Touch Only): Next bar prints a low of exactly $148.20. The limit was touched but not penetrated. The order does not fill and remains active.
-           • Scenario C (Gap Down Open): Next bar opens at $148.10. The order fills at the open plus friction: $148.10 \times 1.0003 = \$148.14$ (saving you money below your $148.20 limit).
+           • Scenario C (Gap Down Open): Next bar opens at $148.10. The order fills at the open plus friction: 148.10 × 1.0003 = $148.14 (saving you money below your $148.20 limit).
         """,
         """
         **Open an order ticket.** Click **Trade** in the right sidebar (or enter `NVRA BUY` in the Command dialog). The ticket interface provides **Buy** and **Sell** toggles, **Order type** (Market default), **Shares** (default 10), and **Duration** (GTC - Good 'Til Canceled).
@@ -850,7 +852,7 @@ print("Bar opens below the limit:", limit_buy_fill(148.10, 148.00, limit, fricti
         The $1.00 broker commission is charged only once—on the order's initial partial fill. Subsequent fills for the same order carry zero additional commission, ensuring that liquidity fragmentation does not unfairly penalize execution.
         """,
         r"""
-        Suppose you place a 600-share market buy order for NVRA with default cost settings ($c = \$1.00, f = 0.0003, \pi = 0.01$). Over the next three minutes, market bars print with the following opens and volumes:
+        Suppose you place a 600-share market buy order for NVRA with default cost settings ($c = $1.00, $f = 0.0003, \pi = 0.01$). Over the next three minutes, market bars print with the following opens and volumes:
         • Bar 1: Open = $148.50, Volume = 26,000 shares.
         • Bar 2: Open = $148.60, Volume = 18,000 shares.
         • Bar 3: Open = $148.55, Volume = 22,000 shares.
@@ -858,22 +860,22 @@ print("Bar opens below the limit:", limit_buy_fill(148.10, 148.00, limit, fricti
         Step-by-step multi-bar execution:
         1. Bar 1 Execution:
            Capacity is $\lfloor 26{,}000 \times 0.01 \rfloor = 260$ shares.
-           Fill price: $148.50 \times 1.0003 = \$148.54$.
+           Fill price: 148.50 × 1.0003 = $148.54.
            Shares filled: 260. Unfilled remainder: $600 - 260 = 340$ shares.
-           Subtotal: $260 \times \$148.54 = \$38{,}620.40$ plus $\$1.00$ commission.
+           Subtotal: 260 × $148.54 = $38,620.40 plus $1.00 commission.
 
         2. Bar 2 Execution:
            Capacity is $\lfloor 18{,}000 \times 0.01 \rfloor = 180$ shares.
-           Fill price: $148.60 \times 1.0003 = \$148.64$.
+           Fill price: 148.60 × 1.0003 = $148.64.
            Shares filled: 180. Unfilled remainder: $340 - 180 = 160$ shares.
-           Subtotal: $180 \times \$148.64 = \$26{,}755.20$ (zero additional commission).
+           Subtotal: 180 × $148.64 = $26,755.20 (zero additional commission).
 
         3. Bar 3 Execution:
            Capacity is $\lfloor 22{,}000 \times 0.01 \rfloor = 220$ shares.
            Only 160 shares remain unfilled, so the order takes 160 shares.
-           Fill price: $148.55 \times 1.0003 = \$148.59$.
+           Fill price: 148.55 × 1.0003 = $148.59.
            Shares filled: 160. Unfilled remainder: $160 - 160 = 0$ (Order Complete).
-           Subtotal: $160 \times \$148.59 = \$23{,}774.40$.
+           Subtotal: 160 × $148.59 = $23,774.40.
 
         Consolidated Order Outcome:
         $$\text{Total Shares} = 260 + 180 + 160 = 600 \text{ shares}$$
@@ -988,10 +990,10 @@ print("Total cash paid including one commission:", round(notional + commission, 
         You receive $141.96 per share—$3.04 below your stop price ($30.40 total slippage on 10 shares). This demonstrates why stops do not prevent gap slippage.
 
         Case 3: Trailing Stop Ratchet
-        You place a 5% trailing stop ($\tau = 0.05$) when NVRA closes at $150.00. The initial stop sits at $150.00 \times 0.95 = \$142.50$.
+        You place a 5% trailing stop ($\tau = 0.05$) when NVRA closes at $150.00. The initial stop sits at 150.00 × 0.95 = $142.50.
         On the next candle, the stock rallies to an intraday high of $153.00 (low $149.00). The stop does not trigger, and the anchor ratchets to the new high:
         $$\text{New Stop Level} = 153.00 \times (1 - 0.05) = 145.35$$
-        When the subsequent candle opens at $146.00 and dips to $144.90, it penetrates $145.35, executing at $145.35 \times 0.9997 = \$145.31$.
+        When the subsequent candle opens at $146.00 and dips to $144.90, it penetrates $145.35, executing at 145.35 × 0.9997 = $145.31.
         """,
         """
         **Protect existing shares.** Buy 10 shares of any company and step one bar forward to ensure execution. Open the **Trade** tab, select **Sell**, choose **Stop** in **Order type**, type a stop price below current market in **Stop price**, keep Duration at GTC, and document your reason in **Trade thesis**.
@@ -1090,15 +1092,15 @@ print("Bracket risk:", round(risk, 2), "reward:", round(reward, 2), "R:", round(
 
         Step-by-step balance sheet accounting:
         1. Initial Short Execution:
-           The short sale generates $600 \times \$150.00 = \$90{,}000$ in proceeds.
-           Cash balance rises to: $\$100{,}000 + \$90{,}000 = \$190{,}000$.
-           You owe the broker 600 shares, representing a liability of $600 \times \$150 = \$90{,}000$.
+           The short sale generates 600 × $150.00 = $90,000 in proceeds.
+           Cash balance rises to: $100,000 + $90,000 = $190,000.
+           You owe the broker 600 shares, representing a liability of 600 × $150 = $90,000.
            $$\text{Gross Exposure } G = \$90{,}000$$
            $$\text{Equity } E = \text{Cash} - G = \$190{,}000 - \$90{,}000 = \$100{,}000$$
            $$\text{Buying Power } \text{BP} = 2 \times \$100{,}000 - \$90{,}000 = \$200{,}000 - \$90{,}000 = \$110{,}000$$
 
         2. Stock Price Rallies to $200.00:
-           The 600 borrowed shares are now worth $600 \times \$200 = \$120{,}000$.
+           The 600 borrowed shares are now worth 600 × $200 = $120,000.
            $$\text{Gross Exposure } G = \$120{,}000$$
            $$\text{Equity } E = \$190{,}000 - \$120{,}000 = \$70{,}000$$
            $$\text{Buying Power } \text{BP} = 2 \times \$70{,}000 - \$120{,}000 = \$140{,}000 - \$120{,}000 = \$20{,}000$$
@@ -1110,7 +1112,7 @@ print("Bracket risk:", round(risk, 2), "reward:", round(reward, 2), "R:", round(
            If the stock rises to $243.59 (a 62.4% rally from $150.00), the broker triggers an automated market buy order to cover the position and prevent account insolvency.
 
         4. Borrow Fee Calculation:
-           At $150.00, one session's borrow fee is $90{,}000 \times 0.05 / 252 \approx \$17.86$. Over a 5-day week, holding the short costs about $89.29 in financing fees.
+           At $150.00, one session's borrow fee is $90,000 × 0.05 / 252 ≈ $17.86. Over a 5-day week, holding the short costs about $89.29 in financing fees.
         """,
         """
         **Create a margin simulation run.** Click **New simulation run**. In **Account type**, select "Margin · may sell short". Leave **Practice mission** on free practice and click **Create new paper account**. Notice that the account status bar now displays **MARGIN**, **Buying power**, and **Gross exposure** alongside **Equity** and **Cash**.
@@ -1390,7 +1392,7 @@ print("Whole listing hit rate:", round(listing_hits / listing_names * 100, 1), "
         A complete trading review requires inspecting both quantitative metrics and qualitative decision journals. When exporting tables to CSV, the terminal sanitizes data against CSV formula injection by prepending an apostrophe to cells starting with `=`, `+`, `-`, or `@`.
         """,
         r"""
-        Suppose an account completes four round-trip closing trades with realized P&L of $+\$120$, $+\$80$, $-\$50$, and $-\$150$.
+        Suppose an account completes four round-trip closing trades with realized P&L of +$120, +$80, -$50, and -$150.
 
         Step-by-step performance metrics:
         1. Trade Counting and Win Rate:
@@ -1401,12 +1403,12 @@ print("Whole listing hit rate:", round(listing_hits / listing_names * 100, 1), "
            $$\text{Gross Wins} = \$120 + \$80 = \$200$$
            $$\text{Gross Losses} = |-\$50 + (-\$150)| = \$200$$
            $$\text{Profit Factor} = \frac{\$200}{\$200} = 1.00$$
-           The account broke even across its closed trading activity. Average win is $\$100$, and average loss is $-\$100$.
+           The account broke even across its closed trading activity. Average win is $100, and average loss is -$100.
 
         3. Maximum Drawdown Calculation:
            Suppose account equity traced the following values across four sessions:
            $$\text{Equity} = [\$100{,}000,\; \$101{,}200,\; \$99{,}800,\; \$100{,}600]$$
-           Peak equity was reached at $\$101{,}200$. The subsequent lowest trough was $\$99{,}800$.
+           Peak equity was reached at $101,200. The subsequent lowest trough was $99,800.
            $$\text{Dollar Drawdown} = \$101{,}200 - \$99{,}800 = \$1{,}400$$
            $$\text{Maximum Drawdown \%} = \frac{\$1{,}400}{\$101{,}200} \times 100\% \approx 1.38\%$$
 
@@ -1498,9 +1500,9 @@ print("Excess return vs QX-200:", round(0.6 - 0.9, 1), "points")
         """,
         r"""
         Let us calculate the maximum allowable position size under the 5% charter cap:
-        Opening equity is $E_0 = \$100{,}000$.
+        Opening equity is $E_0 = $100,000.
         $$\text{Position Cap} = 0.05 \times \$100{,}000 = \$5{,}000.00$$
-        This $5,000 cap is an all-inclusive limit encompassing share purchase cost and broker commissions ($c = \$1.00$).
+        This $5,000 cap is an all-inclusive limit encompassing share purchase cost and broker commissions ($c = $1.00).
 
         Suppose Meridian Power (MRDN) opens at $52.30 per share ($f = 0.0003$):
         1. Projected Fill Price:
@@ -1514,7 +1516,7 @@ print("Excess return vs QX-200:", round(0.6 - 0.9, 1), "points")
 
         4. What happens if you buy 100 shares?
            $$100 \times \$52.32 + \$1.00 = \$5{,}232.00 + \$1.00 = \$5{,}233.00$$
-           This purchase commits $\$5{,}233.00$, exceeding the cap by $\$233.00$. Even if the position gains $10% and you sell 5 shares one minute later, the server flags the run as breached because the cap is judged on peak exposure.
+           This purchase commits $5,233.00, exceeding the cap by $233.00. Even if the position gains 10% and you sell 5 shares one minute later, the server flags the run as breached because the cap is judged on peak exposure.
         """,
         """
         **Initialize the capstone mission.** Open [Trade inside your written limits](/simulator?mission=charter). The link preselects the configuration: click **New simulation run**, verify that **Practice mission (optional)** displays "Trade inside your written limits · MRDN", and click **Create new paper account**. The mission starts on Day 2 at 11:19 AM ET in a cash account with $100,000.

@@ -274,7 +274,7 @@ Subsequent investigations reinforced this finding across varied economic regimes
 
 CFA Institute standards for the investment policy statement formalize this evidence into five operational components: defining client objectives and risk capacity, identifying non-negotiable liquidity constraints, setting baseline asset allocation bands, specifying disciplined rebalancing rules, and establishing an ongoing governance schedule. The lesson's capstone rubric translates these institutional governance standards into an accessible personal plan, bridging conceptual portfolio design with the detailed financial statement analysis taught in Security Analysis.
 
-Exercise: review your completed investor plan against the capstone rubric. Confirm that your stated allocation survived the joint stock-bond stress scenario, that all fee assumptions reflect net reporting conventions, and that three specific accounting questions are prepared for Security Analysis.""",
+Exercise: review your completed My notebook page against the capstone rubric. Confirm that your stated allocation survived the joint stock-bond stress scenario, that all fee assumptions reflect net reporting conventions, and that three specific accounting questions are prepared for Security Analysis.""",
         [
             ('paper', 'Brinson, Hood & Beebower', 1986, 'Determinants of Portfolio Performance', 'https://doi.org/10.2469/faj.v42.n4.39',
              'Landmark empirical study showing asset allocation policy explains over 90 percent of the variation in quarterly portfolio returns across 91 pension plans.'),
