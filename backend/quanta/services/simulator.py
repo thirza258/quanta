@@ -49,6 +49,7 @@ from quanta.services.simulator_market import (
 from quanta.services.simulator_missions import MISSIONS
 from quanta.services.simulator_missions import listing as mission_listing
 from quanta.services.simulator_missions import progress as mission_progress
+from quanta.services.simulator_missions import stages as mission_stages
 from quanta.services.simulator_news import news_window, released, report_slot, sentiment
 from quanta.services.simulator_queries import latest, run_for, snapshot
 from quanta.services.simulator_universe import (
@@ -140,12 +141,15 @@ def create_run(payload: RunCreate, account: str, db: Session):
             raise HTTPException(404, "That practice mission does not exist.")
         if payload.mode != "synthetic":
             raise HTTPException(422, "Practice missions run on the generated market.")
-        if payload.account != "cash":
-            # Every attempt at a mission should meet the same account, and none
-            # of the missions is about short selling.
-            raise HTTPException(422, "Practice missions run on a cash account.")
+        if payload.account != mission.account:
+            # The mission declares its account, so every attempt meets the same
+            # rules rather than whichever the learner happened to pick.
+            raise HTTPException(
+                422, f"This practice mission runs on a {mission.account} account."
+            )
         # Everyone attempting a mission meets the same market and starts together.
         config["seed"] = mission.seed
+        config["account"] = mission.account
     if config["seed"] is None:
         # No seed asked for: derive one from the run identifier so each new paper
         # account gets a different market, while an idempotent retry of the same
@@ -910,6 +914,11 @@ def mission(run_id: str, account: str, db: Session):
     room = _room(state)
     times = next(iter(data.values())).time
     objectives = mission_progress(chosen, state, room, times)
+    legs = mission_stages(chosen, state, room, times)
+    # A campaign is judged stage by stage, and a stage that has not opened yet
+    # cannot be failed: the market it is about has not happened.
+    scored = objectives + [o for stage in legs for o in stage["objectives"]]
+    total = len(objectives) + sum(len(stage.objectives) for stage in chosen.stages)
     return {
         "id": chosen.id,
         "title": chosen.title,
@@ -917,10 +926,12 @@ def mission(run_id: str, account: str, db: Session):
         "brief": chosen.brief,
         "lessons": list(chosen.lessons),
         "symbol": chosen.symbol,
+        "account": chosen.account,
         "objectives": objectives,
-        "met": sum(1 for o in objectives if o["met"]),
-        "total": len(objectives),
-        "complete": all(o["met"] for o in objectives),
+        "stages": legs,
+        "met": sum(1 for o in scored if o["met"]),
+        "total": total,
+        "complete": total > 0 and sum(1 for o in scored if o["met"]) == total,
         "cursor": state["cursor"],
         "version": run.version,
         "disclosure": DISCLOSURE,

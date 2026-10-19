@@ -1536,6 +1536,8 @@ print("Excess return vs QX-200:", round(0.6 - 0.9, 1), "points")
         **Close all positions flat.** In the **Positions** tab, click **Close** on every open holding. Preview, submit, and advance the clock until all closing orders fill. The mission panel displays "All objectives met" only after a full week (1,950 bars) has elapsed with zero remaining shares.
 
         **Export audit file.** Click **Export simulation** in the bottom status bar and download "Run, chart settings & journal (JSON)". Use the 12-item review checklist to prepare your capstone analysis.
+
+        **Then take the week itself.** The capstone above is one account judged at the end. [A week on the desk](/simulator?mission=desk-week) is the same week judged as you live it: four stages that open as the clock runs, with **Stop on** set to the full list so every jump is cut short at your fills, your exits and Zephyr Robotics' quarterly print. Each stop asks what you want to do while the position is open and the outcome is unknown, and a stage cannot be answered early, because the market it is about has not happened. Nothing in it is scored on what the week earned.
         """,
         """
         Complete the charter mission and write a comprehensive one-page audit covering the twelve checklist items: seed, cost settings, sessions, orders, a thesis on every order, peak position versus cap, QX-200 benchmark return, excess return, maximum drawdown, unmodeled market frictions, key lessons learned, and the next falsifiable hypothesis.

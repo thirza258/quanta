@@ -826,3 +826,32 @@ test("the clock stops at an event and asks for a decision", async ({
   expect(state.decisions.at(-1).choice).toBe("hold");
   expect(errors).toEqual([]);
 });
+
+test("a campaign opens its stages as the week runs", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/simulator?mission=desk-week");
+  await expect(page.getByTestId("trading-terminal")).toBeVisible();
+  await page.getByLabel("New simulation run").click();
+  await expect(page.getByLabel("Practice mission (optional)")).toHaveValue(
+    "desk-week",
+  );
+  // The mission declares its account, so the picker is not the learner's to set.
+  await expect(page.getByLabel("Account type")).toBeDisabled();
+  await page.getByRole("button", { name: "Create new paper account" }).click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+
+  const mission = page.locator(".sim-mission");
+  await mission.locator("summary").click();
+  await expect(mission).toContainText("A week on the desk");
+  await expect(mission).toContainText("Stage 1: Open the week");
+  // A stage the clock has not reached is locked, not failed.
+  await expect(mission).toContainText("Stage 2: Answer the tape");
+  await expect(mission).toContainText("opens in 390 bars");
+  await expect(mission).toContainText("of 9 objectives");
+
+  await page.getByLabel("Jump forward by one session").click();
+  await expect(mission).not.toContainText("opens in 390 bars");
+  await expect(mission).toContainText("Stage 3: Stand in front of the print");
+  expect(errors).toEqual([]);
+});

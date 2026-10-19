@@ -150,11 +150,7 @@ export type NewsMarker = {
 };
 
 export type StopEvent =
-  | "fill"
-  | "bracket"
-  | "margin_call"
-  | "earnings"
-  | "news";
+  "fill" | "bracket" | "margin_call" | "earnings" | "news";
 
 export type MonitorTool =
   | "tape"
@@ -514,19 +510,32 @@ export type MissionProgress = {
   brief: string;
   lessons: string[];
   symbol: string;
-  objectives: {
+  objectives: MissionObjective[];
+  /** A campaign's legs, each judged only once the clock has reached it. */
+  stages: {
     id: string;
     title: string;
-    detail: string;
-    met: boolean;
-    progress: string;
+    brief: string;
+    opens: number;
+    open: boolean;
+    bars_away: number;
+    objectives: MissionObjective[];
   }[];
+  account: string;
   met: number;
   total: number;
   complete: boolean;
   cursor: number;
   version: number;
   disclosure: string;
+};
+
+export type MissionObjective = {
+  id: string;
+  title: string;
+  detail: string;
+  met: boolean;
+  progress: string;
 };
 
 export type MissionCatalog = {

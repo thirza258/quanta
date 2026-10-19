@@ -1928,3 +1928,76 @@ def test_a_stop_is_cleared_by_deciding_something_and_recorded(client):
         json={"id": ident(), "version": recorded["version"], "choice": "hold"},
     )
     assert refused.status_code == 409 and "not stopped" in refused.json()["detail"]
+
+
+def test_every_campaign_stage_contains_the_market_it_is_about():
+    """A stage whose event drifted out of its window would be unanswerable.
+
+    The campaign's seed and cursor are chosen so each stage meets a particular
+    piece of market. Nothing stops a later change to the generator from moving
+    that piece, and the stage would then simply never pass, so the arithmetic is
+    pinned here rather than left to the brief.
+    """
+    from quanta.services.simulator_missions import CHECKS, MISSIONS
+    from quanta.services.simulator_news import report_slot
+
+    campaigns = [m for m in MISSIONS.values() if m.stages]
+    assert campaigns, "the catalog carries at least one campaign"
+    for mission in campaigns:
+        opens = [stage.opens for stage in mission.stages]
+        assert opens == sorted(opens), f"{mission.id} stages must open in order"
+        assert opens[0] == 0, f"{mission.id} must have something to do immediately"
+        checks = {o.check for stage in mission.stages for o in stage.objectives}
+        assert checks <= set(CHECKS), f"{mission.id} uses an unregistered check"
+
+        # The stage that waits for the print must open before it and the
+        # campaign must still be running when it lands.
+        reporting = [
+            stage
+            for stage in mission.stages
+            if any(o.check in ("held_through_report", "bars_after_report") for o in stage.objectives)
+        ]
+        if not reporting:
+            continue
+        _, index = report_slot(mission.seed, mission.symbol, mission.cursor, 390)
+        away = index - mission.cursor
+        stage = reporting[0]
+        assert stage.opens < away, (
+            f"{mission.id}: {mission.symbol} prints {away} bars in, but the stage "
+            f"that waits for it only opens at {stage.opens}"
+        )
+        # And a later stage asks for a session beyond the print, so the campaign
+        # has to outlast it.
+        assert away + 390 <= opens[-1] + 390 * 2, (
+            f"{mission.id}: the print at {away} bars leaves no room to sit with it"
+        )
+
+
+def test_a_campaign_opens_its_stages_as_the_clock_runs(client):
+    client.get("/api/v1/simulator")
+    run = client.post(
+        "/api/v1/simulator/runs", json={"id": ident(), "mission": "desk-week"}
+    ).json()
+    assert run["config"]["seed"] == 9103 and run["config"]["account"] == "cash"
+    board = client.get(f"/api/v1/simulator/runs/{run['id']}/mission").json()
+    assert board["id"] == "desk-week" and len(board["stages"]) == 4
+    assert board["total"] == 9 and board["met"] == 0 and board["complete"] is False
+
+    first, second = board["stages"][0], board["stages"][1]
+    assert first["open"] is True and first["objectives"]
+    # A stage that has not opened is not failed; it has nothing to judge yet.
+    assert second["open"] is False and second["objectives"] == []
+    assert second["bars_away"] == 390
+
+    advanced = mutate(client, run, "advance", steps=390).json()
+    board = client.get(f"/api/v1/simulator/runs/{advanced['id']}/mission").json()
+    assert board["stages"][1]["open"] is True and board["stages"][1]["objectives"]
+    assert board["stages"][2]["open"] is False
+    assert board["stages"][2]["bars_away"] == 1170 - 390
+
+    # Asking for the wrong account is refused rather than quietly allowed.
+    bad = client.post(
+        "/api/v1/simulator/runs",
+        json={"id": ident(), "mission": "desk-week", "account": "margin"},
+    )
+    assert bad.status_code == 422 and "cash account" in bad.json()["detail"]
