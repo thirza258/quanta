@@ -428,7 +428,10 @@ def order_create(run_id: str, payload: OrderCreate, account: str, db: Session):
                     "parent_id": order["id"],
                     "oco_group": group,
                     "activates": None,
-                    "note": "",
+                    # The legs carry the entry's thesis. They are part of the
+                    # same decision, and a journal that blanks them loses the
+                    # reason the exit was set where it was.
+                    "note": order["note"],
                     **leg,
                 }
             )

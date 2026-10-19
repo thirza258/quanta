@@ -341,9 +341,19 @@ def check(name):
     return register
 
 
+def entries(state):
+    """Orders the learner placed, not the exits an entry carried with it.
+
+    A bracket reaches the blotter as three rows, but it was one decision. Counting
+    its legs separately would ask for a thesis the learner already wrote and make
+    a single order look like three.
+    """
+    return [order for order in state["orders"] if not order.get("parent_id")]
+
+
 @check("thesis_on_every_order")
 def _thesis(state, mission, target, room, times):
-    orders = state["orders"]
+    orders = entries(state)
     if not orders:
         return False, "No orders placed yet."
     missing = [o for o in orders if not o.get("note", "").strip()]
@@ -366,7 +376,7 @@ def _order_kind(state, mission, target, room, times):
 
 @check("order_count")
 def _order_count(state, mission, target, room, times):
-    placed = len(state["orders"])
+    placed = len(entries(state))
     return placed >= target["count"], f"{placed} of {target['count']} orders placed."
 
 

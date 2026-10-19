@@ -1732,3 +1732,35 @@ def test_a_forced_buy_in_runs_to_flat_without_being_re_raised():
             assert "maintenance requirement" in order_row["reason"]
     assert max(seen) == 1, seen
     assert s["positions"]["AAPL"]["quantity"] == 0
+
+
+def test_a_bracket_counts_as_the_one_order_the_learner_placed(client):
+    """Three rows in the blotter, one decision. Missions must judge the decision."""
+    from quanta.services.simulator_missions import CHECKS, MISSIONS
+
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    quote = next(q for q in run["quotes"] if q["symbol"] == SYMBOL)
+    entry = float(quote["close"])
+    placed = mutate(
+        client,
+        run,
+        "orders",
+        symbol=SYMBOL,
+        side="buy",
+        quantity=10,
+        note="Entering on the breakout; out at the target or the stop.",
+        take_profit=round(entry * 1.02, 2),
+        stop_loss=round(entry * 0.98, 2),
+    ).json()
+    legs = find(placed, parent_id=placed["orders"][0]["id"])
+    # The exits carry the entry's thesis rather than an empty note.
+    assert len(legs) == 2 and all(leg["note"] == placed["orders"][0]["note"] for leg in legs)
+
+    state = {"orders": placed["orders"], "fills": [], "positions": {}, "ledger": [], "cursor": 0}
+    mission = MISSIONS["first-order"]
+    # One bracket is one order, not three, for both the thesis and the count.
+    ok, note = CHECKS["thesis_on_every_order"](state, mission, {}, None, None)
+    assert ok and "All 1 orders" in note
+    ok, note = CHECKS["order_count"](state, mission, {"count": 3}, None, None)
+    assert not ok and note.startswith("1 of 3")
