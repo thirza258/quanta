@@ -22,7 +22,7 @@ def test_health_content_and_validation(client):
     catalog = client.get("/api/v1/courses").json()
     assert len(catalog) == 15
     assert catalog[0]["id"] == "trading-fundamentals"
-    assert sum(len(c["modules"]) for c in catalog) == 348
+    assert sum(len(c["modules"]) for c in catalog) == 352
     news = next(course for course in catalog if course["id"] == "news-to-markets")
     lesson = client.get("/api/v1/courses/lessons/8.3").json()
     case = next(item for item in news["caseStudies"] if item["id"] == lesson["realWorld"]["caseId"])
