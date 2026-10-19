@@ -206,7 +206,36 @@ APPLICATIONS = [
         "A fictional learner ends a charter week with a total return of +0.35% (illustrative). Write the five facts that must sit beside that number in a review.",
         "State the seed and cost settings, the number of sessions and orders, the QX-200 return and the excess return, what the simulator does not model (dividends, queue position and real borrow availability), and that one generated week is too short to show skill. A reader can then judge the claim without trusting it blindly.",
     ),
+    (
+        "13.13",
+        "gme",
+        "Flow is read, not seen: in January 2021 the public argued about who was buying from order-book screenshots and social posts, while the SEC's later report had to reconstruct participation from data nobody watching in real time could see.",
+        "The Market flow pane names a desk and a side for each order. Write the sentence a reader would need beside any claim you make from it, so they do not take it for a record of who actually traded.",
+        "Say that the pane is generated from the same bars and headlines already on screen, that it reports which style would have produced an order rather than a real counterparty, and that a live market shows you neither. Then give the window it covers in bars, because a lean measured over 120 bars is a different claim from one measured over a session.",
+    ),
+    (
+        "13.14",
+        "knight",
+        "Knight Capital's loss accumulated over forty-five minutes while the firm watched it happen; the SEC's order describes alerts that fired and were not acted on. Watching an event pass is not the same as deciding about it.",
+        "Set Stop on to the full list, hold a position through a print, and record what you decided at each stop before the outcome was known.",
+        "Each stop gives you the event and the open position without the result. Write one sentence naming the level, figure or fact that would change your mind. Afterwards reread your own notes: the ones that said only that the thesis was intact cannot be checked against anything, which is how an alert becomes something watched rather than acted on.",
+    ),
+    (
+        "13.15",
+        "calibration",
+        "A forecast is judged over many resolved calls, not one. A campaign spreads nine objectives across five sessions for the same reason: a habit shown once is an anecdote.",
+        "Complete the four stages of A week on the desk and record, for every objective missed, whether you ran out of week or out of discipline.",
+        "Running out of week is a pacing failure and the fix is the jump size. Running out of discipline means the rule was available and not followed, and the fix is the rule. A locked stage is neither, because the market it asks about has not happened. Keeping the denominator at all nine objectives throughout is what stops progress reading 80% on day two and falling as the week reveals more to do.",
+    ),
+    (
+        "13.16",
+        "reporting",
+        "The GIPS standards ask for the benchmark, the costs, the sample and the limitations beside any performance figure. A generated result needs the same disclosure and one more line, because its market never existed.",
+        "Rewrite your best result from this course with its seed, cost settings, session count, benchmark return, unmodelled costs and sampling error, then mark every claim the original made that the honest version cannot support.",
+        "At five sessions and a weekly standard deviation of 1.5 points, the standard error is 0.67 points, so a 0.8-point excess sits about 1.2 standard errors from zero and is not a result. Moving slippage and spread from 2 to 10 basis points across 40 round trips of 1,000 shares at $50 costs $1,600, which is 1.6% of the account. Dividends, borrow availability and queue position are unmodelled throughout. Completing this exercise does not establish GIPS compliance.",
+    ),
 ]
+
 
 
 def text(value):
@@ -1598,6 +1627,409 @@ print("Simulator review checklist:", len(checklist), "of", 12)
         (6, 16, 8),
     )
 
+    # ---------------------------------------------------------------- Unit 4
+    add(
+        "Read the other side: generated participants and their styles",
+        "Read the Market flow pane, name which style produced an order, and say what the flow does and does not tell you.",
+        r"""
+        A chart shows that a price moved. It does not show who moved it, and a learner watching alone tends to fill that gap with a story. The **Market flow** monitor tool names the rest of the market instead: seven desks, each with exactly one stated style, whose orders and fills can be read bar by bar beside the candle that produced them.
+
+        The styles are deliberately narrow, because a desk you can predict is a desk you can learn from. A momentum desk buys when price sits above its short average and sells when it sits below. A value desk leans the other way, resting a passive order when price has run far from its longer average. A market maker works both sides near the touch. Macro and event desks act on the bar *after* a release. An index tracker trades only at a session's first and last bars. Retail flow arrives two to four bars behind the headline it is following.
+
+        Two rules decide what the pane is evidence of. First, the desks are **derived from** the market, never causes of it: prices still come from the factor model and the simulated newsroom, and nothing a desk does reaches a price, a fill or your account. Second, they trade under your rules — a desk that decides on bar $t$ is eligible no earlier than $t+1$, its passive orders fill only where price traded through them, and the desks together cannot trade more of a bar than the bar traded:
+        $$\sum_{d} q_{d,t} \le V_t$$
+        So the pane answers "which style would have done this?" and never "who really bought?". Reading it as the second is the mistake it is built to expose: in a real market you cannot see the counterparty, and the tick rule that labels a print a buy is wrong often enough to matter.
+
+        The flow's net lean is a size-weighted share rather than a count, because one index rebalance outweighs twenty retail tickets:
+        $$\text{buy share} = \frac{\sum_{d \in \text{buys}} q_d}{\sum_{d} q_d}$$
+        """,
+        r"""
+        A bar closes at 20.40 against a short average of 20.12 and a longer average of 21.60, and a high-impact headline was scored on the previous bar.
+
+        Which desks act, and which way?
+        1. **Momentum**: close is above the short average by $20.40 - 20.12 = 0.28$, so it buys.
+        2. **Value**: the gap to the longer average is $(20.40 - 21.60)/21.60 = -5.6\%$, so price is *below* its longer average and the desk leans the other way, resting a passive **buy**.
+        3. **Event**: the headline landed on the previous bar, so this is the first bar it may act on. Its direction follows the sign of the headline's points.
+        4. **Retail flow**: nothing yet. It is still two to four bars behind that headline.
+
+        Now the lean. Suppose the visible window shows buys of 2,400, 1,800 and 900 against sells of 1,500 and 1,200:
+        $$\text{buy share} = \frac{2{,}400 + 1{,}800 + 900}{2{,}400 + 1{,}800 + 900 + 1{,}500 + 1{,}200} = \frac{5{,}100}{7{,}800} = 65.4\%$$
+        Two desks are selling and three buying, but the share is what matters: 65.4% of the *size* on display leaned one way, where a count would have said 60.0% and hidden the difference.
+        """,
+        """
+        **Open the pane.** Click **2** in the replay bar to split the chart region into two windows, then set the second window's tool to **Market flow**.
+
+        **Read one row at a time.** Each row carries a time, a desk, a side, a size and either a fill price or the limit it is resting at. Hover the desk name to see its style and the reason it acted on that bar.
+
+        **Tie a row to a candle.** Pick a filled row, note its time, and find that bar on the chart. The fill price is inside that bar's range, because every fill the pane reports is a price the bar actually traded at.
+
+        **Watch a headline propagate.** Turn on chart news markers, find a scored headline, and read the rows on the bars that follow. The event desk acts first, on the next bar. Retail flow appears two to four bars later, which is the lag the pane exists to make visible.
+
+        **Check the lean against the tape.** Put **Time & sales** in a third window. The tape's buy share comes from the tick rule; the flow's comes from desk sides. Note where the two disagree, and why that is the point rather than a bug.
+        """,
+        """
+        Advance one session with the Market flow pane open. Record five rows: the desk, the side, the size, and the bar fact or headline the pane gives as the reason. Then find one bar where the momentum desk and the value desk took opposite sides, and write what each was reading.
+        """,
+        r"\sum_{d} q_{d,t}\le V_t,\qquad \text{buy share}=\frac{\sum_{d\in\text{buys}}q_d}{\sum_d q_d}",
+        """
+buys = [2400, 1800, 900]
+sells = [1500, 1200]
+bought = sum(buys)
+sold = sum(sells)
+print("Size bought:", bought)
+print("Size sold:", sold)
+print("Buy share by size:", round(bought / (bought + sold) * 100, 1))
+print("Buy share by count:", round(len(buys) / (len(buys) + len(sells)) * 100, 1))
+
+close = 20.40
+short_average = 20.12
+long_average = 21.60
+print("Momentum reads close minus short average:", round(close - short_average, 2))
+print("Value reads percent from the longer average:", round((close / long_average - 1) * 100, 1))
+print("Momentum buys:", close > short_average)
+print("Value rests a buy:", close < long_average)
+""",
+        "Open Market flow beside the chart and advance one session. Record five rows with the reason each gives. Then compute the size-weighted buy share of the rows you recorded, compute the count-weighted share as well, and say in one sentence which of the two you would quote to another person and why.",
+        "The size-weighted share answers the question you actually care about, which is how much stock leaned each way; the count-weighted share treats a 12,000-share index rebalance and a 200-share retail ticket as equal votes and will mislead whenever the sizes differ, which is most of the time. For the worked window, size gives 5,100 of 7,800 = 65.4% while count gives 3 of 5 = 60.0%. Quote the size-weighted figure, and state the window it covers, because a lean measured over 120 bars is a different claim from one measured over a session. Record too that the pane is generated from the same bars you can see: it tells you which style would have produced an order, not who truly bought, and in a live market you would have neither.",
+        [
+            (
+                "The Market flow pane shows a momentum desk buying on the bar a headline was scored. What is wrong with that description?",
+                "Nothing about the desk, but the headline is not its reason: momentum reads the bar's price against its short average",
+                "The desk cannot buy on that bar at all, because headlines block trading",
+                "The pane is broken, because a momentum desk only ever sells",
+                "Each desk reads one thing. Momentum reads price against its short average and ignores the newsroom entirely; the event desk is the one that reacts to a scored headline, and only from the following bar.",
+            ),
+            (
+                "Why can no desk in the pane act on the bar it read?",
+                "It would be deciding with a price it could not have seen until that bar closed",
+                "The engine processes desks only once a session",
+                "Desks are limited to one order a day",
+                "A desk that could act on the bar it read would be early by exactly the move it was reading. That is look-ahead, and the learner's own orders are held to the same next-bar rule.",
+            ),
+            (
+                "The flow pane and the Time & sales pane report different buy shares for the same window. What should you conclude?",
+                "They measure different things: the tape infers a side from the tick rule, the flow knows each desk's own side",
+                "One of the two panes has a bug that should be reported",
+                "The market is being manipulated in that window",
+                "The tick rule labels a print a buy if it printed above the last one, which is an inference and often wrong. The flow knows the side because the desk declared it. Watching the two disagree is how you learn what the tape's inference is worth.",
+            ),
+            (
+                "What does the Market flow pane entitle you to say about a price move?",
+                "Which style would have produced orders like that, given the bars and headlines you can already see",
+                "Which participants caused the move",
+                "What the next bar will do, since the desks are already positioned",
+                "The desks are derived from the market, not causes of it. Nothing they do reaches a price or your account, and the pane holds no information the bars and the newsroom do not already contain.",
+            ),
+        ],
+        [QUOTES, EXECUTING, BID_ASK],
+        (8, 14, 8),
+    )
+
+    add(
+        "Stop the clock: trade the event instead of watching it pass",
+        "Set the replay to stop at the events that touch your positions, and answer each stop with a decision you record.",
+        r"""
+        A jump that always runs its whole length teaches watching. You set a week going, come back, and read what happened, which is exactly the position you are never in when it matters. The outcome is known before you are asked to decide anything, and hindsight makes every choice look obvious.
+
+        **Stop on** cuts a jump short at the first thing that touches you. Five events qualify: an order of yours filling, a bracket leg triggering, a company you hold reporting its quarter, a high-impact scored headline on a position of yours, and the account being called. The scheduled ones, earnings and news, are computed from the run's own calendar and newsroom before the jump begins, so a stop lands on the same bar however you reached it.
+
+        The arithmetic worth internalising is how little of a jump usually runs. If a jump of $N$ bars stops at bar $k$, the fraction you watched is:
+        $$\text{observed} = \frac{k}{N}$$
+        A week jump is $N = 1{,}950$. A fill on the next bar gives $k = 1$, so you observed 0.05% of it, and you are now standing where the decision is, with the position open and the outcome unknown.
+
+        A stop cannot be dismissed. It asks you to trade or to hold, and holding asks why. That record is the whole exercise: it is the only account of what you knew *before* the outcome arrived, and the only thing that distinguishes a reasoned hold from inertia. Fischhoff's work on hindsight is why the question is asked at the stop rather than at the end of the week, because once an outcome is known the probability a person recalls having assigned to it rises:
+        $$P(\text{event} \mid \text{outcome known}) > P(\text{event} \mid \text{outcome unknown})$$
+        """,
+        r"""
+        You hold 60 shares of a company that reports in four sessions, and you set a one-week jump with every stop switched on.
+
+        What happens, step by step:
+        1. You ask for 1,950 bars. The engine first builds the scheduled stops: the company's print sits at bar 1,451 of the run, inside the jump.
+        2. On bar 1 your resting limit order fills. The clock stops there. Observed fraction: $1/1950 \approx 0.05\%$.
+        3. You record a hold with a reason and jump again, 1,950 bars.
+        4. A high-impact headline on your company lands 212 bars in. The clock stops again, and you have read the headline but not the move that follows it.
+        5. You record a decision and jump again. The print stops you a third time.
+
+        Three stops, three decisions, and at none of them did you know the outcome. Compare the same week with stops off: one jump, one arrival, and a profit and loss figure that explains itself after the fact.
+
+        $$\text{decisions made under uncertainty} = 3 \quad\text{versus}\quad 0$$
+        """,
+        """
+        **Switch stops on.** In the replay bar, set **Stop on** from "Nothing · run the whole jump" to the full list. The setting is saved with the rest of your workspace, so it survives a reload.
+
+        **Open a position.** Buy a small line in a company that reports soon. Check the **Calendar** tab for one whose print falls inside the next week.
+
+        **Jump a week.** Click **1W**. The clock will stop at your fill rather than at the end of the jump, and a card appears above the chart naming what happened and how many bars are left.
+
+        **Answer it.** Click **Hold, and say why** and write one sentence. Be specific about what would change your mind; "looks fine" is not a record of anything.
+
+        **Keep going.** Jump again. Note how many stops the week produces and what each one was. Read your own notes at the end of the week and mark which ones you would still defend.
+        """,
+        """
+        Run one simulated week with every stop switched on and a position open in a company that reports inside it. Record every stop: the bar, the reason, your choice and your sentence. Then run a second week with stops off and compare how much you decided in each.
+        """,
+        r"\text{observed}=\frac{k}{N},\qquad \text{answered}=\sum_i \mathbb{1}[\text{note}_i \ne \varnothing]",
+        """
+jump = 1950
+stops = [1, 212, 1451]
+print("Bars asked for:", jump)
+for bar in stops:
+    print("Stopped at bar:", bar, "percent of the jump observed:", round(bar / jump * 100, 3))
+print("Stops in the week:", len(stops))
+
+answered = 3
+written = 2
+print("Stops answered:", answered)
+print("Answered with a written reason:", written)
+print("Share carrying a reason:", round(written / answered * 100, 1))
+""",
+        "Trade one simulated week with every stop switched on, holding a company through its print. Record each stop with its reason, your choice and your sentence. Then state how many decisions you made under uncertainty, and contrast that with a week run in a single uninterrupted jump.",
+        "A week with stops on typically produces three to six decisions, each taken with the position open and the outcome unknown: the fill, any high-impact headline on the name, the print itself, and any exit leg that triggers. A week run in one jump produces none, because you arrive after everything has happened and read a result. The difference is not the profit and loss, which may well be identical, but that only the first week generated a record of reasoning you can be held to afterwards. Keep the sentences specific: name the level, the figure or the fact that would change your mind, because a note that says “holding, thesis intact” cannot be checked against anything later and so teaches nothing when you reread it.",
+        [
+            (
+                "You jump 1,950 bars with stops on and the clock halts after one bar. What has gone wrong?",
+                "Nothing: an order of yours filled, which is one of the events you asked to be stopped at",
+                "The jump failed and should be retried",
+                "The market closed early that session",
+                "A stop is the feature working. The fill is the first event the jump crossed, and you are now at the decision rather than past it.",
+            ),
+            (
+                "Why are the earnings and news stops computed before the jump runs rather than detected as it goes?",
+                "So a stop lands on the same bar however the jump reached it, from the run's own calendar",
+                "Because the engine cannot read the newsroom while advancing",
+                "To make long jumps faster",
+                "Both are knowable from the run's calendar and newsroom in advance. Computing them up front means the same bar stops the clock whether you arrived in one jump or ten, and never depends on how much market has been generated.",
+            ),
+            (
+                "What is the written reason at a stop actually for?",
+                "It records what you knew before the outcome, which is the one thing hindsight cannot rewrite",
+                "It is required before the engine will fill your next order",
+                "It is scored for accuracy once the outcome is known",
+                "Nothing here is scored on being right. The note exists because after the fact you will remember having been surer than you were, so the only honest record is one written while the outcome was still open.",
+            ),
+            (
+                "With Stop on left at its default, how does a jump behave?",
+                "It runs its whole length, exactly as it did before the setting existed",
+                "It stops at every scored headline in the market",
+                "It refuses to run until events are chosen",
+                "The default is to run the whole jump. The feature is additive: a run that never touches the setting replays exactly as it always has.",
+            ),
+        ],
+        [PERFORMANCE, RISK_TOLERANCE, LEAKAGE],
+        (8, 14, 8),
+    )
+
+    add(
+        "A week as a campaign: staged objectives and a decision record",
+        "Run a staged campaign whose legs open as the clock reaches them, and judge it on process rather than on what the week earned.",
+        r"""
+        The six short missions each fit in an afternoon. A campaign is the same idea stretched over a week of market time, and the stretching is the point: the habits that matter, which are sizing before entering, deciding an exit in advance, answering what the tape puts in front of you and coming back on more than one day, cannot be demonstrated inside an hour.
+
+        A campaign's stages open at fixed offsets from the bar the account started on. If the run opened at bar $c_0$ and a stage opens after $o$ bars, it is available when:
+        $$\text{cursor} \ge c_0 + o$$
+        Until then the stage shows what it will ask and how far off it is, and it is **not** counted as failed. A locked stage is not a failure; it is a part of the market that has not happened yet, and no amount of trading now can answer it.
+
+        Because the seed is fixed, every learner meets the same market at the same point in the same order. The campaign's company reports 1,451 bars after the start, which is why the stage built around that print opens at bar 1,170, three sessions in, with the print still 281 bars ahead. A stage whose event drifted outside its window would be quietly unanswerable, so the arithmetic is pinned by a test rather than trusted to the brief.
+
+        Completion is the share of objectives met across the whole campaign, not across the stages that happen to be open:
+        $$\text{progress} = \frac{\sum_{s} \sum_{o \in s} \mathbb{1}[o \text{ met}]}{\sum_{s} |s|}$$
+        None of those objectives reads profit and loss. A profitable breach of a rule is still a breach.
+        """,
+        r"""
+        The campaign "A week on the desk" has four stages at offsets 0, 390, 1,170 and 1,950, carrying 3, 2, 2 and 2 objectives, nine in total.
+
+        Work out what is available on day two. The account opened at bar 499 and you have advanced one session, so the cursor is at $499 + 390 = 889$ and 390 bars have elapsed.
+
+        | Stage | Opens at | Available? | Why |
+        | --- | --- | --- | --- |
+        | Open the week | 0 | yes | $390 \ge 0$ |
+        | Answer the tape | 390 | yes | $390 \ge 390$ |
+        | Stand in front of the print | 1,170 | no | 780 bars away |
+        | Close the week | 1,950 | no | 1,560 bars away |
+
+        So five of the nine objectives can be judged and four cannot yet. If you have met four of those five, the board reads 4 of 9, not 4 of 5, because the denominator is the whole campaign. Progress counted only over open stages would read 80% on day two and *fall* as the week went on, which would be a worse lie than an honest 44.4%:
+        $$\frac{4}{9} = 44.4\% \quad\text{rather than}\quad \frac{4}{5} = 80\%$$
+        """,
+        """
+        **Start it.** Open [A week on the desk](/simulator?mission=desk-week). The link preselects the campaign: click **New simulation run**, check that **Practice mission (optional)** shows it, and click **Create new paper account**. The account type is fixed by the mission, so every attempt meets the same rules.
+
+        **Set the stops before you trade.** Switch **Stop on** to the full list. Two of the four stages are about what you do at stops, and a week run in silence cannot satisfy them.
+
+        **Read stage one, then act.** Expand the **Practice mission** panel. Stage one asks for a sized entry whose exit is attached to the order rather than promised for later, so use a bracket.
+
+        **Let the week run.** Jump a session at a time. Each stop asks for a decision; answer it in writing. Stages two, three and four unlock as the clock reaches them.
+
+        **Finish it.** At the end, read your own decision notes in order and mark the ones you would still defend. That reread is the exercise the campaign is built around.
+        """,
+        """
+        Complete "A week on the desk" and export the run. In your notebook, list the nine objectives, whether each was met, and for the ones that were not, whether you ran out of week or out of discipline. Those are different failures and deserve different fixes.
+        """,
+        r"\text{open}\iff \text{cursor}\ge c_0+o,\qquad \text{progress}=\frac{\sum_s\sum_{o\in s}\mathbb{1}[o\text{ met}]}{\sum_s |s|}",
+        """
+start = 499
+offsets = [0, 390, 1170, 1950]
+sizes = [3, 2, 2, 2]
+cursor = 889
+elapsed = cursor - start
+print("Bars elapsed since the account opened:", elapsed)
+
+available = 0
+for i in range(len(offsets)):
+    is_open = elapsed >= offsets[i]
+    print("Stage", i + 1, "opens at", offsets[i], "open:", is_open, "bars away:", max(0, offsets[i] - elapsed))
+    if is_open:
+        available = available + sizes[i]
+
+total = sum(sizes)
+met = 4
+print("Objectives judgeable now:", available, "of", total)
+print("Honest progress percent:", round(met / total * 100, 1))
+print("Misleading progress over open stages only:", round(met / available * 100, 1))
+""",
+        "Run the campaign to the end of its fourth stage. For each of the nine objectives record whether it was met, and for each miss say whether the cause was running out of week or running out of discipline. Then explain why the progress counter uses every objective as its denominator rather than only the stages that have opened.",
+        "A denominator of open stages only would start the campaign at 100% of nothing and drift downwards as the week revealed more to do, which reads as getting worse while actually making progress. Counting against all nine from the first bar means the number only ever rises, and it says honestly how much of the campaign remains. Separating the two kinds of miss matters because they need opposite responses: running out of week means the jumps were too small or too few and the fix is pacing, while running out of discipline means the rule was available and was not followed, and the fix is the rule rather than the clock. A locked stage is neither, because it is a part of the market that has not happened and nothing you do now can answer it.",
+        [
+            (
+                "On day two of the campaign, four of the five judgeable objectives are met and the board shows 4 of 9. Why not 4 of 5?",
+                "The denominator is the whole campaign, so progress rises as stages open rather than falling",
+                "The board is counting the locked stages as failures",
+                "Five objectives is the maximum any stage can carry",
+                "Counting only the open stages would read 80% on day two and drop as the week revealed more to do. Against all nine, the figure only ever rises and says honestly how much is left.",
+            ),
+            (
+                "Why does the stage built around the company's print open at bar 1,170 rather than at the print itself?",
+                "So you read what it asks while the print is still ahead and the outcome unknown",
+                "Because the engine cannot open a stage on the same bar as a print",
+                "To give the generator time to schedule the quarter",
+                "A stage that opened on the print would be asking you to decide something that had already happened. It opens three sessions in, with the print 281 bars further on, which is the window the decision belongs in.",
+            ),
+            (
+                "A campaign stage is locked. What does that mean for your score?",
+                "Nothing yet: it is a part of the market that has not happened, and it is not counted as failed",
+                "It is scored as a miss until you unlock it",
+                "It blocks the stages after it from opening",
+                "Locked means not yet judgeable. The stage shows what it will ask and how many bars away it is, and no amount of trading now can answer a question about a week that has not run.",
+            ),
+            (
+                "Why is the campaign's account type fixed by the mission rather than chosen at the start?",
+                "So every attempt meets the same rules and results can be compared",
+                "Because campaigns only work on margin accounts",
+                "To stop learners from shorting during a campaign",
+                "A mission declares its account for the same reason it declares its seed: every learner should meet the same market under the same rules, or the objectives are not measuring the same thing from one attempt to the next.",
+            ),
+        ],
+        [RISK_TOLERANCE, GOALS, BROKERAGE],
+        (8, 14, 8),
+    )
+
+    add(
+        "What the simulator does not model, and how to say so",
+        "State the limits of a generated result precisely enough that another person can judge your claim without trusting you.",
+        r"""
+        Everything in this terminal is invented: every company, every headline, every price. That is a feature for practice and a trap for conclusions, and the difference between the two is entirely in how you report what you did.
+
+        Five limits matter most, and each has a direction.
+
+        **Dividends are not paid.** The generated cash-flow statements declare them and the valuation block shows a yield, but no holder is ever credited. A long position therefore understates its true total return and a short escapes a cost it would really owe. Over a simulated year at a 2% yield the gap on an average long exposure $E$ is:
+        $$\text{understated} = 0.02 \times E$$
+
+        **There is no queue.** Fills come from a share of each bar's volume, not from a position in a book. The Order book pane shows indicative depth, not a queue you are standing in, so a passive strategy's fill rate here is optimistic.
+
+        **Borrow is always available at one rate.** A real short needs a locate, and hard-to-borrow names cost many times 5% a year, sometimes more than the trade could earn.
+
+        **The intrabar path is unknown.** The engine fills from a bar's open, high, low and close and treats what happened between them as unmodelled. Time & sales shows one consistent path, not the path.
+
+        **One week is not a sample.** A week is five observations, and the standard error on a mean falls only with the square root of the sample:
+        $$\mathrm{SE}(\hat{\mu}) = \frac{\sigma}{\sqrt{n}}$$
+        At $n = 5$ that is $\sigma / 2.24$, which is to say almost as large as the thing being measured. This is why the performance panel says plainly when too few sessions have closed for its annualised figures to mean anything.
+        """,
+        r"""
+        A learner reports: "My strategy returned +3.2% in a week."
+
+        What is missing, and what each omission is worth:
+        1. **The seed and the costs.** Without them nobody can rebuild the market. Moving slippage and spread from 2 to 10 basis points, an extra 8 bps, across 40 round trips of 1,000 shares at $50 costs $$40 \times 1{,}000 \times 50 \times \frac{8}{10{,}000} = \$1{,}600$$ which is 1.6% of a $100,000 account, or half the claimed return.
+        2. **The benchmark.** If the QX-200 rose 2.4% in the same week, the excess is 0.8 points, not 3.2.
+        3. **The sample.** Five sessions. One print and one high-impact headline can account for the whole figure.
+        4. **The unmodelled costs.** If the account was short all week it paid a flat 5% annual borrow and no dividends at all; a real one might have paid several times that or been unable to borrow.
+        5. **The sampling error.** At a weekly standard deviation of 1.5 points, the standard error on a five-session mean is $1.5/\sqrt{5} = 0.67$ points, so the 0.8-point excess is about 1.2 standard errors from zero, nowhere near the two or so conventionally required before calling anything a result.
+
+        The honest version is longer and claims much less: "+3.2% over five sessions on seed 9103 at default costs, against +2.4% for the index. No dividends, borrow constraint or queue position are modelled. The 0.8-point excess is 1.2 standard errors from zero on a sample of five."
+        """,
+        """
+        **Find the disclosure.** Every news, statements, desk and analytics response carries the run's own provenance line, and the terminal shows it under the panels. Read it once in full.
+
+        **Check the caveat on the performance panel.** Run a short account and look at the risk block: it states plainly when too few sessions have closed for the annualised figures to mean anything.
+
+        **Read a notice you have been skipping.** Open Time & sales and the Order book and read their notices. Both say the engine does not model the intrabar path or a queue. Write down what each one rules out.
+
+        **Price the gap.** Take one of your own results and recompute it with slippage and spread at 10 bps. The difference is the part of your result that was a cost assumption.
+
+        **Write the honest sentence.** Rewrite one of your results in the long form above: figure, sessions, seed, costs, benchmark, what is unmodelled, and the sampling error.
+        """,
+        """
+        Take your best result from this course and write the honest version of it. Then write the version you would have posted before this lesson, and underline every claim in the second that the first does not support.
+        """,
+        r"\mathrm{SE}(\hat\mu)=\frac{\sigma}{\sqrt{n}},\qquad \Delta\text{cost}=N\,Q\,P\,\frac{\Delta f}{10^{4}}",
+        """
+from math import sqrt
+
+trades = 40
+shares = 1000
+price = 50.0
+extra_bps = 8
+cost = trades * shares * price * (extra_bps / 10000)
+print("Extra cost from 8 more basis points:", round(cost, 2))
+print("As a percent of a 100,000 account:", round(cost / 100000 * 100, 2))
+
+account = 3.2
+index = 2.4
+excess = account - index
+print("Excess over the index:", round(excess, 2))
+
+weekly_sd = 1.5
+sessions = 5
+error = weekly_sd / sqrt(sessions)
+print("Standard error on five sessions:", round(error, 2))
+print("Excess in standard errors:", round(excess / error, 2))
+print("Reaches the usual two-standard-error bar:", excess > 2 * error)
+""",
+        "Rewrite one of your own results from this course in the honest form: the figure, the number of sessions, the seed and cost settings, the benchmark return and the excess, what the simulator does not model, and the sampling error on the sample you have. Then say which single omission from your original version would have misled a reader most.",
+        "The omission that misleads most is almost always the sample size, because it is the one that makes every other figure unreliable at once. With five sessions and a weekly standard deviation of 1.5 points, the standard error on the mean is 1.5 divided by the square root of 5, which is 0.67 points; an excess of 0.8 points is therefore about 1.2 standard errors from zero, short of the two or so usually required, and is not evidence of anything. The cost settings come second, because moving slippage and spread from 2 to 10 basis points across 40 round trips of 1,000 shares at $50 costs $1,600, or 1.6% of a $100,000 account, which can be half of a reported return. The benchmark is third: a 3.2% week against an index that rose 2.4% is a 0.8-point result, not a 3.2-point one. Dividends, borrow availability and queue position are unmodelled throughout, so a long position understates its total return, a short escapes a real cost, and a passive strategy's fill rate here is optimistic.",
+        [
+            (
+                "Your account was long all week in a run whose companies declare a 2% dividend yield. How does the simulator's result compare with a real one?",
+                "It understates the total return, because declared dividends are never credited to holders",
+                "It overstates the return, because the yield is added to the price",
+                "It matches, because the yield is already inside the price path",
+                "The statements declare dividends and the valuation block shows a yield, but no holder is ever paid. A long therefore misses income it would really have received, and a short escapes a cost it would really have owed.",
+            ),
+            (
+                "Why is an annualised Sharpe ratio from one simulated week not a measurement?",
+                "Five observations give a standard error nearly as large as the quantity being estimated",
+                "The simulator cannot compute Sharpe ratios correctly",
+                "Sharpe ratios require at least one full quarter by definition",
+                "The standard error on a mean falls with the square root of the sample. At five sessions it is the standard deviation divided by 2.24, so the estimate and its error are of the same size and the annualised figure carries no information.",
+            ),
+            (
+                "What does the Order book pane's notice rule out?",
+                "That your passive order is standing in a queue, since fills come from a share of bar volume instead",
+                "That the spread shown matches the run's configuration",
+                "That the levels are generated from the run's seed",
+                "The depth is indicative of liquidity, not a book your order queues in. A real passive strategy loses fills to queue position, so this simulator's passive fill rate is optimistic.",
+            ),
+            (
+                "Which of these belongs in every result you report from this course?",
+                "The seed and the four cost settings, so another person can rebuild the market you traded",
+                "The names of the companies you traded, since they identify the market",
+                "The time of day you traded, since liquidity varies through a session",
+                "The seed reproduces the market exactly and the costs decide how much of a result was friction. Without both, a number cannot be rebuilt, compared, or argued with.",
+            ),
+        ],
+        [PERFORMANCE, CSV_SAFETY, STATEMENTS],
+        (8, 12, 10),
+    )
+
+
     parts = [
         (
             "Set up and read the market",
@@ -1610,6 +2042,10 @@ print("Simulator review checklist:", len(checklist), "of", 12)
         (
             "Research, review and discipline",
             "Company accounts and the calendar, desk analytics and monitor windows, performance review, and a week inside your charter.",
+        ),
+        (
+            "The rest of the market, and the limits of a result",
+            "Generated participants and their styles, stopping the clock at events worth deciding, a staged campaign across a simulated week, and what the simulator does not model.",
         ),
     ]
     track = finish(
@@ -1641,7 +2077,7 @@ print("Simulator review checklist:", len(checklist), "of", 12)
             ],
             "resources": [],
         },
-        checkpoints_for(modules, parts, 3),
+        checkpoints_for(modules, parts, len(parts)),
     )
     track["exams"][-1]["version"] = 1
     return track
