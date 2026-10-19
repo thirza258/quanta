@@ -89,6 +89,18 @@ def _prints(rng, bar, count):
     return path, sizes, seconds
 
 
+def bar_prints(seed, symbol, index, bar):
+    """The prints for one bar, as the tape draws them.
+
+    One function so the tape and the generated participants cannot disagree:
+    a desk's fill is one of these prints, which is what makes comparing the
+    tick rule's guess with the desk's declared side a real measurement rather
+    than two independent draws differing by chance.
+    """
+    rng = np.random.default_rng([seed, index, _stream(symbol)])
+    return _prints(rng, bar, int(rng.integers(5, 13)))
+
+
 def tape(state, data, symbol, limit=60):
     """Time and sales: the most recent prints, newest first.
 
@@ -104,9 +116,7 @@ def tape(state, data, symbol, limit=60):
     previous = None
     while index >= 0 and len(rows) < limit:
         bar = series[index]
-        rng = np.random.default_rng([seed, index, _stream(symbol)])
-        count = int(rng.integers(5, 13))
-        path, sizes, seconds = _prints(rng, bar, count)
+        path, sizes, seconds = bar_prints(seed, symbol, index, bar)
         block = []
         for position in range(len(path)):
             price = round(float(path[position]), 2)

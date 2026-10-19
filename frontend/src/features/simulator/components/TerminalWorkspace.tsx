@@ -103,6 +103,7 @@ export default function TerminalWorkspace({
     | "setScreen"
     | "decide"
     | "busy"
+    | "stopped"
     | "jump"
   >;
 }) {
@@ -166,6 +167,7 @@ export default function TerminalWorkspace({
     setScreen,
     decide,
     busy,
+    stopped,
     jump,
   } = terminal;
   const stops = prefs.stopOn ?? [];
@@ -353,7 +355,7 @@ export default function TerminalWorkspace({
             <button
               className="sim-play-button"
               aria-label={playing ? "Pause replay" : "Play replay"}
-              disabled={blocked || complete}
+              disabled={blocked || complete || stopped}
               onClick={() => setPlaying(!playing)}
             >
               {playing ? <Pause size={15} /> : <Play size={15} />}
@@ -362,7 +364,7 @@ export default function TerminalWorkspace({
               className="sim-icon"
               aria-label="Next replay bar"
               title="Next replay bar"
-              disabled={blocked || complete}
+              disabled={blocked || complete || stopped}
               onClick={() => {
                 setPlaying(false);
                 void perform(
@@ -379,7 +381,7 @@ export default function TerminalWorkspace({
               {jumps.map(([label, steps, description]) => (
                 <button
                   key={label}
-                  disabled={blocked || complete}
+                  disabled={blocked || complete || stopped}
                   title={`Jump forward ${description}`}
                   aria-label={`Jump forward ${description}`}
                   onClick={() => void jump(steps, description)}

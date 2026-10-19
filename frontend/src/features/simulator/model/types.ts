@@ -315,7 +315,13 @@ export type SimRun = {
   available: string;
   equity: string;
   /** Why the last jump stopped short, if it did. */
-  interrupted: { bar: number; reason: string; of: number } | null;
+  interrupted: {
+    bar: number;
+    reason: string;
+    of: number;
+    /** Bars actually run before the stop, so the card can say what is left. */
+    ran?: number;
+  } | null;
   /** What the account is carrying, counting a short at what it owes. */
   gross_exposure: string;
   /** Cash on a cash account; twice equity less gross on a margin one. */
@@ -548,6 +554,15 @@ export type MissionCatalog = {
     symbol: string;
     name: string;
     objectives: { id: string; title: string; detail: string }[];
+    /** The account the mission is attempted on; the server refuses any other. */
+    account: string;
+    stages: {
+      id: string;
+      title: string;
+      opens: number;
+      brief: string;
+      objectives: { id: string; title: string; detail: string }[];
+    }[];
   }[];
   disclosure: string;
 };

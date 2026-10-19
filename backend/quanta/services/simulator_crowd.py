@@ -14,7 +14,7 @@ back into a price, a fill or the account.
 They trade under the learner's own rules. A desk that decides on one bar is
 eligible on the next, its limit orders fill only when the price trades through
 them, its market orders fill at the next open, and every fill it reports is one
-of the prints the tape shows for that bar. A crowd that could act on the bar
+of the prints the tape shows for that bar, taken once. A crowd that could act on the bar
 it read would always win, which is look-ahead wearing a counterparty's clothes.
 
 They are named for their style, not as firms. "Momentum desk" is what the
@@ -25,7 +25,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from quanta.services.simulator_tools import _stream
+from quanta.services.simulator_tools import _stream, bar_prints
 
 # How far back the flow is read, and how long an unfilled order stays working.
 # Both are bounded so a bar's flow can be computed from that bar alone, without
@@ -176,6 +176,30 @@ def _fill(order, index, highs, lows, opens, closes, cursor, offset):
     return None, None
 
 
+def _assign(prints, used, side, kind, limit):
+    """Give a desk's fill one of the prints the tape shows for that bar.
+
+    A market order takes the opening print. A passive order takes a print on
+    the right side of its own limit, which exists because the order only
+    reached this bar by trading through it. Each print is used once, so the
+    desks between them can never claim more than the bar traded.
+    """
+    path, sizes, seconds = prints
+    for position in range(len(path)):
+        if position in used:
+            continue
+        price = float(path[position])
+        if kind == "market" and position != 0:
+            continue
+        if kind == "limit" and side == "buy" and price > limit:
+            continue
+        if kind == "limit" and side == "sell" and price < limit:
+            continue
+        used.add(position)
+        return round(price, 2), int(sizes[position]), int(seconds[position])
+    return None, None, None
+
+
 def _size(rng, desk, average_volume):
     """Scaled to how much this name actually trades, by the desk's own style."""
     share = {
@@ -221,6 +245,16 @@ def flow(state, data, room, symbol, limit=60):
         sector = BY_SYMBOL[symbol].sector if symbol in BY_SYMBOL else None
         macro, company = _headlines(room, symbol, sector, first, cursor)
 
+    # The tape's prints for a bar, drawn once and shared, so a desk's fill is
+    # one of them rather than a number invented alongside them.
+    prints, taken = {}, {}
+
+    def bar_of(at):
+        if at not in prints:
+            prints[at] = bar_prints(seed, symbol, at, series[at])
+            taken[at] = set()
+        return prints[at], taken[at]
+
     orders = []
     for index in range(first, cursor + 1):
         position = index - offset
@@ -242,6 +276,16 @@ def flow(state, data, room, symbol, limit=60):
             order = {"side": side, "kind": kind, "limit": price}
             at, fill = _fill(order, index, highs, lows, opens, closes, cursor, offset)
             quantity = _size(rng, desk, facts["volume"])
+            second = None
+            if at is not None:
+                sheet, used = bar_of(at)
+                fill, printed, second = _assign(sheet, used, side, kind, price)
+                if fill is None:
+                    # No print left on the right side of the limit, so the desk
+                    # did not get done on this bar after all.
+                    at = None
+                else:
+                    quantity = min(quantity, printed)
             orders.append(
                 {
                     "desk": desk.name,
@@ -254,7 +298,9 @@ def flow(state, data, room, symbol, limit=60):
                     "index": index,
                     "status": "filled" if at is not None else "working",
                     "price": round(fill, 2) if fill is not None else None,
-                    "filled_at": int(times[at - offset]) if at is not None else None,
+                    "filled_at": int(times[at - offset]) + (second or 0)
+                    if at is not None
+                    else None,
                     "at": at,
                     "reason": why,
                 }

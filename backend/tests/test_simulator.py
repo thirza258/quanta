@@ -1849,6 +1849,15 @@ def test_a_run_without_a_newsroom_has_no_generated_participants(client):
     assert "predates" in view["notice"]
 
 
+def decide(client, run, choice, note=""):
+    response = client.post(
+        f"/api/v1/simulator/runs/{run['id']}/decision",
+        json={"id": ident(), "version": run["version"], "choice": choice, "note": note},
+    )
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
 def test_a_jump_stops_at_the_event_the_learner_asked_to_see(client):
     """A replay that always runs to the end of the jump teaches watching."""
     client.get("/api/v1/simulator")
@@ -1866,21 +1875,33 @@ def test_a_jump_stops_at_the_event_the_learner_asked_to_see(client):
     assert "Your order filled" in stopped["interrupted"]["reason"]
     assert stopped["interrupted"]["of"] == 390
 
+    # The stop is the exercise, so the clock cannot simply be restarted past it.
+    refused = mutate(client, stopped, "advance", steps=5)
+    assert refused.status_code == 409 and "Answer the stop" in refused.json()["detail"]
+
     # Holding the position, the next earnings print stops it too.
     state = stopped
     for _ in range(14):
-        state = mutate(client, state, "advance", steps=1950, stop_on=["earnings"]).json()
         if state["interrupted"]:
+            state = decide(client, state, "hold", "Still holding.")
+        state = mutate(client, state, "advance", steps=1950, stop_on=["earnings"]).json()
+        if state["interrupted"] and "reported" in state["interrupted"]["reason"]:
             break
     assert state["interrupted"], "a held position meets its company's next print"
     assert SYMBOL in state["interrupted"]["reason"]
     assert "reported" in state["interrupted"]["reason"]
+    # The card says how much of the jump is left, so the bars run are recorded.
+    assert 1 <= state["interrupted"]["ran"] <= 1950
+    assert state["interrupted"]["ran"] == state["interrupted"]["bar"] - (
+        state["cursor"] - state["interrupted"]["ran"]
+    )
     # The clock stopped on the printing bar, not after it.
     board = client.get(f"/api/v1/simulator/runs/{run['id']}/calendar").json()
     printed = [e for e in board["earnings"] if e["symbol"] == SYMBOL and e["released"]]
     assert printed and printed[-1]["index"] == state["cursor"]
 
-    # Running a jump to its end clears the reason rather than leaving it up.
+    # Deciding clears it; a jump that then runs its course leaves nothing to answer.
+    state = decide(client, state, "hold", "Read the print before acting.")
     cleared = mutate(client, state, "advance", steps=5).json()
     assert cleared["interrupted"] is None
 
@@ -2001,3 +2022,91 @@ def test_a_campaign_opens_its_stages_as_the_clock_runs(client):
         json={"id": ident(), "mission": "desk-week", "account": "margin"},
     )
     assert bad.status_code == 422 and "cash account" in bad.json()["detail"]
+
+
+def test_trading_at_a_stop_counts_as_much_as_holding(client):
+    """Either answer is a decision, so a learner who acts is not penalised."""
+    from quanta.services.simulator_missions import CHECKS, MISSIONS
+
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    state = run
+    traded = 0
+    for _ in range(6):
+        placed = mutate(
+            client,
+            state,
+            "orders",
+            symbol=SYMBOL,
+            side="buy",
+            quantity=5,
+            note="Adding on the stop, against the same level as before.",
+        ).json()
+        state = mutate(client, placed, "advance", steps=390, stop_on=["fill"]).json()
+        if not state["interrupted"]:
+            continue
+        # Choosing to trade writes no note of its own; the order that follows
+        # carries the reason, and that is what the objective reads.
+        state = decide(client, state, "traded", "")
+        state = mutate(
+            client,
+            state,
+            "orders",
+            symbol=SYMBOL,
+            side="buy",
+            quantity=5,
+            note="Acting on the stop: the level held, so I am adding.",
+        ).json()
+        traded += 1
+        if traded == 2:
+            break
+    assert traded == 2
+    decisions = state["decisions"]
+    assert [d["choice"] for d in decisions] == ["traded", "traded"]
+    assert all(not d["note"] and d["order_note"] for d in decisions)
+
+    mission = MISSIONS["desk-week"]
+    ok, note = CHECKS["decisions_recorded"](state, mission, {"count": 2}, None, None)
+    assert ok, note
+    assert "2 stops answered" in note
+    # A stop waved away with neither a note nor an order still carries nothing.
+    waved = {**state, "decisions": [{"choice": "hold", "note": "", "order_note": ""}]}
+    ok, note = CHECKS["decisions_recorded"](waved, mission, {"count": 1}, None, None)
+    assert not ok and "with a reason" in note
+
+
+def test_every_desk_fill_is_a_print_the_tape_shows(client):
+    """One source of truth per bar, so the two panes cannot contradict.
+
+    If the crowd drew its own fills the tape would disagree with it by chance,
+    and comparing the tick rule's guess with a desk's declared side — which is
+    what lesson 13.13 asks a learner to do — would measure nothing.
+    """
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    mutate(client, run, "advance", steps=1171 - run["cursor"])
+    view = client.get(
+        f"/api/v1/simulator/runs/{run['id']}/monitor",
+        params={"panes": "crowd,tape", "symbol": SYMBOL, "limit": 200},
+    ).json()["tools"]
+    tape = {(p["time"], p["price"]): p["size"] for p in view["tape"]["prints"]}
+    assert tape, "the tape covers the recent bars"
+
+    checked = 0
+    for order in view["crowd"]["orders"]:
+        if order["status"] != "filled":
+            continue
+        key = (order["filled_at"], order["price"])
+        if order["filled_at"] < min(t for t, _ in tape):
+            continue
+        checked += 1
+        assert key in tape, f"{order['desk']} reports a fill the tape never printed: {key}"
+        # A desk cannot take more than the print it was given.
+        assert order["quantity"] <= tape[key], order
+    assert checked, "the windows overlap, so some fills are checkable against the tape"
+
+    # Two desks never claim the same print.
+    claimed = [
+        (o["filled_at"], o["price"]) for o in view["crowd"]["orders"] if o["status"] == "filled"
+    ]
+    assert len(claimed) == len(set(claimed))

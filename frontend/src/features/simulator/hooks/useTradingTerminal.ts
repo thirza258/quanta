@@ -624,6 +624,7 @@ export function useTradingTerminal() {
       const current = runRef.current;
       if (
         !current ||
+        current.interrupted ||
         (!current.endless && current.cursor >= current.total_bars - 1)
       ) {
         setPlaying(false);
@@ -928,7 +929,12 @@ export function useTradingTerminal() {
         mode: newConfig.mode,
         ...(newConfig.seed.trim() ? { seed: Number(newConfig.seed) } : {}),
         ...(newConfig.mission ? { mission: newConfig.mission } : {}),
-        account: newConfig.mission ? "cash" : newConfig.account,
+        // A mission declares the account it is attempted on, and the server
+        // refuses any other, so the catalog's answer wins over the picker.
+        account: newConfig.mission
+          ? (missionCatalog?.missions.find((m) => m.id === newConfig.mission)
+              ?.account ?? "cash")
+          : newConfig.account,
         ...(newConfig.mode === "historical"
           ? { symbol: newConfig.symbol }
           : {}),

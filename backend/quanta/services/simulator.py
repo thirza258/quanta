@@ -384,6 +384,12 @@ def order_create(run_id: str, payload: OrderCreate, account: str, db: Session):
         validate_order(state, data, order)
         if bracket:
             validate_bracket(payload, dec(bar["close"]))
+        # A decision to trade is answered by the order it produced, so the
+        # thesis written here is the reason that decision is read against.
+        for entry in reversed(state.get("decisions", [])):
+            if entry["choice"] == "traded" and not entry.get("order_note"):
+                entry["order_note"] = payload.note
+                break
         if order["kind"] == "trailing_stop":
             # The trail starts from where the market is now, not from a high it
             # reached before the order existed.
@@ -491,7 +497,13 @@ def _scheduled(state, target, kinds):
 
 def advance(run_id: str, payload: Advance, account: str, db: Session):
     def operation(state, data):
-        target = min(state["cursor"] + payload.steps, len(next(iter(data.values()))) - 1)
+        if state.get("interrupted"):
+            # The stop is the exercise. A clock that could simply be restarted
+            # would let every decision be skipped, which is the habit the stops
+            # exist to break.
+            raise HTTPException(409, "Answer the stop before advancing the clock again.")
+        before = state["cursor"]
+        target = min(before + payload.steps, len(next(iter(data.values()))) - 1)
         kinds = set(payload.stop_on)
         reason = advance_state(
             state,
@@ -501,9 +513,18 @@ def advance(run_id: str, payload: Advance, account: str, db: Session):
             kinds,
         )
         # The reason travels on the state so the snapshot can carry it back; a
-        # jump that ran its course clears it rather than leaving the last one up.
+        # jump that ran its course leaves nothing to answer.
         state["interrupted"] = (
-            {"bar": state["cursor"], "reason": reason, "of": payload.steps} if reason else None
+            {
+                "bar": state["cursor"],
+                "reason": reason,
+                "of": payload.steps,
+                # Bars actually run, so the card can say what is left rather
+                # than assuming the stop landed on the first one.
+                "ran": state["cursor"] - before,
+            }
+            if reason
+            else None
         )
 
     return mutate(db, run_id, account, payload, "advance", operation)
@@ -579,6 +600,10 @@ def decision(run_id: str, payload: Decision, account: str, db: Session):
                 "reason": stop["reason"],
                 "choice": payload.choice,
                 "note": payload.note,
+                # Choosing to trade writes its reason on the order's thesis
+                # rather than twice, so the thesis of whatever is placed next
+                # is what this decision will be read against.
+                "order_note": "",
             }
         )
         state["interrupted"] = None

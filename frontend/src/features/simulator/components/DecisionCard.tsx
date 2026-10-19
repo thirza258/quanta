@@ -5,7 +5,11 @@ import { Pause, X } from "lucide-react";
 
 /** What each stop is for, in the learner's terms rather than the engine's. */
 export const STOP_EVENTS: { id: StopEvent; label: string; hint: string }[] = [
-  { id: "fill", label: "My order fills", hint: "Stop on the bar an order of yours trades." },
+  {
+    id: "fill",
+    label: "My order fills",
+    hint: "Stop on the bar an order of yours trades.",
+  },
   {
     id: "bracket",
     label: "An exit triggers",
@@ -49,10 +53,11 @@ export default function DecisionCard({
       <div className="sim-decision-body">
         <strong>{stop.reason}</strong>
         <span className="sim-small">
-          The clock stopped here, {stamp(run.clock)}, with{" "}
-          {(stop.of - 1).toLocaleString("en-US")} of your{" "}
-          {stop.of.toLocaleString("en-US")} bars still to run. Decide now,
-          while the outcome is still unknown.
+          The clock stopped here, {stamp(run.clock)}, after{" "}
+          {(stop.ran ?? 1).toLocaleString("en-US")} of the{" "}
+          {stop.of.toLocaleString("en-US")} bars you asked for, with{" "}
+          {Math.max(0, stop.of - (stop.ran ?? 1)).toLocaleString("en-US")} still
+          to run. Decide now, while the outcome is still unknown.
         </span>
       </div>
       <div className="sim-decision-actions">
@@ -64,8 +69,10 @@ export default function DecisionCard({
         </button>
         <button
           className="sim-icon"
-          aria-label="Dismiss and keep replaying"
-          title="Dismiss and keep replaying"
+          aria-label="Hold without a reason"
+          title="Hold without giving a reason. It still counts as answered, but
+          a campaign objective that asks for reasons will not count it."
+          disabled={busy}
           onClick={onDismiss}
         >
           <X size={15} />

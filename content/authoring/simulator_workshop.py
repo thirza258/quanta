@@ -216,9 +216,9 @@ APPLICATIONS = [
     (
         "13.14",
         "knight",
-        "Knight Capital's loss accumulated over forty-five minutes while the firm watched it happen; the SEC's order describes alerts that fired and were not acted on. Watching an event pass is not the same as deciding about it.",
+        "Before markets opened on 1 August 2012, an internal Knight system sent 97 automated emails naming an error in the order router. The SEC's order records that they were not designed as system alerts and so were generally not reviewed on receipt, and that they were nonetheless an opportunity to find the problem before the open. Information arriving is not the same as a decision being made about it.",
         "Set Stop on to the full list, hold a position through a print, and record what you decided at each stop before the outcome was known.",
-        "Each stop gives you the event and the open position without the result. Write one sentence naming the level, figure or fact that would change your mind. Afterwards reread your own notes: the ones that said only that the thesis was intact cannot be checked against anything, which is how an alert becomes something watched rather than acted on.",
+        "Each stop gives you the event and the open position without the result, and the clock stays held until you answer. Write one sentence naming the level, figure or fact that would change your mind. Afterwards reread your own notes: the ones that said only that the thesis was intact cannot be checked against anything later, which is how a message that names a problem ends up changing nobody's behaviour.",
     ),
     (
         "13.15",
@@ -1665,7 +1665,7 @@ print("Simulator review checklist:", len(checklist), "of", 12)
 
         **Watch a headline propagate.** Turn on chart news markers, find a scored headline, and read the rows on the bars that follow. The event desk acts first, on the next bar. Retail flow appears two to four bars later, which is the lag the pane exists to make visible.
 
-        **Check the lean against the tape.** Put **Time & sales** in a third window. The tape's buy share comes from the tick rule; the flow's comes from desk sides. Note where the two disagree, and why that is the point rather than a bug.
+        **Check the lean against the tape.** Put **Time & sales** in a third window. A desk's fill *is* one of the tape's prints for that bar, so the two panes describe the same trades: the tape's buy share is what the tick rule guessed about them, and the flow's is what the desks actually did. Find a print the tick rule called a buy that a desk sold on, and you have measured the rule being wrong on a trade you can name.
         """,
         """
         Advance one session with the Market flow pane open. Record five rows: the desk, the side, the size, and the bar fact or headline the pane gives as the reason. Then find one bar where the momentum desk and the value desk took opposite sides, and write what each was reading.
@@ -1711,7 +1711,7 @@ print("Value rests a buy:", close < long_average)
                 "They measure different things: the tape infers a side from the tick rule, the flow knows each desk's own side",
                 "One of the two panes has a bug that should be reported",
                 "The market is being manipulated in that window",
-                "The tick rule labels a print a buy if it printed above the last one, which is an inference and often wrong. The flow knows the side because the desk declared it. Watching the two disagree is how you learn what the tape's inference is worth.",
+                "The tick rule labels a print a buy if it printed above the last one, which is an inference and often wrong. The flow knows the side because the desk declared it, and a desk's fill is one of the tape's own prints, so the two panes are describing the same trades. Where they disagree you have caught the rule being wrong on a trade you can point at.",
             ),
             (
                 "What does the Market flow pane entitle you to say about a price move?",
@@ -1737,18 +1737,20 @@ print("Value rests a buy:", close < long_average)
         $$\text{observed} = \frac{k}{N}$$
         A week jump is $N = 1{,}950$. A fill on the next bar gives $k = 1$, so you observed 0.05% of it, and you are now standing where the decision is, with the position open and the outcome unknown.
 
-        A stop cannot be dismissed. It asks you to trade or to hold, and holding asks why. That record is the whole exercise: it is the only account of what you knew *before* the outcome arrived, and the only thing that distinguishes a reasoned hold from inertia. Fischhoff's work on hindsight is why the question is asked at the stop rather than at the end of the week, because once an outcome is known the probability a person recalls having assigned to it rises:
+        A stop holds the clock: play, the next-bar button and every jump stay disabled until it is answered, so a decision cannot be skipped by simply starting the clock again. It asks you to trade or to hold, and holding asks why. There is a third button that holds without giving a reason, which still answers the stop but leaves nothing behind, and a campaign objective that asks for reasons will not count it. That record is the whole exercise: it is the only account of what you knew *before* the outcome arrived, and the only thing that distinguishes a reasoned hold from inertia. Fischhoff's work on hindsight is why the question is asked at the stop rather than at the end of the week, because once an outcome is known the probability a person recalls having assigned to it rises:
         $$P(\text{event} \mid \text{outcome known}) > P(\text{event} \mid \text{outcome unknown})$$
         """,
         r"""
         You hold 60 shares of a company that reports in four sessions, and you set a one-week jump with every stop switched on.
 
         What happens, step by step:
-        1. You ask for 1,950 bars. The engine first builds the scheduled stops: the company's print sits at bar 1,451 of the run, inside the jump.
-        2. On bar 1 your resting limit order fills. The clock stops there. Observed fraction: $1/1950 \approx 0.05\%$.
-        3. You record a hold with a reason and jump again, 1,950 bars.
-        4. A high-impact headline on your company lands 212 bars in. The clock stops again, and you have read the headline but not the move that follows it.
-        5. You record a decision and jump again. The print stops you a third time.
+        1. You ask for 1,950 bars. The engine first builds the scheduled stops from the run's calendar.
+        2. On bar 1 your resting limit order fills. The clock stops there, having run 1 bar of the 1,950 you asked for: $1/1950 \approx 0.05\%$.
+        3. You record a hold with a reason. Until you do, the jump buttons stay disabled. Then you ask for 1,950 again.
+        4. A high-impact headline on your company lands 212 bars into *that* jump. The clock stops again, having run $212/1950 \approx 10.9\%$ of it, and you have read the headline but not the move that follows.
+        5. You record a decision and ask for 1,950 a third time. The print stops you 418 bars in, which is $418/1950 \approx 21.4\%$.
+
+        Each fraction is of its own jump, not of the week: the clock restarts after every answer, so three jumps of 1,950 bars ran 1, 212 and 418 bars before being cut short.
 
         Three stops, three decisions, and at none of them did you know the outcome. Compare the same week with stops off: one jump, one arrival, and a profit and loss figure that explains itself after the fact.
 
@@ -1771,11 +1773,17 @@ print("Value rests a buy:", close < long_average)
         r"\text{observed}=\frac{k}{N},\qquad \text{answered}=\sum_i \mathbb{1}[\text{note}_i \ne \varnothing]",
         """
 jump = 1950
-stops = [1, 212, 1451]
-print("Bars asked for:", jump)
-for bar in stops:
-    print("Stopped at bar:", bar, "percent of the jump observed:", round(bar / jump * 100, 3))
-print("Stops in the week:", len(stops))
+# Bars run before each stop. The clock restarts after every answer, so each
+# figure is of its own jump rather than of the week.
+ran = [1, 212, 418]
+print("Bars asked for each time:", jump)
+total = 0
+for bars in ran:
+    total = total + bars
+    print("Ran", bars, "bars, which is percent of that jump:", round(bars / jump * 100, 3))
+    print("   bars of that jump still to run:", jump - bars)
+print("Stops in the week:", len(ran))
+print("Bars actually advanced in all:", total)
 
 answered = 3
 written = 2

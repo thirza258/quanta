@@ -660,7 +660,14 @@ def _decisions_recorded(state, mission, target, room, times):
     """
     recorded = _decisions(state)
     needed = target["count"]
-    written = [d for d in recorded if d.get("note", "").strip()]
+    # A decision to trade carries its reason on the order's thesis instead, so
+    # both ways out of a stop count. Only a stop waved away carries nothing.
+    written = [
+        d
+        for d in recorded
+        if d.get("note", "").strip()
+        or (d.get("choice") == "traded" and d.get("order_note", "").strip())
+    ]
     if len(recorded) < needed:
         return False, f"{len(recorded)} of {needed} stops answered."
     if len(written) < needed:

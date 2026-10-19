@@ -809,9 +809,15 @@ test("the clock stops at an event and asks for a decision", async ({
   const card = page.getByRole("alert", { name: "Replay stopped" });
   await expect(card).toBeVisible();
   await expect(card).toContainText("Your order filled");
-  await expect(card).toContainText("still to run");
-  // It stopped on the fill, far short of the 390 bars asked for.
+  // It stopped after one bar of the 390 asked for, and says so.
+  await expect(card).toContainText("after 1 of the 390 bars");
+  await expect(card).toContainText("389 still");
   expect((await account(page)).cursor).toBe(resumed + 1);
+
+  // The clock is held: a decision cannot be skipped by restarting it.
+  await expect(page.getByLabel("Jump forward by one session")).toBeDisabled();
+  await expect(page.getByLabel("Next replay bar")).toBeDisabled();
+  await expect(page.getByLabel("Play replay")).toBeDisabled();
 
   // Deciding clears it and records what was known at the time.
   page.once(
@@ -820,6 +826,7 @@ test("the clock stops at an event and asks for a decision", async ({
   );
   await card.getByRole("button", { name: "Hold, and say why" }).click();
   await expect(card).toHaveCount(0);
+  await expect(page.getByLabel("Jump forward by one session")).toBeEnabled();
   const state = await account(page);
   expect(state.interrupted).toBeNull();
   expect(state.decisions.at(-1).note).toContain("Entry as planned");
