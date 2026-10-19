@@ -37,16 +37,16 @@ export default function FinancialChart({
       layout: {
         background: {
           type: ColorType.Solid,
-          color: dark ? "#19221f" : "#ffffff",
+          color: dark ? "#141518" : "#ffffff",
         },
-        textColor: dark ? "#8fa19a" : "#8a918d",
+        textColor: dark ? "#797f8c" : "#8a918d",
         fontFamily: "JetBrains Mono, monospace",
         fontSize: 10,
         attributionLogo: true,
       },
       grid: {
         vertLines: { visible: false },
-        horzLines: { color: dark ? "#293630" : "#f0f2f0" },
+        horzLines: { color: dark ? "#22242a" : "#f0f2f0" },
       },
       rightPriceScale: { borderVisible: false },
       timeScale: {
@@ -55,8 +55,14 @@ export default function FinancialChart({
         fixRightEdge: true,
       },
       crosshair: {
-        vertLine: { color: "#8caaa0", labelBackgroundColor: "#285b4b" },
-        horzLine: { color: "#8caaa0", labelBackgroundColor: "#285b4b" },
+        vertLine: {
+          color: dark ? "#4d5360" : "#8caaa0",
+          labelBackgroundColor: dark ? "#252830" : "#285b4b",
+        },
+        horzLine: {
+          color: dark ? "#4d5360" : "#8caaa0",
+          labelBackgroundColor: dark ? "#252830" : "#285b4b",
+        },
       },
     });
     if (kind === "candles") {
@@ -102,7 +108,7 @@ export default function FinancialChart({
         );
       chart
         .addSeries(LineSeries, {
-          color: dark ? "#8d9691" : "#a4afa8",
+          color: dark ? "#797f8c" : "#a4afa8",
           lineWidth: 1,
           lineStyle: 2,
           lastValueVisible: false,

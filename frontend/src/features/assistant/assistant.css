@@ -4,7 +4,7 @@
 .assistant-overlay {
   position: fixed;
   inset: 0;
-  background: #14221955;
+  background: rgba(0, 0, 0, 0.45);
   z-index: 80;
 }
 .assistant-panel {
@@ -18,7 +18,7 @@
   background: var(--bg);
   color: var(--text);
   border-left: 1px solid var(--border);
-  box-shadow: -12px 0 60px #10291b18;
+  box-shadow: -12px 0 60px rgba(0, 0, 0, 0.35);
   z-index: 81;
   outline: none;
 }

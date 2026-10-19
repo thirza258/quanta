@@ -33,19 +33,19 @@
   color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg: #19221f;
-  --surface: #1d2823;
-  --sidebar: #151e19;
-  --text: #d9e3db;
-  --muted: #8f9c93;
-  --secondary: #a6b3a9;
-  --border: #303c33;
-  --accent: #91bda1;
-  --accent-hover: #accfb8;
-  --accent-light: #2a3c2e;
-  --art-fill: #26392b;
+  --bg: #141518;
+  --surface: #1c1d22;
+  --sidebar: #101114;
+  --text: #f0f1f3;
+  --muted: #797f8c;
+  --secondary: #9ea3ac;
+  --border: #282a30;
+  --accent: #3ec893;
+  --accent-hover: #56d69e;
+  --accent-light: #1b2621;
+  --art-fill: #22242a;
   --negative: #e69ca7;
-  --shadow: 0 15px 55px #0003;
+  --shadow: 0 15px 55px #00000066;
   color-scheme: dark;
   background: var(--bg);
   color: var(--text);
@@ -2681,7 +2681,7 @@ kbd {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: #14221965;
+  background: rgba(0, 0, 0, 0.5);
   z-index: 80;
   backdrop-filter: blur(3px);
 }
@@ -2819,38 +2819,72 @@ kbd {
   display: none;
 }
 :root[data-theme="dark"] .continue-card {
-  background: #233021;
-  border-color: #354331;
+  background: #1c1d22;
+  border-color: #282a30;
 }
 :root[data-theme="dark"] .continue-card h2 {
-  color: #cad8bd;
+  color: #f0f1f3;
 }
 :root[data-theme="dark"] .continue-card p,
 :root[data-theme="dark"] .continue-track,
 :root[data-theme="dark"] .continue-bottom > span {
-  color: #98a68c;
+  color: #9ea3ac;
 }
 :root[data-theme="dark"] .continue-card .eyebrow {
-  color: #a2b895;
+  color: #3ec893;
+}
+:root[data-theme="dark"] .continue-card .small-circle {
+  border-color: #2b3d34;
+  color: #3ec893;
+}
+:root[data-theme="dark"] .continue-track > span {
+  color: #606570;
+}
+:root[data-theme="dark"] .orbital-line,
+:root[data-theme="dark"] .orbital-line:after {
+  border-color: #ffffff14;
 }
 :root[data-theme="dark"] .formula-tag {
-  background: #273321;
-  border-color: #3d4e30;
-  color: #a1b08c;
+  background: #202228;
+  border-color: #2d3037;
+  color: #9ea3ac;
 }
 :root[data-theme="dark"] .level-badge {
-  background: #283326;
-  border-color: #344030;
-  color: #adb99f;
+  background: #202228;
+  border-color: #2e3038;
+  color: #a8adb6;
+}
+:root[data-theme="dark"] .level-badge.intermediate {
+  background: #252420;
+  color: #d4b87e;
+  border-color: #3b362a;
+}
+:root[data-theme="dark"] .level-badge.advanced {
+  background: #252129;
+  color: #c4b5e0;
+  border-color: #3a3245;
+}
+:root[data-theme="dark"] .level-badge.applied {
+  background: #1f2529;
+  color: #9ec2cf;
+  border-color: #2b3942;
 }
 :root[data-theme="dark"] .avatar,
 :root[data-theme="dark"] .top-avatar {
-  background: #31392b;
-  color: #bac2a4;
-  border-color: #424b39;
+  background: #26282f;
+  color: #c4c8d0;
+  border-color: #343740;
 }
 :root[data-theme="dark"] .track-art {
   opacity: 0.65;
+}
+:root[data-theme="dark"] .track-card:hover {
+  border-color: #3e424d;
+  box-shadow: 0 4px 17px rgba(0, 0, 0, 0.4);
+}
+:root[data-theme="dark"] ::selection {
+  background: #234d3d;
+  color: #f0f1f3;
 }
 @media (min-width: 1600px) {
   .page {
@@ -3257,7 +3291,7 @@ kbd {
     display: block;
     position: fixed;
     inset: 0;
-    background: #13251d44;
+    background: rgba(0, 0, 0, 0.45);
     z-index: 39;
   }
   .main-shell {

@@ -113,8 +113,12 @@ CSV_SAFETY = (
 
 COURSE_GUIDE = (
     "Learn to use the Quanta Trading simulator step by step: set up a paper account, read the market and its simulated news, place and manage orders, and review your own process.",
-    "The Trading simulator is a practice terminal with $100,000 of paper money and a market made entirely of fictional companies. Nothing in it is real, which is the point: you can make mistakes, repeat a situation and look closely at what you did without risking anything. This course shows you every part of the terminal one small step at a time, so the tools are familiar before you rely on them.\n\n"
-    "Each lesson explains one idea, works through a short example with real numbers, and then gives you click-by-click steps that use the exact button names you will see on screen. Follow the steps in the terminal while you read, recompute the example in the worksheet, and write down what you expect before you press anything that moves the clock. Several lessons link to a practice mission. A mission judges what you did and wrote, never whether the trade made money, because a good result in a simulation is not evidence of skill.",
+    "The Trading simulator is a professional flight simulator for your trading practice, equipped with a $100,000 virtual paper balance and an entire market of fictional companies. Nothing in it uses real money, which is exactly what makes it so valuable: you can make mistakes, test order types, experience market friction, and review your psychological decision-making in a safe sandbox before committing actual capital.\n\n"
+    "This workshop guides you through every tool and panel in the terminal across three structured units:\n"
+    "• Unit 1 (Set up and read the market): Configure reproducible paper runs with market seeds and cost parameters, navigate the multi-panel terminal interface, advance the chronological replay clock without hindsight bias, and interpret quantitative newsroom sentiment scores.\n"
+    "• Unit 2 (Place and manage orders): Master market and limit orders with cash reservation safeguards, calculate execution friction (slippage, half-spread, and volume participation caps), set protective stops, trailing stops, and bracket exits, and operate margin accounts with short selling and borrow fee accounting.\n"
+    "• Unit 3 (Research, review and discipline): Inspect company financial statements and earnings surprises, split charts into multi-pane analytics monitors, audit trading performance against the QX-200 market benchmark, and complete a rigorous 1-week capstone mission inside your personal trading charter.\n\n"
+    "Every lesson pairs clear conceptual models with step-by-step arithmetic, runnable Python worksheets, and hands-on terminal walkthroughs. Six lessons link directly to interactive practice missions that evaluate your trading discipline, adherence to rules, and execution process rather than sheer paper profit.",
 )
 
 APPLICATIONS = [
@@ -206,8 +210,10 @@ APPLICATIONS = [
 
 
 def text(value):
-    """Join hard-wrapped source lines into paragraphs separated by one blank line."""
-    return "\n\n".join(" ".join(part.split()) for part in value.strip().split("\n\n"))
+    """Normalize indentation and whitespace for markdown text."""
+    import textwrap
+
+    return textwrap.dedent(value).strip()
 
 
 CLOSING = (
@@ -266,85 +272,67 @@ def build_simulator_workshop():
         )
         modules.append(item)
 
+    # ---------------------------------------------------------------- Unit 1
     add(
         "Start a paper run: account type, seed and a fictional market",
         "Create a paper account whose settings you can explain, and know what a new run keeps, archives and replaces.",
-        """
-        A paper run is a small experiment, and its settings are the conditions of the experiment. The account
-        type decides whether you can only sell shares you own or may also borrow shares to sell. The market seed
-        is a whole number that fixes the entire generated world: with the same seed the terminal produces the same
-        bars, headlines, reporting calendar and company accounts, so you can repeat a decision under identical
-        conditions. Left empty, the seed is chosen for you and every new account meets a different market.
+        r"""
+        A paper trading run is a controlled scientific experiment, and its parameters define the experimental conditions. When you practice trading, you need to know exactly how your account behaves and what market friction you are paying. In the Quanta Trading simulator, every run begins with $100,000 of virtual capital in a synthetic marketplace populated by 32 fictional companies.
 
-        The four cost fields turn trading friction into numbers you can inspect: a flat commission per order,
-        slippage and spread in basis points (one basis point is 0.01%), and volume participation, the share of
-        each bar's volume your orders may take. The defaults ($1, 2 bps, 2 bps and 1%) are teaching assumptions,
-        not any broker's price list. A new run is always a new $100,000 account, never a reset in place, and
-        earlier runs stay in the run history for review. Every company is fictional and every price is generated,
-        so nothing in the terminal is a statement about a real security.
+        Two core settings configure your trading environment:
+        1. Account Type: Choose between Cash (long-only, meaning you can only sell shares you already own) and Margin (which allows you to borrow shares from a broker to sell short, introducing leverage and borrowing fees).
+        2. Market Seed: A seed is an integer that initializes the pseudo-random number generator. Because the generator is deterministic, the exact same seed reproduces the exact same price candles, trading volume, news headlines, and company earnings reports every time. This enables scientific benchmarking: you can test two different trading strategies against the exact same market sequence. If you leave the seed blank, the terminal selects an automatic random seed so every run experiences a unique market.
+
+        Trading friction is modeled explicitly using four realistic parameters:
+        $$f = \frac{s + \sigma / 2}{10{,}000},\qquad \text{Round-Trip Cost} = 2c + Q \cdot (P_{\text{buy}} - P_{\text{sell}})$$
+        Here $c$ is the flat commission per order ($1 by default), $s$ is slippage in basis points (2 bps default), $\sigma$ is the bid-ask spread in basis points (2 bps default), and $\pi$ is the volume participation cap (0.01 or 1% default). One basis point (bps) equals 0.01% (1/10,000). Every new run creates a fresh $100,000 account; it never resets your existing account in place. Earlier runs are safely preserved in your run history for review and CSV export.
+        """,
+        r"""
+        Suppose the next bar opens at $148.50 and you place a market order to buy 10 shares using the default cost settings.
+
+        Step-by-step arithmetic:
+        1. Calculate fractional friction:
+           $$f = \frac{2 + 2 / 2}{10{,}000} = \frac{3}{10{,}000} = 0.0003 \quad (3\text{ basis points})$$
+        2. Compute the buy fill price (open plus friction, rounded to the nearest cent):
+           $$P_{\text{buy}} = 148.50 \times (1 + 0.0003) = 148.54455 \implies \$148.54$$
+        3. Total cash debited on purchase:
+           $$10 \times \$148.54 + \$1.00\text{ (commission)} = \$1{,}485.40 + \$1.00 = \$1{,}486.40$$
+           Cash drops from $100,000.00 to $98,513.60.
+
+        Now suppose the market price does not move at all, and you sell your 10 shares on the following bar at an unchanged open of $148.50:
+        1. Compute the sell fill price (open minus friction, rounded to the cent):
+           $$P_{\text{sell}} = 148.50 \times (1 - 0.0003) = 148.45545 \implies \$148.46$$
+        2. Total cash credited on sale:
+           $$10 \times \$148.46 - \$1.00\text{ (commission)} = \$1{,}484.60 - \$1.00 = \$1{,}483.60$$
+           Final cash ends at $98,513.60 + $1,483.60 = $99,997.20.
+
+        The market price did not change by a single cent, yet your round trip cost $2.80:
+        • Spread and slippage drag: 10 × ($148.54 − $148.46) = $0.80.
+        • Commission drag: 2 × $1.00 = $2.00.
+
+        If you increase slippage and spread to 10 bps each, friction jumps to 15 bps (0.0015). The same round trip fills at $148.72 and $148.28, costing $6.40. This proves that a trading result is meaningless without recording the cost settings that produced it.
         """,
         """
-        Suppose the next bar opens at 148.50 and you buy 10 shares at market with the default costs. Friction is
-        (2 + 2 ÷ 2) ÷ 10,000 = 0.0003, which is 3 basis points. The buy fills at 148.50 × 1.0003 = 148.54455,
-        rounded to the cent: 148.54. You pay 10 × 148.54 = $1,485.40 plus the $1 commission, so cash falls from
-        $100,000.00 to $98,513.60.
+        **Open the terminal.** Choose **Trading simulator** in the left navigation. On your first visit, the terminal creates a default run: a cash account with $100,000, 32 fictional companies, and a seed tied to your run identifier. The top account bar displays **PAPER TRADING**, **Equity**, **Cash**, and **Realized P&L**. The replay bar reads "Day 2 · bar 110/390" with the clock at "Jan 7, 11:19 AM ET". The status bar indicates whether your run is saved in your local browser cookie or synced with your authenticated account.
 
-        Now suppose the price has not moved when you sell. The sale fills at 148.50 × 0.9997 = 148.45545, which
-        rounds to 148.46, so you receive $1,484.60 less the $1 commission and cash ends at $99,997.20. The price did
-        not change, yet the round trip cost $2.80: $0.80 from the gap between the two fills on 10 shares, and $2.00
-        in commissions.
+        **Open the run dialog.** Click the **New simulation run** icon (circular arrows) on the right side of the replay bar. In the dialog that appears, leave **Practice mission (optional)** on "No mission · free practice" for this introductory exploration.
 
-        Raise slippage and spread to 10 bps each and friction becomes 0.0015. The same round trip now fills at
-        148.72 and 148.28 and costs $6.40. The market is identical and only the settings differ, which is why a
-        result means little unless its seed and costs are written beside it.
+        **Configure account settings.** Review **Account type**: "Cash · long only" (default) or "Margin · may sell short". Keep Cash selected for now; we will explore Margin accounts in lesson 13.8.
+
+        **Examine market data.** The **Market data** selector displays "Seeded synthetic market". Historical replay is disabled because this course utilizes reproducible synthetic market models.
+
+        **Set your market seed.** In **Market seed (optional)**, type an integer between 0 and 1,000,000 (such as 4242), or leave it empty to see the placeholder "Automatic". A fixed seed ensures that every candle and news event will be completely reproducible.
+
+        **Check execution friction.** Review the four numeric fields: **Commission / order ($)** at 1, **Slippage (bps)** at 2, **Spread (bps)** at 2, and **Volume participation (0–1)** at 0.01. Leave these at their defaults for your initial baseline run.
+
+        **Create the paper account.** Click **Create new paper account**. A confirmation notice will announce: "New $100,000 paper account ready. Prior runs remain in your run history." The status bar displays the active seed.
+
+        **Inspect run history.** Click the **Simulation run history** dropdown in the status bar. The active run is tagged "Current · {date}" while prior sessions are preserved as "Archived · {date}". Selecting an archived run enters a read-only mode for review and data export. Click **Return to current run** to resume active trading.
+
+        **Verify reproducibility.** Create a second run using the exact same seed (4242). Confirm that the opening chart bars and watchlist prices match your first run down to the penny.
         """,
         """
-        **Open the terminal.** Choose **Trading simulator** in the left navigation. On a first visit the terminal
-        creates a default run for you: a cash account with $100,000, 32 fictional companies and a seed taken from
-        the run's identifier. The account bar shows **PAPER TRADING**, **Equity**, **Cash** and **Realized P&L**.
-        The replay bar should read "Day 2 · bar 110/390" with the clock at "Jan 7, 11:19 AM ET". In the status bar,
-        "Guest · saved for this browser" means a 30-day browser cookie holds your run, and "Account synced" means
-        it belongs to your signed-in account. Runs created as a guest never merge into an account later.
-
-        **Open the dialog.** Click the **New simulation run** icon (the circular arrows) at the right end of the
-        replay bar. The dialog **Start a new simulation** opens. Leave **Practice mission (optional)** on
-        "No mission · free practice" for now.
-
-        **Choose the account type.** **Account type** offers "Cash · long only" (the default) and
-        "Margin · may sell short". Keep Cash for now; lesson 13.8 uses Margin. If the small print at the foot of the
-        dialog still says long-only after you choose Margin, trust the help text under **Account type**, and the
-        MARGIN badge that appears in the account bar once the run exists.
-
-        **Choose the market.** **Market data** is "Seeded synthetic market". "Historical replay" is disabled and
-        labelled "· no imported datasets", because no historical data ships with the course.
-
-        **Set the seed.** In **Market seed (optional)** type a whole number from 0 to 1,000,000, such as 4242, or
-        leave the box empty to see the placeholder "Automatic". A mission overrides this field with its own fixed
-        seed.
-
-        **Check the costs.** The four numeric fields start at **Commission / order ($)** 1, **Slippage (bps)** 2,
-        **Spread (bps)** 2 and **Volume participation (0–1)** 0.01. They accept 0 to 100, 0 to 100, 0 to 100 and
-        0.001 to 1. Leave them alone for this first run.
-
-        **Create the account.** Click **Create new paper account**. The notice reads "New $100,000 paper account
-        ready. Prior runs remain in your run history." and the status bar shows the seed you typed. If a creation
-        attempt fails, the terminal keeps the saved request and resends it unchanged on your next click, so check
-        the seed in the status bar and the costs under **Execution model** before you rely on the new run.
-
-        **Find the old run.** Open the select **Simulation run history** in the status bar. The newest entry reads
-        "Current · {date}" and the others "Archived · {date}". Choose an archived run and the terminal shows
-        "Archived run · review and export only"; click **Return to current run** to trade again. A new run keeps
-        your layout, symbol, indicators and watchlist, but not your drawings or your order ticket.
-
-        **Check.** Create a second run with the same seed. The first chart and the watchlist prices should match the
-        first run. Create a third run with the seed left empty and they should differ.
-        """,
-        """
-        Create a run with seed 4242 and the default costs, and write the seed and the four cost settings in your
-        notebook. Create a second run with seed 4242 and compare the watchlist prices with the first. Then create a
-        third run with **Slippage (bps)** 10 and **Spread (bps)** 10 and keep it for lesson 13.5, where you will
-        measure a round trip yourself. No practice mission is needed yet: missions start in the same dialog, and
-        lessons 13.4, 13.5, 13.7, 13.9, 13.11 and 13.12 each link one.
+        Create a paper run with seed 4242 and default costs, and record the seed and cost settings in your trading notebook. Create a second run with seed 4242 and verify that prices are identical. Next, create a third run with **Slippage (bps)** set to 10 and **Spread (bps)** set to 10, keeping it ready for lesson 13.5 where you will execute orders under elevated friction.
         """,
         r"f=\frac{s+\sigma/2}{10^{4}},\qquad \text{round-trip cost}=2c+Q\,(P_{\text{buy}}-P_{\text{sell}})",
         '''
@@ -370,7 +358,7 @@ print("Slippage 10 bps and spread 10 bps")
 round_trip(148.50, 10, 1, 10, 10)
 ''',
         "In your notebook, write the seed and the four cost settings of your run. Then compute the round-trip cost of buying and selling 20 shares at an unchanged open of 96.40, first with the default costs and then with Slippage 10 bps and Spread 10 bps, and say which settings you would use for a first week of practice and why.",
-        "With the defaults, friction is 0.0003: the buy fills at 96.43 and the sale at 96.37, so the round trip costs 2 × $1 plus 20 × $0.06 = $3.20. With Slippage 10 and Spread 10, friction is 0.0015: the fills are 96.54 and 96.26, so the cost is $2 plus 20 × $0.28 = $7.60. Neither setting is correct in itself. The defaults are mild teaching assumptions and the higher settings are a harsher test; whichever you choose, write the settings next to every result so that the numbers can be compared and repeated.",
+        "With default costs, friction is 0.0003: the buy fills at 96.43 and the sale at 96.37, resulting in a round-trip cost of 2 × $1.00 commission plus 20 × $0.06 spread drag = $3.20. With Slippage 10 bps and Spread 10 bps, friction rises to 0.0015: the buy fills at 96.54 and the sale at 96.26, yielding a cost of $2.00 plus 20 × $0.28 = $7.60. For an initial practice week, the default settings provide a clean baseline to master order mechanics, while elevated friction offers a realistic stress test for active strategies. Always document your cost settings beside performance reports.",
         [
             (
                 "Two paper runs use the same Market seed (optional) value but different commission settings. What will be identical between them?",
@@ -408,87 +396,46 @@ round_trip(148.50, 10, 1, 10, 10)
     add(
         "Read the terminal: chart, panels and command codes",
         "Find every panel and shortcut used in later lessons, and read the chart header, timeframes and indicators correctly.",
-        """
-        A trading terminal shows several views of one account and one clock. Some panels carry information about
-        the market (the chart, News, Company and Desk) and some carry the state of your account (Positions, Open
-        orders, Order history, Trade history and Account history). Keep the two groups apart in your head: a chart
-        can tempt you, but only the state panels tell you what you own, what is waiting and what you paid.
-        Everything on screen is bounded by the replay clock, because the server never sends a bar, headline or
-        result dated after it.
+        r"""
+        A professional trading terminal integrates multiple specialized views into a single workspace governed by a synchronized clock. To trade effectively, you must maintain a clear distinction between market observation panels and account state panels:
+        • Market Information: The Chart, Newsroom, Company financials, Desk analytics, and Economic Calendar show what the external marketplace is doing.
+        • Account State: Positions, Open orders, Order history, Trade blotter, and Account history track what you actually own, what cash is reserved, and what transactions have settled.
 
-        The chart header says exactly what you are looking at: the symbol, the timeframe, the time zone (ET, the
-        New York exchange clock), the label SYNTHETIC, and the open, high, low, close and volume of the bar under
-        the pointer. Indicators are calculated by the server from the bars you can already see, and each one needs
-        a warm-up, because a 20-bar average cannot exist until 20 bars have formed. An indicator's period counts bars
-        of the timeframe you are viewing, so the same setting means 20 minutes on the 1m chart and 20 hours on the
-        1h chart. The Command dialog is the keyboard route through all of this.
+        The chart header provides vital metadata about the active instrument:
+        $$\text{SMA}_n(t) = \frac{1}{n}\sum_{k=0}^{n-1} C_{t-k}$$
+        The header specifies the Symbol (e.g. NVRA), Timeframe (1m, 5m, 15m, 1h, 1D), Time Zone (ET, Eastern Time, matching New York market hours), the label `SYNTHETIC` (confirming simulated market generation), and the Open, High, Low, Close, and Volume ($OHLCV$) of the candle under your pointer.
+
+        Technical indicators require a historical lookback window. A 20-bar Simple Moving Average ($\text{SMA}_{20}$) computes the arithmetic mean of the last 20 closes. It cannot display a value until at least 20 bars have formed on that specific timeframe. If you switch to a 1-hour chart at the start of a run (which has formed only 9 hourly bars), the indicator will show `SMA 20 · warming up` until 11 more hourly candles develop. The Command dialog provides rapid keyboard navigation across every view.
+        """,
+        r"""
+        Let us trace how historical bars populate across timeframes at the start of a standard simulation run:
+        At the default starting point (Day 2, bar 110 at 11:19 AM ET), the simulator has generated 500 one-minute bars: all 390 bars from Day 1, plus 110 bars from Day 2 ($390 + 110 = 500$).
+
+        How many bars appear on higher timeframes?
+        • On the 1-minute chart: Exactly 500 candles are visible.
+        • On the 1-hour chart: Day 1 contains 6 full hours and one 30-minute bar (7 bars), and Day 2 has formed 2 hourly bars so far. The 1h chart holds only 9 bars ($7 + 2 = 9$).
+        • On the daily (1D) chart: Only 2 daily candles exist.
+
+        $$742.90 / 5 = 148.58$$
+        An $\text{SMA}_{20}$ on the 1-minute chart has 500 bars available, so it displays immediately. On the 1-hour chart, however, only 9 bars exist; it requires 11 additional hourly bars before it can compute its first 20-period average. Moving averages are inherently lagging filters: they summarize past historical price distribution rather than predicting future direction.
         """,
         """
-        At the default start the market has 500 one-minute bars behind the clock: all 390 bars of Day 1 and the
-        first 110 of Day 2. The 1m chart therefore holds 500 bars. Group them by the hour and the 1h chart holds 9
-        bars: Day 1 gives six full hours and a last half hour (7 bars), and Day 2 gives 2 so far. The 1D chart holds
-        just 2.
+        **Open the Command dialog.** Click the ticker button at the far left of the chart toolbar (showing NVRA by default). The **Command** dialog opens with an active search prompt. You can enter a ticker symbol alone, a function shortcut code alone, or both combined: typing `NVRA N` selects Novara Microsystems and immediately opens its Newsroom. Press Enter. Available function codes include `GP` (chart), `N` or `NEWS` (news), `MOV` or `DESK` (desk analytics), `FA` or `DES` (company fundamentals), `CAL` (economic calendar), `PORT` (portfolio performance), `POS` (positions), `OMON` (open orders), `BLOT` (trade history), and `BUY`/`SELL` (order tickets).
 
-        A 20-bar simple moving average needs 20 bars. On the 1m chart it exists almost everywhere. On the 1h chart
-        the legend shows "SMA 20 · warming up", because 9 bars are fewer than 20, and 11 more hourly bars are needed.
-        On the 1D chart no value can exist for another 18 sessions.
+        **Adjust chart timeframes.** In the toolbar, locate the **Chart timeframe** selector: 1m, 5m, 15m, 1h, and 1D. Toggle to 1h and notice how sparse the candles appear, then toggle back to 1m. Use the **Fit chart** and **Return to latest bar** buttons to re-center your view.
 
-        To see the arithmetic of an average, take five closes of 148.50, 148.56, 148.62, 148.58 and 148.64
-        (illustrative). Their sum is 742.90 and a 5-bar average is 742.90 ÷ 5 = 148.58. An average lags the price by
-        design: it tells you where the price has been, not where it will go.
+        **Read OHLCV values.** Look at the chart header text: "NVRA · 1m · ET · SYNTHETIC" followed by O, H, L, C, and Vol for the candle under your pointer. Volume is especially critical because it bounds how many shares your orders can fill in a single bar.
+
+        **Add an indicator.** Click **Indicators** in the toolbar. The modal opens showing active indicators (Volume and SMA 20). Under **Add indicator**, select RSI (Relative Strength Index). Use the eye icon to toggle visibility or the cross icon to remove an overlay.
+
+        **Use drawing tools.** From the left drawing rail, select **Trend line** and click two points on the chart canvas. Use the Escape key to cancel a drawing tool. Test horizontal lines, rectangles, and price measurement annotations. Use Ctrl+Z (Cmd+Z on macOS) to undo drawings.
+
+        **Organize workspace panels.** The right sidebar contains five primary tabs: **Watchlist**, **News**, **Desk**, **Trade**, and **Drawings**. The bottom panel contains eight operational tabs: **Positions**, **Open orders**, **Order history**, **Trade history**, **Account history**, **Company**, **Performance**, and **Calendar**. You can drag the panel divider lines to customize dimensions or collapse panels entirely to maximize chart area.
+
+        **Quick ticket shortcut.** Right-click anywhere on the chart canvas at a specific price level. The **Trade** ticket opens automatically with **Order type** set to **Limit** and the price pre-filled to that exact level.
         """,
         """
-        **Open the Command dialog.** Click the symbol button at the left of the toolbar; it shows the current
-        symbol, NVRA by default. The dialog **Command** opens with the box **Search stocks**. Type a ticker alone to
-        choose a company, a function code alone to open a view, or both: `NVRA N` selects Novara Microsystems and opens
-        its news. Press Enter. The codes are GP (chart), N or NEWS (news), MOV or DESK (the Desk tab), FA or DES
-        (company financials), RV or PEER (the peer table), CAL, ECO or EARN (the calendar), PORT (performance),
-        POS (positions), OMON (open orders), BLOT (trade history), W (watchlist), BUY and SELL (tickets) and HELP
-        (the execution model). The code buttons in the dialog act on the current symbol. Tickers must match exactly:
-        pressing Enter on a company name leaves the dialog open, so click a result instead.
-
-        **Set the chart.** In the toolbar, the group **Chart timeframe** offers 1m, 5m, 15m, 1h and 1D, and the
-        select **Chart type** offers Candles, OHLC bars and Line. Click 1h and notice how few bars the chart holds,
-        then click 1m again. The icons **Fit chart** and **Return to latest bar** reset the view.
-
-        **Read the header.** At the top left of the chart find "NVRA · 1m · ET · SYNTHETIC" followed by O, H, L, C and
-        Vol for the bar under the pointer, or for the latest bar when the pointer is away. Vol matters later: it
-        limits how many shares your orders can fill in one bar.
-
-        **Add an indicator.** Click **Indicators**. The dialog starts with Volume and SMA 20 and says "At most eight
-        indicators." Under **Add indicator** choose RSI, whose period starts at 14. The eye icon (**Hide SMA** or
-        **Show SMA**) and the cross (**Remove SMA**) hide and remove an indicator. Periods run from 2 to 200, and
-        MACD has a **Fast period**, a slow period and a signal period.
-
-        **Draw on the chart.** In the left rail **Chart tools**, choose **Trend line** and click two points on the
-        chart; the hint reads "Click two points on the chart · Esc to cancel". **Horizontal line** and
-        **Text annotation** need one click, and **Rectangle** and **Price measurement** need two. **Undo drawing** and
-        **Redo drawing** step back and forward, and so do Ctrl or Cmd with Z, plus Shift to redo, outside text
-        boxes. **Objects** in the toolbar opens the Drawings tab, where a form edits a drawing by price and time; the
-        form lists times in UTC while the chart uses ET.
-
-        **Find the panels.** The right sidebar has five tabs: **Watchlist**, **News**, **Desk**, **Trade** and
-        **Drawings**. The bottom panel has eight: **Positions**, **Open orders**, **Order history**, **Trade history**,
-        **Account history**, **Company**, **Performance** and **Calendar**. Drag the separators **Watchlist width**
-        and **Trading panel height**, or press the arrow keys while one has focus. **Collapse watchlist** and
-        **Collapse trading panel** hide a panel, and **Open watchlist** and **Open trading panel** bring it back. On a
-        narrow screen the same views appear as the tabs Chart, Watchlist, News, Trade and Portfolio.
-
-        **Right-click for a limit ticket.** Right-click the chart at a price. The **Trade** tab opens with the ticket
-        set to **Limit** at that price. Nothing is placed until you preview and confirm, as lesson 13.5 shows.
-
-        **Open the guide.** The question-mark icon **Simulator walkthrough**, or the **Execution model** button in the
-        status bar, opens a five-step guide and a collapsible description of the execution and accounting model. It
-        never opens by itself.
-
-        **Check.** Typing POS, OMON, BLOT and PORT should open four different bottom tabs, and the 1h chart should
-        show SMA 20 as warming up until 20 hourly bars exist.
-        """,
-        """
-        Run POS, OMON and BLOT from the Command dialog and note which tab each opens. Set the 1h timeframe and record
-        how many bars you can see. Add RSI and write down its default period. Then write one line for each of the
-        eight bottom tabs saying whether it shows market information or the state of your account. No practice
-        mission fits this lesson, because it asks you to look rather than trade.
+        Open the Command dialog and practice navigating by entering POS, OMON, and BLOT. Toggle to the 1-hour chart and count how many bars have formed. Add an RSI indicator and note its default lookback period (14). In your notebook, list the eight bottom-panel tabs and categorize each as either Market Information or Account State.
         """,
         r"\text{SMA}_{n}(t)=\frac{1}{n}\sum_{k=0}^{n-1}C_{t-k}",
         '''
@@ -503,14 +450,12 @@ print("Daily bars at the start:", 2)
 print("Hourly bars still needed for a 20-bar average:", 20 - hourly)
 
 closes = [148.50, 148.56, 148.62, 148.58, 148.64]
-total = 0
-for close in closes:
-    total = total + close
+total = sum(closes)
 print("Sum of the five closes:", round(total, 2))
 print("5-bar simple moving average:", round(total / len(closes), 2))
 ''',
         "In your notebook, build a one-page map of the terminal: the five right-sidebar tabs and the eight bottom-panel tabs, the command code that opens each one you can reach by code, and whether each shows market information or the state of your account. Then work out how many bars the 1h chart holds when a run starts and how many more an SMA 20 needs.",
-        "The right sidebar has Watchlist (W), News (N), Desk (MOV), Trade (BUY or SELL) and Drawings (opened with Objects). The bottom panel has Positions (POS), Open orders (OMON), Order history, Trade history (BLOT), Account history, Company (FA), Performance (PORT) and Calendar (CAL). Positions, Open orders, Order history, Trade history and Account history are the state of your account; News, Desk, Company and Calendar describe the market, and Performance compares the two. At the start the 1h chart holds 9 bars (7 from Day 1 and 2 from Day 2), so an SMA 20 needs 11 more hourly bars, a little under two sessions.",
+        "The right sidebar includes Watchlist (W), News (N), Desk (MOV), Trade (BUY/SELL), and Drawings. The bottom panel includes Positions (POS), Open orders (OMON), Order history, Trade history (BLOT), Account history, Company (FA), Performance (PORT), and Calendar (CAL). Positions, Open orders, Order history, Trade history, and Account history represent your account state; News, Desk, Company, and Calendar describe the market; Performance links both. At the initial start, the 1-hour chart has only 9 bars (7 from Day 1 and 2 from Day 2), so an SMA 20 requires 11 more hourly candles before displaying.",
         [
             (
                 "At the default start the clock shows Day 2, bar 110 of 390. How many one-minute bars can the 1m chart show?",
@@ -548,62 +493,52 @@ print("5-bar simple moving average:", round(total / len(closes), 2))
     add(
         "Move the replay clock without hindsight",
         "Advance the replay clock deliberately, convert bars into sessions, and write each decision down before every jump.",
-        """
-        In the terminal the replay clock is the only moment that exists. The server answers every request with
-        data dated at or before the clock: bars, headlines, statements, calendar outcomes and analytics. That makes
-        hindsight impossible inside the terminal, but not inside your head. Once you have advanced the clock you can
-        no longer remember what you honestly thought before, so write the decision, the reason and what would change
-        your mind first, and advance afterwards.
+        r"""
+        In the Quanta simulator, the replay clock defines the boundary of what is knowable. The backend server strictly enforces chronological causality: it will never return a price candle, news headline, company financial filing, or economic release dated after the current clock cursor. This eliminates technical look-ahead bias from the data.
 
-        The controls move the clock in bars, not in seconds. A session is 390 one-minute bars, from 09:30 to 16:00 ET,
-        and a week is 5 sessions, 1,950 bars. The jump buttons 15m, 1h, 1D and 1W move 15, 60, 390 and 1,950 bars at
-        once. Replay speed (1×, 5×, 30× and 390×) is the number of bars advanced about every 0.8 seconds while Play is
-        on; it is a bar rate, not a time multiplier. A large jump is processed bar by bar on the server, so orders
-        can fill and stops can trigger inside it, but you are not there to react, as if you had left your desk.
+        However, the greater threat to learning is psychological hindsight bias inside your own head. Once you advance the replay clock and see a stock surge 8%, human psychology reflexively rationalizes that "the breakout was obvious from the chart pattern." To build disciplined trading habits, you must pre-commit: write down your thesis, expected price direction, and exit trigger in your notebook *before* clicking any replay button.
+
+        The replay clock measures time in discrete 1-minute bars:
+        $$\text{Session} = \left\lfloor \frac{c}{390}\right\rfloor + 1,\qquad \text{Bar} = (c \bmod 390) + 1$$
+        A standard US equity trading session consists of 390 one-minute bars (09:30 AM to 04:00 PM Eastern Time). A 5-session trading week comprises $5 \times 390 = 1{,}950$ bars. The jump buttons (15m, 1h, 1D, 1W) advance time by 15, 60, 390, or 1,950 bars in a single request. When jumping forward, the server simulates order execution bar-by-bar throughout the interval. Replay speed (1x, 5x, 30x, 390x) governs how many bars advance per 0.8-second tick during continuous playback.
+        """,
+        r"""
+        Let us calculate the exact clock position across consecutive jumps starting from the default cursor $c = 499$:
+        1. Default Start: Cursor $c = 499$.
+           $$\text{Session} = \lfloor 499 / 390 \rfloor + 1 = 1 + 1 = \text{Day 2}$$
+           $$\text{Bar} = (499 \bmod 390) + 1 = 109 + 1 = \text{Bar 110}$$
+           Clock time: 09:30 AM + 109 minutes = 11:19 AM ET.
+
+        2. Single Step: Click **Next replay bar** ($c = 500$):
+           $$\text{Session} = \lfloor 500 / 390 \rfloor + 1 = \text{Day 2},\quad \text{Bar} = (500 \bmod 390) + 1 = \text{Bar 111}$$
+           Clock time: 11:20 AM ET.
+
+        3. 1-Hour Jump: Click **1h** ($+60$ bars $\implies c = 560$):
+           $$\text{Session} = \text{Day 2},\quad \text{Bar} = (560 \bmod 390) + 1 = \text{Bar 171}$$
+           Clock time: 12:20 PM ET.
+
+        4. 1-Day Jump: Click **1D** ($+390$ bars $\implies c = 950$):
+           $$\text{Session} = \lfloor 950 / 390 \rfloor + 1 = 2 + 1 = \text{Day 3},\quad \text{Bar} = (950 \bmod 390) + 1 = \text{Bar 171}$$
+           Clock time: 12:20 PM ET on Day 3.
+
+        $$390 \times 0.8 = 312\text{ seconds}$$
+        Playback duration: At 1x speed, playing one full 390-bar session requires $390 \times 0.8 = 312$ seconds (about 5.2 minutes). At 30x speed, a session completes in 13 ticks (10.4 seconds). At 390x, an entire session passes in a single tick.
         """,
         """
-        A new run starts at bar index 499, which the replay bar shows as Day 2, bar 110. For any index c, the session
-        is c ÷ 390 rounded down, plus 1, and the bar number is the remainder of c ÷ 390, plus 1. The clock time is
-        09:30 plus one minute for each bar after the first.
+        **Locate the replay controls.** Beneath the chart canvas, find the replay control bar: **Play replay** / **Pause replay**, **Next replay bar** (single-step), the **Jump replay** group (15m, 1h, 1D, 1W), the **Mark scored headlines** button, **Monitor windows** toggles (1, 2, 3), the **Replay speed** dropdown, the live clock readout, and the session progress bar.
 
-        Click Next replay bar: c = 500, so Day 2, bar 111, 11:20 AM ET. Then the 1h jump adds 60 bars: c = 560, which is
-        Day 2, bar 171, 12:20 PM ET. The 1D jump adds 390: c = 950, which is Day 3, bar 171, the same time on the next
-        day. The 1W jump adds 1,950, which is five sessions: c = 2,900, which is Day 8, bar 171. Day numbers count
-        sessions, so weekends never appear as days.
+        **Practice pre-commitment.** Open your notebook. Before touching the clock, write down: symbol (NVRA), your expected price move over the next hour (e.g. "Consolidating near $148.50"), and what event would invalidate your view.
 
-        Speed works the same way. At 1× each tick advances 1 bar, so a session of 390 bars takes 390 × 0.8 = 312 seconds,
-        about five minutes. At 30× a session takes 13 ticks, 10.4 seconds. At 390× a session passes in a single tick.
+        **Step one bar.** Click **Next replay bar**. The counter updates to Day 2, bar 111, 11:20 AM ET, and a notice confirms "Replay advanced by one bar."
+
+        **Execute an hourly jump.** Click **1h**. The clock jumps 60 bars to 12:20 PM ET (bar 171). Compare the newly formed price candles against your written pre-commitment note.
+
+        **Test continuous playback.** Set **Replay speed** to 5x. Click **Play replay** and observe candles printing smoothly at 5 bars per tick. Click **Pause replay** (or press the Escape key) to halt the clock. The replay also pauses automatically whenever an order ticket preview is opened.
+
+        **Observe overnight session gaps.** Step forward until the clock reaches 3:59 PM ET. The indicator reads "Market closed · next session on step". Clicking **Next replay bar** once more jumps to 09:30 AM ET the following morning. Notice how the opening price can gap away from yesterday's close due to simulated overnight news.
         """,
         """
-        **Find the replay bar.** Under the chart, from left to right: **Play replay** (which becomes **Pause replay**),
-        **Next replay bar**, the group **Jump replay** (15m, 1h, 1D and 1W, with hover text such as "Jump forward by one
-        hour"), the newspaper icon **Mark scored headlines on the chart**, the group **Monitor windows** (1, 2, 3), the
-        select **Replay speed**, the clock text, the bar **Progress through the session**, the counter ("Day 2 · bar
-        110/390") and the **New simulation run** icon.
-
-        **Write before you step.** In your notebook write one line: the company, what you expect over the next hour,
-        and why. Then click **Next replay bar** once. The counter moves to bar 111, the clock to 11:20 AM ET, and the
-        notice reads "Replay advanced by one bar."
-
-        **Jump an hour.** Click **1h**. The notice reads "Replay advanced by one hour." and the counter reads bar 171,
-        12:20 PM ET. Compare the chart with your line.
-
-        **Play and pause.** Choose 5× in **Replay speed**, click **Play replay** and watch the counter move in steps of
-        five bars. Click **Pause replay**, or press Esc, to stop. Esc also cancels a drawing tool. Opening an order
-        preview, cancelling or editing an order, and any error message also pause the replay.
-
-        **Cross the close.** Click **Next replay bar** until the clock reads 3:59 PM ET. The clock text now adds
-        "Market closed · next session on step". One more click moves to 9:30 AM the next morning, where the price can
-        open away from the previous close: an overnight gap.
-
-        **Check.** After each jump, the counter and clock should match your own arithmetic, the News tab should list
-        nothing dated after the clock, and your notebook line should have been written before the step.
-        """,
-        """
-        Use a free-practice run. Before each of three jumps (**15m**, **1h** and **1D**), write your expected direction
-        for NVRA at the end of the jump and one sentence of reasoning. After the jump, mark whether you were right and
-        whether your reasoning was. Three notes prove nothing about skill. The aim is to notice how easily the
-        reasoning rewrites itself once the answer is visible. No practice mission is needed here.
+        In a free-practice run, write down an explicit price forecast for NVRA before executing each of three jumps: **15m**, **1h**, and **1D**. After each jump, objectively assess whether your prediction was correct and whether the underlying rationale was sound. The objective is to train yourself to never rewrite your thesis after the fact.
         """,
         r"\text{session}=\left\lfloor \frac{c}{390}\right\rfloor+1,\qquad \text{bar}=(c \bmod 390)+1",
         '''
@@ -622,7 +557,7 @@ print("Seconds to play one session at 30x:", round(13 * 0.8, 1))
 print("Ticks to play one session at 390x:", 1)
 ''',
         "Starting from Day 2, bar 110, write the day, bar and clock time after Next replay bar, then after the 1h jump, then the 1D jump, then the 1W jump. Then write a decision note for a jump you will make in the terminal, make the jump, and write one sentence comparing the outcome with your note.",
-        "Next replay bar gives Day 2, bar 111 (11:20 AM ET). The 1h jump gives Day 2, bar 171 (12:20 PM). The 1D jump gives Day 3, bar 171 (12:20 PM). The 1W jump gives Day 8, bar 171 (12:20 PM), because each jump adds to the clock the one before left. Your decision note should name the company, the expected direction over a stated period, the reason and what would change your view, and it must be written before the jump. The comparison afterwards should judge the reasoning as well as the result: a correct guess for a poor reason is luck, and a wrong guess for a good reason may be fine.",
+        "Next replay bar moves to Day 2, bar 111 (11:20 AM ET). The 1h jump advances to Day 2, bar 171 (12:20 PM ET). The 1D jump moves to Day 3, bar 171 (12:20 PM ET). The 1W jump reaches Day 8, bar 171 (12:20 PM ET), because each jump accumulates on the prior position. Your decision note must document the instrument, forecasted direction, and invalidation criteria prior to the jump. Afterward, evaluate the rationale rather than just the profit: being right for the wrong reason is luck, while a well-reasoned loss is a normal trading outcome.",
         [
             (
                 "A learner clicks the 1D jump button on a minute run. How many bars does the clock advance?",
@@ -660,78 +595,53 @@ print("Ticks to play one session at 390x:", 1)
     add(
         "Read the simulated newsroom: scores, tone and chart markers",
         "Read a headline's scope, impact tier and score, interpret the tone gauges, and trace a price move to its scored headline without over-reading the chart.",
-        """
-        The simulated newsroom is generated before the prices, and the price engine then applies each headline's
-        score. In this market, therefore, a move can be traced to a cause. One point is one basis point (0.01%), so a
-        +250 point item is a modelled move of +2.50%, of which 58% lands on the bar the item is dated and the rest
-        drifts over the bars that follow. A company item applies its score to one company. A sector item reaches its
-        members through their sector loading and a macro release reaches every company through its beta, so the same
-        score does not move every stock by the same amount. Each item is tagged by scope (CO for one company, SEC for
-        a sector, ECO for a macroeconomic release, MKT for the whole market) and by impact: H for 400 points or more,
-        M for 120 or more, L below that, and a dot for routine chatter, which carries no score and moves nothing.
+        r"""
+        In the simulated market, the newsroom engine generates narrative headlines with explicit quantitative impact scores. The simulation price engine translates each scored headline into a modeled price impulse. This design allows you to study cause-and-effect market dynamics in a transparent setting.
 
-        Real markets give you no such score. You never see how much a real headline is worth, and prices move for
-        many reasons at once. Use this tool to practise asking what a headline implies and for whom, not to conclude
-        that headlines predict prices. Not every candle has a story either, because noise moves prices on its own, and
-        an invented headline is not evidence about any real company. Tone summarises the tape. It is the weight of the
-        released items, counted as 3 for high, 2 for medium and 1 for low, signed plus or minus for positive or negative
-        news, divided by the total weight. It therefore sits between −1 and +1 however much chatter there is.
+        Each score point represents exactly one basis point (0.01%) of modeled price impact:
+        $$\frac{\Delta P}{P} = \frac{\text{Score}}{10{,}000},\qquad \text{Market Tone} = \frac{\sum w_i \cdot d_i}{\sum w_i}$$
+        A headline scored at $+250$ points models an aggregate $+2.50\%$ price adjustment. In the engine, 58% of this impact is applied immediately to the candle on which the news is dated, while the remaining 42% drifts into the stock price across subsequent bars. In addition, stochastic price noise and broader sector/macro movements act simultaneously on the candle.
+
+        Headlines are categorized by scope and impact tier:
+        • Scope Tags: `CO` (single company), `SEC` (industry sector, distributed via sector loadings), `ECO` (macroeconomic report, reaching stocks through beta), and `MKT` (broad market index).
+        • Impact Tiers: High (`H`, $\ge 400$ pts, weight 3), Medium (`M`, $\ge 120$ pts, weight 2), Low (`L`, $< 120$ pts, weight 1), and Chatter (dot `·`, 0 pts, weight 0).
+        • Market Tone Gauges: Aggregate sentiment is computed as the signed direction ($d_i \in \{+1, -1\}$) multiplied by weight ($w_i$), normalized between $-1.00$ and $+1.00$. Unscored chatter carries zero weight and does not distort tone.
+        """,
+        r"""
+        Suppose a company headline for Novara Microsystems (NVRA) is published with a score of $+250$ points when NVRA trades at $148.50.
+
+        Step-by-step arithmetic:
+        1. Total modeled price move:
+           $$250 \times 0.0001 = 0.0250 = +2.50\%$$
+        2. Expected dollar price impact on $148.50:
+           $$\$148.50 \times 0.0250 = \$3.7125 \implies \$3.71$$
+        3. Immediate impact on the dated bar (58%):
+           $$\$3.7125 \times 0.58 = \$2.153 \implies \$2.15$$
+        4. Post-announcement drift across subsequent bars (42%):
+           $$\$3.7125 \times 0.42 = \$1.559 \implies \$1.56$$
+        Because 250 points falls between 120 and 400, the item is tagged with impact tier `M` (Medium).
+
+        Now calculate session tone across three released items: a high positive headline ($w = 3, d = +1$), a medium negative headline ($w = 2, d = -1$), and a low positive headline ($w = 1, d = +1$):
+        $$\text{Signed Weight} = (3 \times 1) + (2 \times -1) + (1 \times 1) = 3 - 2 + 1 = +2$$
+        $$\text{Total Weight} = 3 + 2 + 1 = 6$$
+        $$\text{Tone} = \frac{+2}{6} = +0.33 \quad (+33\%)$$
+        If 10 routine chatter items are published during the same session, the tone remains exactly $+0.33$ because chatter carries zero weight ($w = 0$).
         """,
         """
-        Suppose a company item on NVRA is scored +250 points. That is a modelled move of 250 × 0.0001 = 2.50%. With the
-        stock at 148.50 the total is about $3.71, of which 58% (about $2.15) lands on the dated bar and the other 42%
-        (about $1.56) drifts over the following bars. Since 250 is at least 120 and below 400, the item is tagged M.
+        **Open the Newsroom panel.** Click **News** in the right sidebar (or enter `NVRA N` in the Command dialog). The panel header displays **Newsroom** with a **SIMULATED** badge. Toggle **News scope** between **All markets** and the active ticker (NVRA).
 
-        Now read the tone. Suppose three scored items were released in the last session: a high positive item (weight
-        3), a medium negative item (weight 2) and a low positive item (weight 1). The signed weight is 3 − 2 + 1 = 2 and
-        the total weight is 3 + 2 + 1 = 6, so the tone is 2 ÷ 6 = +0.33, shown as a market tone of 33%. Add ten chatter
-        items and the tone does not change, because chatter has weight zero, although the item count rises.
+        **Inspect headline metadata.** Each item displays a publication timestamp, a scope badge (`CO`, `SEC`, `ECO`, `MKT`), the associated ticker, an impact letter (`H`, `M`, `L`, or `·`), the headline text, and an explicit score (e.g. "+250 pts"). Hover over any score badge to view the formula breakdown.
 
-        One bar can hold several items. If a +250 item and a −130 item land in the same 5-minute bar, the chart marker
-        shows their net, +120, followed by (2) for two items. A single circle on the chart can therefore hide two
-        opposite stories.
+        **Interpret sentiment gauges.** Examine the **Session** gauge (last 390 bars) and **5 sessions** gauge (last 1,950 bars). Below the gauges, note the summary line: "N items this session · P positive · Q negative · R neutral · market tone X%".
+
+        **Use the live headline ticker.** Above the chart canvas, the **SIM NEWS** ticker displays the 12 most recent headlines. Clicking any item automatically selects that stock and switches the chart to it.
+
+        **Inspect chart markers.** On the price chart, scored news items appear as circular badges showing their net point impact (e.g. "+250"). If multiple news items land in the same bar, the badge displays their net sum with the item count in parentheses, such as "+120 (2)". Click the newspaper icon on the replay bar to toggle these markers on or off.
+
+        **Trace price reactions.** Step forward with **Next replay bar** until a fresh scored headline arrives. Compare the immediate candle move against the 58% modeled shock, keeping in mind that background market noise and sector factors also influence the bar.
         """,
         """
-        **Open the newsroom.** In the right sidebar click **News**, or type `NVRA N` in the Command dialog. The panel
-        is headed **Newsroom** with a **SIMULATED** badge. The group **News scope** has **All markets** and the current
-        ticker. With the ticker selected you see that company's own items plus the sector and macro items that move it.
-
-        **Read an item.** Each item shows a time, a scope tag (CO, SEC, ECO or MKT), the ticker if there is one, an
-        impact letter (H, M, L or a dot), the headline, its source and category, and a score such as "+250 pts" or
-        "0 pts". Hover the score for the arithmetic: one point is one basis point, 58% of it on this bar and the rest
-        drifting.
-
-        **Read the gauges.** The gauges **Session** (the last 390 bars) and **5 sessions** (the last 1,950) run from −1
-        to +1 and read 0.00 when nothing has been released. Under them the text reads "N items this session · P positive
-        · Q negative · R neutral · market tone X%". The scope buttons change the two gauges and the item counts, while
-        the market tone always covers the whole market.
-
-        **Use the headline strip.** Above the chart the **SIM NEWS** strip carries the 12 newest items. Click one to
-        select its company and open the News tab.
-
-        **See the markers.** On the chart, scored headlines appear as circles labelled with their points, for example
-        "+250", or "+120 (2)" when two items fall in one bar and net to +120. Your own fills appear as arrows such as
-        "BUY 10 @ 148.54". Click the newspaper icon **Mark scored headlines on the chart** to hide or show the circles.
-
-        **Trace a move.** Step with **Next replay bar** or the **15m** jump until a new item appears for your company.
-        Find its circle on the chart and compare the bar's move with the score. Remember that 58% of the modelled move
-        lands on the dated bar, that noise is added to every bar, and that sector and macro items reach a company
-        through loadings.
-
-        **Check.** For one item write its scope, its impact tier, its points, the modelled percentage move (points ÷
-        100) and the share on the dated bar (58%).
-        """,
-        """
-        Try the mission [Trade what the tape actually said](/simulator?mission=read-the-tape). The link only
-        preselects it: open the terminal, click the **New simulation run** icon, check that **Practice mission
-        (optional)** shows "Trade what the tape actually said · VLOC", and click **Create new paper account**. Click
-        the collapsed **Practice mission** bar under the toolbar to read the brief and the three objectives. VLOC is in
-        your watchlist, but the terminal does not switch to a mission's company for you, so click VLOC yourself and
-        select the VLOC scope in the News tab. The objectives are to make your first VLOC entry within one session
-        after an item of 150 points or more on VLOC (the time must be within 390 clock minutes, and overnight does not
-        count), to write a thesis on every order that names the headline, and to keep the position under 10% of opening
-        equity, which is $10,000. A qualifying item can take a couple of sessions to appear, so move the clock in
-        small steps and stop when one arrives. The objectives judge what you did and wrote, never your profit.
+        Try the mission [Trade what the tape actually said](/simulator?mission=read-the-tape). The link only preselects it: open the terminal, click the **New simulation run** icon, verify that **Practice mission (optional)** displays "Trade what the tape actually said · VLOC", and click **Create new paper account**. Open the collapsed **Practice mission** panel beneath the toolbar to review your three objectives: enter your initial VLOC position within one session following a headline of 150 points or greater, record a trade thesis citing the headline, and keep position size under 10% of opening equity ($10,000). The mission assesses your analytical process and execution discipline, never your final profit.
         """,
         r"\frac{\Delta P}{P}=\frac{\text{points}}{10\,000},\qquad \text{tone}=\frac{\sum_{i} w_{i}\,d_{i}}{\sum_{i} w_{i}}",
         '''
@@ -746,17 +656,14 @@ print("Drifting afterwards:", round(total * (1 - 0.58), 2))
 
 weights = [3, 2, 1]
 directions = [1, -1, 1]
-signed = 0
-weight = 0
-for i in range(3):
-    signed = signed + weights[i] * directions[i]
-    weight = weight + weights[i]
+signed = sum(w * d for w, d in zip(weights, directions))
+total_weight = sum(weights)
 print("Signed weight:", signed)
-print("Total weight:", weight)
-print("Tone:", round(signed / weight, 2))
+print("Total weight:", total_weight)
+print("Tone:", round(signed / total_weight, 2))
 ''',
         "Pick one scored headline from the News tab of a run you have advanced for a few sessions. Write its scope tag, impact letter and points, then compute its modelled percentage move and the share that lands on the dated bar. Find its circle on the chart, note the actual move of that bar, and write two reasons the bar might have moved by a different amount.",
-        "For an illustrative +180 point company item tagged M, the modelled move is 180 ÷ 100 = 1.80%, and 58% of it, about 1.04%, lands on the dated bar. If the bar moved only 0.4%, noise or an opposing sector or macro item in the same bar may have offset it. If the bar moved 2.5%, noise or another item may have added to it, and the rest of the item's effect drifts over the following bars. The tag and the score tell you the size of one item, never the whole story of a bar.",
+        "For an illustrative +180 point company headline tagged M, the modeled total move is 180 / 10,000 = 1.80%, with 58% (approximately 1.04%) landing on the dated bar and 42% drifting over subsequent candles. If the actual bar moved only 0.4%, random market noise or an offsetting negative macroeconomic release during the same minute may have dampened the reaction. If the bar moved 2.5%, positive sector sentiment or technical momentum may have amplified the shock. Scored headlines provide structural context, not deterministic predictions.",
         [
             (
                 "A headline for one company is scored +300 points. What modelled price move does that represent?",
@@ -791,93 +698,68 @@ print("Tone:", round(signed / weight, 2))
         (8, 14, 8),
     )
 
+    # ---------------------------------------------------------------- Unit 2
     add(
         "Market and limit orders: preview, reservations and the next bar",
         "Place, preview, amend and cancel a market order and a limit order, and explain why neither can fill until the next bar.",
-        """
-        An order is an instruction, not a trade. In the terminal it passes through states you can see: drafted on the
-        ticket, previewed (nothing is committed yet), accepted (cash is reserved but nothing is owned) and filled on a
-        later bar. The preview shows estimates built from the last close, while the fill uses the next bar's open. An
-        order placed after bar c is first tested on bar c + 1, so acceptance never changes your holdings, and the gap
-        between the two prices is the price of acting without knowing the next bar.
+        r"""
+        In electronic trading, an order is an instruction submitted to an exchange, not an executed transaction. In the Quanta simulator, an order transitions through four distinct operational states:
+        1. Drafted: Parameters (order type, shares, limit price) are configured on the ticket.
+        2. Previewed: The simulator verifies risk checks, estimating required cash and fees; no funds are committed yet.
+        3. Accepted: The order is validated by the gateway. Cash is reserved in your account, but you own no shares yet.
+        4. Filled: The matching engine executes the order on a subsequent bar.
 
-        A buy order reserves the estimated cost of its unfilled shares plus its unpaid commission, rounded up to the
-        cent, so the same cash cannot be committed twice. If a gap makes a fill unaffordable, the order is cut back or
-        rejected rather than creating debt. A market order accepts whatever the next bar offers, with slippage and half
-        the spread against you. A limit order names the worst price you will accept. It fills at the open if the open is
-        already at or better than the limit, and otherwise only if the price trades strictly through the limit. A touch
-        alone is not enough, because the simulator never assumes your order was first in a queue. The price of that
-        caution is that a limit may never fill, and that is a result too.
+        The Next-Bar Execution Invariant:
+        $$R = Q \cdot P_{\text{reserve}} + c,\qquad P_{\text{reserve}} = \begin{cases} \lceil P_{\text{last}}(1 + f)\rceil_{0.01} & \text{market buy} \\ L & \text{buy limit} \end{cases}$$
+        An order placed while looking at bar $c$ is first evaluated by the matching engine on bar $c + 1$ using that bar's Open, High, Low, and Volume. Accepting an order never alters your share holdings on the current bar.
+
+        Cash Reservation Protection:
+        When a buy order is accepted, the system immediately places a hold on your cash equal to the estimated purchase cost plus commission. This pre-trade control prevents double-spending your available capital across multiple pending tickets.
+
+        Market vs Limit Execution Mechanics:
+        • Market Order: Guarantees execution speed over price certainty. It fills at the next bar's Open, with slippage and half the spread added against you.
+        • Limit Order: Sets an absolute ceiling on the price you will pay (or floor on what you will accept). A buy limit fills at the Open if the Open is already at or below your limit. Otherwise, it fills only if the market trades strictly through your limit price ($Low < Limit$). A mere price touch ($Low = Limit$) will not fill because the simulator does not assume your order was first in the queue.
+        """,
+        r"""
+        Suppose the last closed bar printed at $148.50, and you preview a market buy for 10 shares under default cost settings ($c = $1.00, $f = 0.0003$).
+
+        1. Cash Reservation Calculation:
+           The ticket estimates the maximum debit using the last close plus friction, rounded up to the cent:
+           $$P_{\text{reserve}} = \lceil 148.50 \times 1.0003 \rceil_{0.01} = \lceil 148.54455 \rceil = \$148.55$$
+           $$\text{Estimated Debit} = 10 \times \$148.55 + \$1.00 = \$1{,}485.50 + \$1.00 = \$1{,}486.50$$
+           Upon clicking **Place buy order**, Reserved cash displays $1,486.50, and Available cash falls to $100,000 - $1,486.50 = $98,513.50. You own zero shares.
+
+        2. Next-Bar Fill Execution:
+           Suppose the next bar opens higher at $148.62. The market order executes at that open plus friction:
+           $$P_{\text{fill}} = \operatorname{round}(148.62 \times 1.0003) = \operatorname{round}(148.6645) = \$148.66$$
+           Total settled cost: 10 × $148.66 + $1.00 = $1,487.60.
+           The $1,486.50 reservation is released, and your settled cash balance becomes:
+           $$\$100{,}000 - \$1{,}487.60 = \$98{,}512.40$$
+           Average cost per share recorded in your portfolio is $1,487.60 / 10 = $148.76 (including commission).
+
+        3. Limit Order Comparison:
+           Now place a buy limit order for 10 shares at $148.20. Reserved cash is 10 × $148.20 + $1.00 = $1,483.00.
+           • Scenario A (Strict Penetration): Next bar opens at $148.45 and prints a low of $148.10. Because the price traded strictly below your limit ($148.10 < 148.20$), the order fills at your limit price of $148.20.
+           • Scenario B (Touch Only): Next bar prints a low of exactly $148.20. The limit was touched but not penetrated. The order does not fill and remains active.
+           • Scenario C (Gap Down Open): Next bar opens at $148.10. The order fills at the open plus friction: 148.10 × 1.0003 = $148.14 (saving you money below your $148.20 limit).
         """,
         """
-        Suppose the last close is 148.50 and you preview a market buy of 10 shares with the default costs. The ticket
-        prices it from the last close plus friction, rounded up: 148.50 × 1.0003 = 148.54455, which rounds up to 148.55.
-        The estimated value is 10 × 148.55 = $1,485.50, and with the $1 commission the estimated debit is $1,486.50.
-        After you place the order, Reserved cash shows $1,486.50 and Available cash falls to $98,513.50. You own
-        nothing yet.
+        **Open an order ticket.** Click **Trade** in the right sidebar (or enter `NVRA BUY` in the Command dialog). The ticket interface provides **Buy** and **Sell** toggles, **Order type** (Market default), **Shares** (default 10), and **Duration** (GTC - Good 'Til Canceled).
 
-        Now suppose the next bar opens at 148.62. The order fills at 148.62 × 1.0003 = 148.66 after rounding to the
-        nearest cent. That is 10 × 148.66 = $1,486.60, plus the $1 commission, so $1,487.60 leaves your cash, which
-        becomes $98,512.40, and the reservation is released. Your average cost is $1,487.60 ÷ 10 = $148.76, because
-        the commission is part of what you paid. The estimate was $1.10 too low because the market opened above the last
-        close.
+        **Document your trade thesis.** Expand the **Trade thesis & lesson** drawer. In **Trade thesis**, write one clear sentence answering: "Why are you placing this trade, and what market observation would prove your thesis wrong?"
 
-        Compare a buy limit at 148.20 for the same 10 shares. It reserves 148.20 × 10 + $1 = $1,483.00. If the next bar
-        opens at 148.45 and trades down to 148.10, the price traded strictly through the limit, so the order fills at the
-        limit: friction would make it 148.24, but a buy never pays more than its limit, so the fill is 148.20 and cash
-        falls to $98,517.00. If that bar had traded down only to 148.20, the limit would have been touched but not
-        passed, and nothing would fill. If the bar had opened at 148.10, the order would fill at the open plus
-        friction, 148.14.
+        **Generate preview.** Click **Preview buy order**. Generating a preview automatically pauses continuous replay. The modal displays Estimated notional, Estimated debit, Available cash, Reserved cash, and Projected position size.
+
+        **Submit order.** Click **Place buy order**. The bottom panel switches to **Open orders**, and a confirmation appears: "Order accepted. Advance replay to observe its fill." Check that **Reserved cash** reflects the estimated hold while **Positions** remains empty.
+
+        **Advance clock to observe fill.** Click **Next replay bar**. The order executes at the new bar's open price plus friction. Open **Trade history** to inspect the settled Fill price, execution Fee ($1.00), and timestamp. On the chart, notice the fill marker (e.g. "BUY 10 @ 148.66") and the position line showing your volume-weighted average cost.
+
+        **Place and manage a limit order.** Switch **Order type** to **Limit**. Type a limit price below current market and place the order. In **Open orders**, notice the options to **Edit** (modify price), **Cancel**, or **Journal**. On the chart, a draggable horizontal limit line appears. Dragging the line opens **Confirm order amendment**.
+
+        **Select order duration.** Review **DAY** (expires automatically at the final 3:59 PM bar of the session) versus **GTC** (remains active across sessions until filled or manually canceled).
         """,
         """
-        **Open a ticket.** Click **Trade** in the right sidebar, or use the quick **Buy** and **Sell** buttons under the
-        selected company in the **Watchlist** tab, or type `NVRA BUY` in the Command dialog. The section **Order
-        ticket** shows **Buy** and **Sell** buttons, **Order type** (Market by default), **Shares** (10) and **Duration**
-        (GTC).
-
-        **Write the reason first.** Open **Trade thesis & lesson** and, in **Trade thesis**, answer the prompt "Why this
-        trade? What would change your view?" in a sentence or two. **Linked lesson** offers only 0.4, 0.5, 0.7 and 0.8,
-        so leave it on "No lesson".
-
-        **Preview.** Click **Preview buy order**. The preview pauses the replay and shows Estimated notional, Estimated
-        debit, Available cash / reserved, Available shares and Position after full fill. If the button is disabled, read
-        the line under the ticket, for example "Enter a positive whole number of shares." or "Insufficient available
-        cash, including working orders and fees."
-
-        **Place.** Click **Place buy order**. The panel jumps to **Open orders** and the notice reads "Order accepted.
-        Advance replay to observe its fill." The ticket's **Reserved cash** now shows the reservation, and **Positions**
-        is still empty because nothing has filled.
-
-        **Advance.** Click **Next replay bar**. The order fills at that bar's open plus friction. **Trade history**
-        shows Filled at, Symbol, Side, Shares, Fill price, Fee and Realized P&L. The chart marks the fill, for example
-        "BUY 10 @ 148.66", **Positions** lists the shares with their Average cost, and a dashed line on the chart reads
-        "LONG 10 · average 148.76".
-
-        **Place a limit order.** Change **Order type** to **Limit**, type a **Limit price**, then preview and place as
-        before. The row in **Open orders** offers **Cancel**, **Edit** and **Journal**, and the chart draws a draggable
-        line such as "BUY 10 · LIMIT 148.20". **Edit**, or dragging that line, opens **Confirm order amendment** with
-        **New limit price** and **Confirm amendment**. **Cancel** shows "Order remainder canceled." Market orders have no
-        **Edit**, because they have no price to change.
-
-        **Choose a duration.** **DAY** orders expire at the last bar of the session, and an order placed on that last
-        bar belongs to the next session. **GTC** orders keep working until they fill or you cancel them.
-
-        **If the notice says "Unconfirmed action saved; recover it before placing another trade."** the terminal could not
-        confirm that the order reached the server. Click **Reconnect & retry action**. It reloads your account and
-        resends the same request, so the order can exist only once. Do not place the order again by hand.
-
-        **Check.** Compare the Estimated debit in the preview with the cash actually spent after the fill. They differ
-        because the preview prices the order from the last close and the fill uses the next open.
-        """,
-        """
-        Try the mission [Place your first paper order](/simulator?mission=first-order). The link only preselects it:
-        open the terminal, click the **New simulation run** icon, check that **Practice mission (optional)** shows
-        "Place your first paper order · NVRA", and click **Create new paper account**. Decide the price you are willing
-        to pay before you look at the chart again, enter a buy limit at that price, and write your reason in **Trade
-        thesis**; the box is already open on mission runs. Then advance by a full session with the **1D** jump. The
-        three objectives are a limit entry, a thesis on every order and a session advanced after your first order. They
-        say nothing about profit, and a limit that never fills is a result too: it tells you the market did not come to
-        your price.
+        Try the mission [Place your first paper order](/simulator?mission=first-order). The link only preselects it: open the terminal, click the **New simulation run** icon, verify that **Practice mission (optional)** shows "Place your first paper order · NVRA", and click **Create new paper account**. Establish the maximum price you are willing to pay, place a buy limit order at that price, and document your thesis in the mission journal. Then advance the clock by one full session with the **1D** jump. The three objectives verify that you submitted a limit order, recorded a thesis, and completed a session.
         """,
         r"R=q\,P_{\text{res}}+c,\qquad P_{\text{res}}=\begin{cases}\lceil P_{\text{last}}(1+f)\rceil_{0.01} & \text{market buy}\\ L & \text{buy limit}\end{cases}",
         '''
@@ -918,7 +800,7 @@ print("Bar only touches the limit (0 means no fill):", limit_buy_fill(148.45, 14
 print("Bar opens below the limit:", limit_buy_fill(148.10, 148.00, limit, friction))
 ''',
         "The last close is 96.40 and the costs are the defaults. Compute the reserve price and the reserved cash for a 20-share market buy and for a 20-share buy limit at 95.90. Then say what happens to each if the next bar opens at 96.55 and its low is 96.30.",
-        "The market buy reserves a price of ceil(96.40 × 1.0003) = 96.43, so 20 × 96.43 + $1 = $1,929.60. The limit order reserves 20 × 95.90 + $1 = $1,919.00. If the next bar opens at 96.55, the market order fills at 96.55 × 1.0003 = 96.58 and costs 20 × 96.58 + $1 = $1,932.60, which is $3.00 more than it reserved. The limit does not fill: the open is above 95.90 and the low of 96.30 never traded below it, so the order keeps working and keeps its reservation of $1,919.00.",
+        "The market buy reserves a share price of ceil(96.40 × 1.0003) = 96.43, reserving 20 × 96.43 + $1.00 = $1,929.60. The buy limit order reserves 20 × $95.90 + $1.00 = $1,919.00. If the next bar opens at 96.55, the market order fills at 96.55 × 1.0003 = $96.58, costing 20 × $96.58 + $1.00 = $1,932.60 ($3.00 above the initial reserve). The limit order does not fill: the opening price of 96.55 is above 95.90, and the bar's low of 96.30 never traded through the 95.90 limit price. The limit order remains active in Open orders with its $1,919.00 reservation intact.",
         [
             (
                 "A learner places a market buy after bar 120 has closed. When is the order first tested for a fill?",
@@ -956,72 +838,68 @@ print("Bar opens below the limit:", limit_buy_fill(148.10, 148.00, limit, fricti
     add(
         "How fills are priced: slippage, spread, participation and partial fills",
         "Compute a fill from a bar's open and volume, and explain slippage, half the spread, the participation cap, first-in-first-out sharing and partial fills.",
-        """
-        The simulator cannot see an order book or the path of prices inside a minute, so it prices a fill from
-        numbers in the bar (open, high, low and volume) and from four settings you chose. Slippage and half the spread
-        move a market order's price against you. Participation sets how much of the bar's volume your orders may take:
-        capacity is the whole-number part of volume × participation, shared by all your orders in that symbol in the
-        order they arrived, and what does not fill keeps working on later bars. The commission is charged once, on an
-        order's first fill.
+        r"""
+        In real financial markets, trading volume is a scarce, finite resource. You cannot purchase 50,000 shares in a single minute without drastically moving the market price against yourself. The Quanta simulator models this liquidity constraint through the Volume Participation cap ($\pi$):
+        $$\text{Capacity}_t = \lfloor V_t \cdot \pi \rfloor,\qquad P_t = \operatorname{round}\big(O_t \cdot (1 \pm f)\big)$$
+        Here $V_t$ is the total volume printed on bar $t$, and $\pi$ is your configured participation rate (0.01 or 1% by default). The maximum number of shares your orders can execute on that bar is strictly capped at $\lfloor V_t \times \pi \rfloor$.
 
-        These rules are cautious on purpose, and they are still simplifications. A real fill depends on queue
-        position, hidden liquidity and your own market impact, none of which is modelled here. The tape and order book
-        windows in lesson 13.10 are illustrations that never touch a fill. Treat the rules as a way to see why size and
-        liquidity matter: a 1% cap makes a large order take several bars, while a higher participation setting makes
-        fills easier than a real market is likely to give you.
+        Partial Fills and Queue Allocation:
+        If your order quantity exceeds a bar's execution capacity, the order is partially filled:
+        $$\text{Fill}_t = \min\big(\text{Remaining Shares},\; \text{Capacity}_t\big)$$
+        The remaining unfilled shares stay open in the matching engine, executing across subsequent bars as fresh volume arrives. If you have placed multiple working orders in the same ticker, the available capacity is shared strictly in First-In, First-Out (FIFO) arrival order. The order submitted first consumes capacity until fully satisfied before the second order receives a single share.
+
+        Commission Handling on Partial Fills:
+        The $1.00 broker commission is charged only once—on the order's initial partial fill. Subsequent fills for the same order carry zero additional commission, ensuring that liquidity fragmentation does not unfairly penalize execution.
+        """,
+        r"""
+        Suppose you place a 600-share market buy order for NVRA with default cost settings ($c = $1.00, $f = 0.0003, \pi = 0.01$). Over the next three minutes, market bars print with the following opens and volumes:
+        • Bar 1: Open = $148.50, Volume = 26,000 shares.
+        • Bar 2: Open = $148.60, Volume = 18,000 shares.
+        • Bar 3: Open = $148.55, Volume = 22,000 shares.
+
+        Step-by-step multi-bar execution:
+        1. Bar 1 Execution:
+           Capacity is $\lfloor 26{,}000 \times 0.01 \rfloor = 260$ shares.
+           Fill price: 148.50 × 1.0003 = $148.54.
+           Shares filled: 260. Unfilled remainder: $600 - 260 = 340$ shares.
+           Subtotal: 260 × $148.54 = $38,620.40 plus $1.00 commission.
+
+        2. Bar 2 Execution:
+           Capacity is $\lfloor 18{,}000 \times 0.01 \rfloor = 180$ shares.
+           Fill price: 148.60 × 1.0003 = $148.64.
+           Shares filled: 180. Unfilled remainder: $340 - 180 = 160$ shares.
+           Subtotal: 180 × $148.64 = $26,755.20 (zero additional commission).
+
+        3. Bar 3 Execution:
+           Capacity is $\lfloor 22{,}000 \times 0.01 \rfloor = 220$ shares.
+           Only 160 shares remain unfilled, so the order takes 160 shares.
+           Fill price: 148.55 × 1.0003 = $148.59.
+           Shares filled: 160. Unfilled remainder: $160 - 160 = 0$ (Order Complete).
+           Subtotal: 160 × $148.59 = $23,774.40.
+
+        Consolidated Order Outcome:
+        $$\text{Total Shares} = 260 + 180 + 160 = 600 \text{ shares}$$
+        $$\text{Total Notional} = \$38{,}620.40 + \$26{,}755.20 + \$23{,}774.40 = \$89{,}150.00$$
+        $$\text{Volume-Weighted Average Price} = \frac{\$89{,}150.00}{600} = \$148.5833 \implies \$148.58$$
+        $$\text{Total Cash Settled} = \$89{,}150.00 + \$1.00\text{ (single fee)} = \$89{,}151.00$$
         """,
         """
-        Suppose you place a 600-share market buy with the default costs, and the next three bars have opens of 148.50,
-        148.60 and 148.55 and volumes of 26,000, 18,000 and 22,000 shares (hypothetical numbers). Capacity is the
-        whole-number part of volume × 0.01: 260, 180 and 220 shares.
+        **Demonstrate volume constraints.** Click **New simulation run**. Set **Volume participation (0–1)** to its minimum setting of 0.001 (0.10% of bar volume). Leave other parameters at defaults and create the run.
 
-        Bar one fills 260 shares at 148.50 × 1.0003, which is 148.54, and charges the $1 commission. Bar two fills 180
-        at 148.60 × 1.0003 = 148.64 with no commission. Bar three has room for 220 but only 160 shares remain, so it
-        fills 160 at 148.55 × 1.0003 = 148.59. The total is 260 × 148.54 + 180 × 148.64 + 160 × 148.59 = 38,620.40 +
-        26,755.20 + 23,774.40 = $89,150.00, an average of 148.58 per share, plus one commission: $89,151.00.
+        **Inspect bar volume.** Hover over the latest candle in NVRA. Note the volume figure in the chart header: if volume is 26,000 shares, at a 0.001 participation rate the per-bar capacity is $\\lfloor 26{,}000 \\times 0.001 \\rfloor = 26$ shares.
 
-        A second order in the same stock queues behind yours and receives only the capacity left after yours has been
-        served on each bar. In this example it would get nothing on bars one and two, and up to 60 shares on bar three.
-        Arrival order decides, not size or urgency.
+        **Submit an oversized order.** Open the **Trade** ticket for NVRA. Enter 100 shares at Market, record a trade thesis, preview, and place the order.
+
+        **Observe step-by-step partial fills.** Click **Next replay bar**. Open the **Open orders** tab: the status badge reads "partially filled", showing 26 of 100 shares filled and 74 shares remaining. Advance again: the next bar executes another partial tranche. Notice how **Reserved cash** decreases proportionately as shares execute.
+
+        **Audit trade history blotter.** Open **Trade history**. Notice that each partial execution is recorded as an independent row with its own bar timestamp and fill price. Only the very first fill row carries the $1.00 commission fee; all subsequent tranches display $0.00 fee.
+
+        **Test FIFO queue priority.** Submit two distinct buy orders in the same stock (Order 1 for 100 shares, Order 2 for 20 shares) before stepping the clock. Advance one bar: Order 1 consumes all available capacity, while Order 2 shows 0 shares filled until Order 1 is completely satisfied.
+
+        **Cancel working remainder.** Click **Cancel** on a partially filled order. The notice confirms "Order remainder canceled." The unfilled portion is canceled and its cash reservation released, while already executed shares remain securely in **Positions**.
         """,
         """
-        **Make capacity visible.** Click the **New simulation run** icon. Set **Volume participation (0–1)** to 0.001, its
-        minimum, and leave the other fields at their defaults. Click **Create new paper account**.
-
-        **Read the bar's volume.** Hover the latest bar, or look at the chart header with the pointer away from the
-        chart: the readout ends with "Vol …". At 0.001 the capacity is the whole-number part of Vol × 0.001, so 26,000
-        shares gives 26. The bar that fills your order will have its own volume, so treat this as a guide and check the
-        fill bar afterwards.
-
-        **Place an order that is too big for one bar.** Choose a liquid company such as NVRA, open the **Trade** tab,
-        enter 100 in **Shares**, keep Market and GTC, write a short reason in **Trade thesis**, then click **Preview buy
-        order** and **Place buy order**.
-
-        **Step one bar at a time.** Click **Next replay bar**. In **Open orders** the row reads BUY · market, **Shares /
-        filled** shows the order's quantity and what has filled, the status reads "partially filled", and the small text
-        shows how many shares remain. Repeat until the order is filled, and watch **Reserved cash** shrink as it fills.
-
-        **Read the fills.** Open **Trade history**. Each partial fill is its own row. Only the first row carries the Fee
-        of $1.00, and each Fill price is that bar's open plus 3 basis points, rounded to the cent. Hover a fill bar on
-        the chart and check that the shares filled equal the whole-number part of Vol × 0.001, or the shares that
-        remained, whichever is smaller.
-
-        **Queue a second order.** Place a second market buy of 10 shares in the same symbol straight after the first,
-        before advancing. On the next bar the first order takes all the capacity, so the second shows 0 filled until the
-        first is complete: first in, first out.
-
-        **Cancel the rest.** Click **Cancel** on a partly filled order. The notice reads "Order remainder canceled." Only
-        the unfilled part is released, and the shares already filled stay in **Positions**.
-
-        **Check.** The sum of the filled shares in Trade history equals the quantity less the remainder, the Fee column
-        has one non-zero entry per order, and the average price is the notional divided by the shares filled.
-        """,
-        """
-        Repeat the exercise with the default participation of 0.01 and the same 100 shares. Note that the whole order now
-        fills on the first bar whenever that bar has a volume of at least 10,000 shares. Write down the Fill price, the
-        Fee and the average price for each run, and explain the difference using the participation setting. Then sell the
-        shares again and check that sells fill at the open minus 3 basis points. No practice mission is needed for
-        this lesson, because it changes a cost setting and a free-practice run keeps the market simple.
+        Create a new run with default participation of 0.01 (1%) and place the same 100-share buy order. Notice that whenever a bar prints at least 10,000 shares of volume, the entire 100-share order executes in a single candle. In your notebook, document how volume participation protects backtests from assuming unrealistic fill liquidity.
         """,
         r"\text{fill}_{t}=\min\big(\text{remaining}_{t},\ \lfloor V_{t}\,\pi\rfloor-\text{used}_{t}\big),\qquad P_{t}=\operatorname{round}\big(O_{t}\,(1\pm f)\big)",
         '''
@@ -1048,35 +926,35 @@ print("Notional:", round(notional, 2))
 print("Average price:", round(notional / 600, 2))
 print("Total cash paid including one commission:", round(notional + commission, 2))
 ''',
-        "A 500-share market sell is placed with the default costs. The next three bars open at 96.40, 96.30 and 96.50 with volumes of 12,000, 20,000 and 25,000 shares. Work out each bar's capacity, the fill sizes and prices, the average price and the proceeds after one $1 commission.",
-        "Capacity is 120, 200 and 250 shares. A sell fills at the open minus 3 basis points, so the prices are 96.37, 96.27 and 96.47. Bar one fills 120, bar two fills 200 and bar three fills the remaining 180. The notional is 120 × 96.37 + 200 × 96.27 + 180 × 96.47 = 11,564.40 + 19,254.00 + 17,364.60 = $48,183.00, an average of $96.37 per share. One commission is charged, on the first fill only, so the proceeds are $48,182.00.",
+        "Explain how the simulator prices an order across multiple bars when volume is constrained. State the capacity formula, how partial fills are recorded in Trade history, how commissions are assessed, and what happens to a second order queuing in the same symbol.",
+        "When an order exceeds the participation cap (capacity = floor(volume × participation)), it partially fills across successive bars. In Trade history, each partial fill is recorded as a separate row with its own execution price (bar open plus friction). The $1.00 commission is billed only once on the first fill. Additional working orders in the same ticker queue in FIFO order, receiving zero capacity until the preceding order is fully filled or canceled.",
         [
             (
-                "With the default settings a bar trades 40,000 shares. What is the most your orders in that symbol can fill on that bar?",
-                "400 shares, the whole-number part of 40,000 × 1%",
-                "40,000 shares, the whole volume of the bar",
-                "40 shares, which is 0.1% of the volume",
-                "Capacity is the whole-number part of volume × participation, shared by all your orders in the symbol. With 1%, that is 400 shares.",
+                "Why does an order for 600 shares take several bars to fill when volume is low?",
+                "The volume participation cap limits each bar's fill to a percentage of that bar's volume",
+                "The simulator pauses between fills to check your buying power",
+                "Large orders are split into arbitrary 100-share lots by default",
+                "The participation setting restricts how much of any single bar's volume your orders can consume, creating realistic partial fills.",
             ),
             (
-                "A 300-share market buy fills 100 shares on its first bar and 200 on its second. How many $1 commissions does it pay?",
-                "One, charged on the first fill",
-                "Two, one for each fill",
-                "Three, one for every 100 shares",
-                "The flat commission is charged once per order, on its first fill. Later partial fills of the same order carry a fee of $0.00.",
+                "A bar has a volume of 26,000 shares and participation is 0.01. What is its capacity?",
+                "260 shares",
+                "26 shares",
+                "2,600 shares",
+                "Capacity is the integer part of volume multiplied by participation: 26,000 × 0.01 = 260 shares.",
             ),
             (
-                "Two market buys in the same stock are open: A for 500 shares, placed first, and B for 50 shares. The next bar's capacity is 120. What do they receive?",
-                "A receives 120 shares and B receives none",
-                "A receives 70 shares and B receives 50, so the smaller order completes",
-                "A and B each receive 60 shares, split evenly",
-                "Capacity is shared first in, first out. A arrived first and can absorb all 120 shares, so B waits until A has been served or cancelled.",
+                "When is the commission charged on an order that fills over several bars?",
+                "Once, on the order's first partial fill",
+                "On every partial fill separately",
+                "At the end of the session, as a lump sum",
+                "The broker commission is charged exactly once per order ticket upon the initial fill; subsequent partial tranches incur zero commission.",
             ),
             (
-                "A learner raises Volume participation from 0.01 to 1 so that every order fills at once. Which comment is most accurate?",
-                "Fills become easier than a real market is likely to allow, so results will look better for a reason that will not repeat",
-                "The change is harmless, because participation only affects the commission",
-                "The change makes the whole simulated market more liquid for every other participant",
+                "Why is raising participation to 1.0 an unrealistic test of a strategy?",
+                "It assumes you could buy 100% of an exchange's volume without moving the price",
+                "It causes the simulator to crash on large orders",
+                "It prevents limit orders from working",
                 "Participation is a limit on how much of a bar your orders can take. Raising it to the maximum removes a realistic constraint and flatters results.",
             ),
         ],
@@ -1087,66 +965,49 @@ print("Total cash paid including one commission:", round(notional + commission, 
     add(
         "Stops, trailing stops and attached exits",
         "Place stop, stop-limit, trailing-stop and attached-exit orders, and predict how each behaves when a price gaps.",
-        """
-        A stop order is a trigger, not a price. A sell stop waits until a bar trades at or below the stop price and then
-        becomes a sell at the market, so when a bar opens below the stop the fill comes at that worse open. A stop-limit
-        triggers in the same way but then needs a later bar inside its limit, so it can protect the price and still leave
-        you holding the shares. A trailing stop, offered for sells only, starts from the close when you place it and sits
-        a percentage below it; after each bar it moves up to follow the new high, and it never moves down.
+        r"""
+        A stop order is a conditional trigger, not a price guarantee. When you place a sell stop order at $145.00, you are instructing the broker: "If the market trades at or below $145.00, immediately convert my order into a market order to sell." If a stock closes at $146.00 and gaps down overnight to open at $142.00, your stop triggers at the open and executes at $142.00 minus friction! A stop order controls when an exit is attempted, not the price you receive.
 
-        Attached exits let a buy carry its own plan out. Ticking **Attach exits to this entry** adds a take-profit above
-        the entry, a stop-loss below it, or a trailing stop instead of the stop-loss. The exits wait, holding nothing in
-        reserve, until the entry fills, then cover exactly the shares that filled. They are one-cancels-other: when one
-        trades, the other shrinks or is cancelled. If a single bar reaches both, the terminal takes the stop first,
-        because it cannot see the order of prices inside the bar and refuses to assume the flattering one.
+        Three advanced exit types provide structured risk management:
+        1. Stop-Limit: Specifies two prices—a Stop trigger price and a Limit execution price. Once triggered, it converts into a limit order. If the market gaps below your limit price, the order will refuse to sell, leaving you holding plunging shares.
+        2. Trailing Stop: Designed for dynamic profit preservation on long positions. It anchors to the highest price achieved after order placement and trails at a fixed percentage ($\tau$) below that peak:
+        $$P_{\text{fill}} = \operatorname{round}\big(\min(O_t, S) \cdot (1 - f)\big),\qquad S_{t+1} = (1 - \tau) \cdot \max(A_t, H_t)$$
+        As new highs print, the stop ratchets upward; it never moves downward.
+        3. Attached Bracket Exits (OCO): You can attach a Take-Profit limit and a Stop-Loss directly to an entry order. They operate as One-Cancels-Other (OCO): when one leg executes, the other is automatically cancelled. If a single high-volatility bar spans both target and stop levels, the simulator conservatively triggers the stop first.
+        """,
+        r"""
+        Let us work through exact price arithmetic under normal execution, overnight gaps, and trailing stops:
+
+        Case 1: Standard Sell Stop Execution
+        You hold 10 shares and place a sell stop at $145.00 ($f = 0.0003$). The next bar opens at $146.10 and trades down to an intraday low of $144.80. The low penetrates your $145.00 stop.
+        Fill price: Lower of open and stop, less friction:
+        $$145.00 \times (1 - 0.0003) = 145.00 \times 0.9997 = 144.9565 \implies \$144.96$$
+
+        Case 2: Overnight Gap Through Stop
+        Bad news breaks overnight, and the stock gaps down to open at $142.00. The stop triggers immediately at the open.
+        Fill price: Lower of open and stop ($142.00 < 145.00$), less friction:
+        $$142.00 \times 0.9997 = 141.9574 \implies 141.96$$
+        You receive $141.96 per share—$3.04 below your stop price ($30.40 total slippage on 10 shares). This demonstrates why stops do not prevent gap slippage.
+
+        Case 3: Trailing Stop Ratchet
+        You place a 5% trailing stop ($\tau = 0.05$) when NVRA closes at $150.00. The initial stop sits at 150.00 × 0.95 = $142.50.
+        On the next candle, the stock rallies to an intraday high of $153.00 (low $149.00). The stop does not trigger, and the anchor ratchets to the new high:
+        $$\text{New Stop Level} = 153.00 \times (1 - 0.05) = 145.35$$
+        When the subsequent candle opens at $146.00 and dips to $144.90, it penetrates $145.35, executing at 145.35 × 0.9997 = $145.31.
         """,
         """
-        You hold 10 shares and place a sell stop at 145.00 with the default 3 basis points of friction. The next bar
-        opens at 146.10 and trades down to 144.80, which triggers the stop. The fill is the lower of the open and the
-        stop, 145.00, less 3 basis points: 145.00 × 0.9997 = 144.9565, which rounds to 144.96.
+        **Protect existing shares.** Buy 10 shares of any company and step one bar forward to ensure execution. Open the **Trade** tab, select **Sell**, choose **Stop** in **Order type**, type a stop price below current market in **Stop price**, keep Duration at GTC, and document your reason in **Trade thesis**.
 
-        Now suppose bad news arrives overnight and the next bar opens at 142.00. The stop is still triggered, but the
-        fill is the lower price, 142.00 × 0.9997 = 141.9574, which rounds to 141.96. That is 3.04 below your stop, or
-        $30.40 on 10 shares. A stop decides when an exit is attempted, not the price it receives.
+        **Preview and place.** Click **Preview sell order** and **Place sell order**. The pending stop order draws an interactive stop line on the chart canvas. You can click and drag this line to adjust your stop level; releasing the line opens **Confirm order amendment**.
 
-        A 5% trailing stop placed when the close is 150.00 starts at 150.00 × 0.95 = 142.50. The next bar trades
-        between 149.00 and 153.00. It is tested against 142.50 and does not trigger, then the anchor rises to the 153.00
-        high and the stop becomes 145.35. When the following bar opens at 146.00 and dips to 144.90, it triggers at
-        145.35 and fills at 145.35 × 0.9997, rounded to 145.31.
+        **Compare stop-limit behavior.** Place a second sell order using **Stop-limit**, filling in both **Stop price** (trigger level) and **Limit price** (minimum acceptable fill). Note that if a price gaps below the limit, the order remains working and leaves you holding shares.
+
+        **Deploy a trailing stop.** Select **Trailing stop** on a Sell ticket. Enter a trailing percentage (e.g. 5%) in **Trail (% below the high)**. Advance several bars using **Next replay bar** and observe the stop line ratcheting upward on the chart as new price peaks develop.
+
+        **Configure attached bracket exits.** On a **Buy** ticket, check the box **Attach exits to this entry**. Enter target prices in **Take profit** and **Stop loss** (or select **Or trail the stop (%)**). The ticket displays your reward-to-risk ratio (e.g. "Risking $50 to make $150 · 3:1 R"). Attached legs activate automatically upon entry fill.
         """,
         """
-        **Protect shares you own.** Buy 10 shares of any company and advance one bar so that they fill. Open the
-        **Trade** tab, click **Sell**, choose **Stop** in **Order type**, type a price below the last trade in **Stop
-        price**, keep **Duration** at GTC and write why the stop sits there in **Trade thesis**. Click **Preview sell
-        order**, read the estimates and click **Place sell order**. The working order draws a line on the chart that you
-        can drag to a new price; dragging opens **Confirm order amendment**, where **Confirm amendment** applies it.
-
-        **Compare a stop-limit.** Place a second sell with **Order type** Stop-limit and both **Stop price** and
-        **Limit price** filled in. Note in your notebook that after it triggers it can fill only on a later bar, and only
-        at your limit or better.
-
-        **Use a trailing stop.** Choose **Trailing stop**, which appears for sells, and enter a percentage in **Trail (%
-        below the high)** between 0.25 and 50. Advance a few bars with **Next replay bar** and watch the order's stop
-        rise as new highs print.
-
-        **Attach exits to an entry.** On a **Buy** ticket with Market or Limit, tick **Attach exits to this entry** and
-        fill **Take profit** and **Stop loss**, or **Or trail the stop (%)** instead of the stop loss. The ticket shows
-        "Risking $X to make $Y · R:1". A take-profit below the entry or a stop-loss above it is refused with "A
-        take-profit has to sit above the entry it protects." or "A stop-loss has to sit below the entry it protects."
-        In **Open orders** the legs show only a **Journal** button until the entry fills, and cancelling the entry
-        cancels them.
-
-        **Check.** In **Trade history**, a triggered stop's **Fill price** is never above the lower of the bar's open and
-        the stop, less friction. A stop-limit that triggered on a bar has no fill on that same bar.
-        """,
-        """
-        Try the mission [Protect a position before you need to](/simulator?mission=stop-discipline). No other lesson
-        links it, so start it here: open the terminal, click the **New simulation run** icon, check that **Practice
-        mission (optional)** shows "Protect a position before you need to · QBIT", and click **Create new paper
-        account**. QBIT is not in the default watchlist, so click the symbol button, type QBIT and press Enter. Open a
-        position, then place a protective sell stop while the price is still calm, writing a reason on every order. If
-        you use attached exits, open **Journal** on each exit leg and write its reason too, then confirm in the mission
-        panel that the thesis objective is met.
+        Try the mission [Protect a position before you need to](/simulator?mission=stop-discipline). No other lesson links it, so start it here: open the terminal, click the **New simulation run** icon, verify that **Practice mission (optional)** shows "Protect a position before you need to · QBIT", and click **Create new paper account**. Select QBIT using the Command dialog, enter an initial long position, and immediately attach a protective sell stop while market conditions are calm. Document your reasoning in every order journal.
         """,
         r"P_{\text{fill}}=\operatorname{round}\big(\min(O_t,S)\,(1-f)\big),\qquad S_{t+1}=(1-\tau)\,\max(A_t,H_t)",
         '''
@@ -1176,7 +1037,7 @@ reward = (156.00 - entry) * 10
 print("Bracket risk:", round(risk, 2), "reward:", round(reward, 2), "R:", round(reward / risk, 2))
 ''',
         "You hold 20 shares bought at 97.40 and place a sell stop at 95.00 with default costs. Work out the fill if the next bar opens at 96.20 and trades to 94.80, and again if it opens at 93.50. Then say what a stop-limit at 95.00 / 94.90 would have done in the second case.",
-        "In the first case the bar trades through 95.00, so the fill is the lower of the open and the stop, 95.00, less 3 basis points: 95.00 × 0.9997 = 94.97 after rounding, a loss of (97.40 − 94.97) × 20 = $48.60 before commissions. In the second case the open is below the stop, so the fill is 93.50 × 0.9997 = 93.47, a loss of $78.60. A stop-limit at 95.00 / 94.90 would trigger on the gap bar but could only fill on a later bar at 94.90 or better, so if prices stayed lower it would leave all 20 shares unsold.",
+        "In the first scenario, the bar opens at 96.20 and trades down through 95.00. The fill price is min(96.20, 95.00) × 0.9997 = 95.00 × 0.9997 = 94.97, yielding a loss of 20 × ($97.40 - $94.97) = $48.60 before commissions. In the second scenario, the market gaps down to open at 93.50. The stop triggers and fills at min(93.50, 95.00) × 0.9997 = 93.50 × 0.9997 = 93.47, resulting in a loss of 20 × ($97.40 - $93.47) = $78.60. A stop-limit at 95.00 / 94.90 would trigger on the gap bar but would refuse to execute below 94.90, leaving all 20 shares unsold.",
         [
             (
                 "A sell stop at 145.00 is triggered by a bar that opens at 142.00. Before costs, at what price does it fill?",
@@ -1210,61 +1071,62 @@ print("Bracket risk:", round(risk, 2), "reward:", round(reward, 2), "R:", round(
         [STOP_BULLETIN, STOP_GLOSSARY, ORDER_BULLETIN],
         (8, 14, 8),
     )
+
     add(
         "Margin accounts and short selling",
         "Open a margin run, sell short, and compute buying power, the borrow fee and the price at which a short is bought in.",
-        """
-        A margin account lets you sell shares you do not own. You borrow them, sell them now, and must buy them back
-        later; if the price rises in between, the loss has no ceiling, because a price has no upper limit. In the
-        terminal a margin account is chosen when the run is created, with **Account type** set to "Margin · may sell
-        short". Practice missions always use cash accounts so that every attempt meets the same rules.
+        r"""
+        A margin account allows you to borrow capital and securities from a broker. In particular, it enables short selling: borrowing shares you do not own, selling them immediately at the prevailing market price, and committing to buy them back (cover) at a later date. If the stock falls, you buy back at a lower price and pocket the difference. However, if the stock surges, your potential loss is theoretically unlimited because a share price has no upper ceiling.
 
-        Three numbers govern the account. Buying power is twice equity less gross exposure, never below zero, and a short
-        uses it at the full value of the shares borrowed, just like a purchase of the same size. Borrowed shares cost a
-        fee of 5% a year, charged once per session as its own line in **Account history**. When equity falls below 30%
-        of gross exposure, the terminal buys the short back with a real order that queues like any other. Buying back
-        borrowed shares is never refused for lack of cash, because closing a short reduces risk. Dividends are not
-        modelled, which a real short seller would have to pay.
+        Three key financial metrics govern a margin account:
+        $$\text{Buying Power} = \max(0, 2E - G),\qquad P_{\text{buy-in}} = \frac{C}{Q_{\text{short}} \cdot 1.30}$$
+        1. Equity ($E$): Cash balance minus the market value of all borrowed short shares ($E = \text{Cash} - G$).
+        2. Gross Exposure ($G$): The total current market value of all open long and short positions.
+        3. Buying Power ($\text{BP}$): Twice equity minus gross exposure, representing your maximum additional purchasing leverage.
+
+        Borrow Fees and Forced Buy-Ins:
+        Borrowed shares are not free. The simulator assesses an annualized borrow fee of 5%, calculated daily per trading session ($5\% / 252$ sessions) and billed directly to your account history ledger. Under regulatory maintenance margin rules, if account equity falls below 30% of gross exposure ($E < 0.30 \cdot G$), a margin call occurs, and the matching engine executes an automated buy-in order to liquidate the short position.
+        """,
+        r"""
+        Suppose you initialize a margin account with $100,000 cash and execute a short sale of 600 shares at $150.00 per share (ignoring transaction fees for clarity).
+
+        Step-by-step balance sheet accounting:
+        1. Initial Short Execution:
+           The short sale generates 600 × $150.00 = $90,000 in proceeds.
+           Cash balance rises to: $100,000 + $90,000 = $190,000.
+           You owe the broker 600 shares, representing a liability of 600 × $150 = $90,000.
+           $$\text{Gross Exposure } G = \$90{,}000$$
+           $$\text{Equity } E = \text{Cash} - G = \$190{,}000 - \$90{,}000 = \$100{,}000$$
+           $$\text{Buying Power } \text{BP} = 2 \times \$100{,}000 - \$90{,}000 = \$200{,}000 - \$90{,}000 = \$110{,}000$$
+
+        2. Stock Price Rallies to $200.00:
+           The 600 borrowed shares are now worth 600 × $200 = $120,000.
+           $$\text{Gross Exposure } G = \$120{,}000$$
+           $$\text{Equity } E = \$190{,}000 - \$120{,}000 = \$70{,}000$$
+           $$\text{Buying Power } \text{BP} = 2 \times \$70{,}000 - \$120{,}000 = \$140{,}000 - \$120{,}000 = \$20{,}000$$
+
+        3. Calculating the Forced Buy-In Price ($P$):
+           A forced buy-in triggers when equity falls below 30% of gross exposure:
+           $$190{,}000 - 600P < 0.30 \times (600P) \implies 190{,}000 - 600P < 180P$$
+           $$780P > 190{,}000 \implies P > \frac{190{,}000}{780} \approx 243.59$$
+           If the stock rises to $243.59 (a 62.4% rally from $150.00), the broker triggers an automated market buy order to cover the position and prevent account insolvency.
+
+        4. Borrow Fee Calculation:
+           At $150.00, one session's borrow fee is $90,000 × 0.05 / 252 ≈ $17.86. Over a 5-day week, holding the short costs about $89.29 in financing fees.
         """,
         """
-        Start a margin run with $100,000 and sell short 600 shares at a fill of 150.00, ignoring fees. The sale adds
-        $90,000, so cash is $190,000, while you owe 600 shares worth $90,000. Equity is 190,000 − 90,000 = $100,000,
-        gross exposure is $90,000 and buying power is 2 × 100,000 − 90,000 = $110,000.
+        **Create a margin simulation run.** Click **New simulation run**. In **Account type**, select "Margin · may sell short". Leave **Practice mission** on free practice and click **Create new paper account**. Notice that the account status bar now displays **MARGIN**, **Buying power**, and **Gross exposure** alongside **Equity** and **Cash**.
 
-        If the price rises to 200.00, the shares you owe are worth $120,000. Equity falls to 190,000 − 120,000 =
-        $70,000, gross exposure is $120,000 and buying power shrinks to 2 × 70,000 − 120,000 = $20,000. The buy-in
-        comes when equity is below 30% of gross: 190,000 − 600P < 0.3 × 600P, so P must exceed 190,000 ÷ 780 = 243.59,
-        a rise of about 62% from the short price.
+        **Execute a short sale.** Select a company you do not own. Open the **Trade** tab and click **Sell**. Enter 10 shares, keep Order type at Market, and write a bearish rationale in **Trade thesis**. Note that the preview displays **Buying power** consumption rather than available cash. Click **Place sell order** and advance one bar.
 
-        While the position is open, the borrow fee at a price of 150.00 is 90,000 × 0.05 ÷ 252 ≈ $17.86 per session, or
-        about $89.29 over a five-session week if the price does not move.
+        **Audit margin balances.** After fill, confirm that **Cash** increased by the sale proceeds minus commission, and that **Gross** displays the liability value of the borrowed shares.
+
+        **Observe daily borrow fees.** Use the **1D** jump button to advance through an entire session. Open the **Account history** ledger tab and locate the line item "Stock borrow fee on short positions".
+
+        **Cover the short position.** In the **Positions** tab, click **Close** on your short position row. The ticket automatically pre-populates a **Buy** order for the exact quantity owed. Preview and submit the order, then step forward one bar to complete execution.
         """,
         """
-        **Create a margin run.** Click the **New simulation run** icon, leave **Practice mission (optional)** on "No
-        mission · free practice", set **Account type** to "Margin · may sell short" and click **Create new paper
-        account**. Read the help text under **Account type** rather than the small print at the foot of the dialog. The
-        account bar now shows **MARGIN**, **Buying power** and **Gross** next to **Equity** and **Cash**.
-
-        **Sell short.** Choose a company you do not own, open the **Trade** tab and click **Sell**. Enter a small
-        quantity in **Shares**, keep Market and GTC, and write why you expect the price to fall in **Trade thesis**. The
-        preview shows **Buying power** where a cash account shows available cash. Click **Preview sell order** and then
-        **Place sell order**, and advance one bar.
-
-        **Watch the numbers.** After the fill, check that **Cash** rose by the proceeds less the commission and that
-        **Gross** shows the value of the borrowed shares. Advance by a session with the **1D** jump, then open **Account
-        history** and find the line "Stock borrow fee on short positions".
-
-        **Cover.** In **Positions**, click **Close** on the short. It prefills a **Buy** ticket for the full quantity;
-        preview and place it, then advance one bar.
-
-        **Check.** Your realized result is the sale proceeds less the purchase cost, the two commissions and every borrow
-        fee line, and the borrow fee lines match the formula above for the prices at which they were charged.
-        """,
-        """
-        There is no practice mission for this lesson, because missions use cash accounts. In a free margin run, short
-        100 shares of a calm company and record the fill, the buying power before and after, and each session's borrow
-        fee for a week. Compute the buy-in price for your position with the formula in this lesson, and write down what
-        you would do long before the price got near it. Then cover, and compare the total borrow fee with your estimate.
+        In a free margin run, short 100 shares of a stable company and track the position across five sessions. Record your buying power before and after, compute your theoretical buy-in liquidation price using the formula, and verify that the accrued borrow fees match your calculations.
         """,
         r"\text{BP}=\max\big(0,\;2E-G\big),\qquad \text{buy-in when } E<0.3\,G",
         '''
@@ -1283,7 +1145,7 @@ print("Borrow fee per session at 150:", round(fee_per_session, 2))
 print("Borrow fee over five sessions:", round(fee_per_session * 5, 2))
 ''',
         "A margin account with $50,000 shorts 200 shares at 120.00, ignoring fees. Compute equity, gross exposure and buying power at 120.00 and at 150.00, the price at which a buy-in begins, and one session's borrow fee at 120.00.",
-        "The sale raises cash to 50,000 + 24,000 = $74,000. At 120.00 equity is 74,000 − 24,000 = $50,000, gross is $24,000 and buying power is 2 × 50,000 − 24,000 = $76,000. At 150.00 the shares owed are worth $30,000, so equity is $44,000, gross is $30,000 and buying power is $58,000. A buy-in begins when 74,000 − 200P < 0.3 × 200P, so P > 74,000 ÷ 260 = 284.62. One session's borrow fee at 120.00 is 24,000 × 0.05 ÷ 252 ≈ $4.76.",
+        "Short proceeds add $24,000 to cash, bringing total cash to $74,000. At $120.00, gross exposure is $24,000, equity is $74,000 - $24,000 = $50,000, and buying power is 2 × $50,000 - $24,000 = $76,000. At $150.00, the shares owed are worth $30,000, reducing equity to $44,000, gross exposure to $30,000, and buying power to $58,000. A buy-in triggers when equity drops below 30% of gross (74,000 - 200P < 0.30 × 200P), meaning P > 74,000 / 260 = $284.62. One session's borrow fee at $120.00 is $24,000 × 0.05 / 252 ≈ $4.76.",
         [
             (
                 "A margin account has equity of $80,000 and gross exposure of $100,000. What is its buying power?",
@@ -1317,59 +1179,54 @@ print("Borrow fee over five sessions:", round(fee_per_session * 5, 2))
         [MARGIN, SHORT, MARGIN_ACCOUNT],
         (8, 14, 8),
     )
+
+    # ---------------------------------------------------------------- Unit 3
     add(
         "Company accounts, consensus and the earnings calendar",
         "Read a fictional company's statements, ratios, consensus and reporting date, and compute a surprise and a trailing P/E without hindsight.",
-        """
-        Every fictional company has generated quarterly accounts that tie together: equity is assets less liabilities,
-        and each quarter's closing cash equals the previous cash plus that quarter's operating, investing and financing
-        flows. A company that would run short of cash borrows the difference, so short-term debt and external financing
-        tell you when a business needed help. Before a print you can see only the expectation: the quarter's label, its
-        date and the published consensus. The reported figures leave the server only once the clock reaches the bar that
-        prints them.
+        r"""
+        Fundamental analysis requires evaluating a business's economic health from its financial statements. In the Quanta simulator, every fictional corporation publishes cohesive, mathematically reconciled quarterly accounting reports:
+        $$\text{Surprise} = \text{EPS}_{\text{reported}} - \text{EPS}_{\text{consensus}},\qquad P/E = \frac{P}{\sum_{k=0}^{3} \text{EPS}_{t-k}}$$
+        On the balance sheet, Assets always equal Liabilities plus Stockholders' Equity. On the cash flow statement, ending cash reconciles exactly with operating, investing, and financing cash flows. If a company faces a operational cash deficit, it borrows the difference, which appears as rising short-term debt and financing cash inflows.
 
-        Prints land at a session open, so the result arrives with the price gap it causes. The ratios are computed from
-        quarters already reported and the current price, and a ratio whose denominator is zero or negative shows "—"
-        rather than a misleading number. Five companies are development-stage businesses that lose money and are valued
-        on sales, so their P/E is "—" by design. Nothing in these accounts describes a real company.
+        Consensus Expectations and Earnings Gaps:
+        Prior to an earnings announcement, the market only knows consensus analyst forecasts (published in the Calendar and Company tabs). Actual results are released strictly on the morning open of the scheduled reporting date. Because the release coincides with the session open, the earnings surprise is typically expressed as an overnight price gap.
+
+        Valuation Ratios and Loss-Making Firms:
+        Valuation multiples are computed using trailing twelve-month (TTM) data across the last four reported quarters. If trailing earnings are zero or negative (as is the case with five early-stage, development-stage companies in the simulator), the Price-to-Earnings ($P/E$) ratio is undefined and correctly displays as a dash (`—`).
+        """,
+        r"""
+        Suppose a fictional company has a consensus quarterly EPS estimate of $1.20 and reports actual EPS of $1.26. Over the prior three quarters, the company reported EPS of $1.10, $1.15, and $1.18. The current share price is $148.50.
+
+        Step-by-step arithmetic:
+        1. Earnings Surprise Calculation:
+           $$\text{Dollar Surprise} = \text{Reported EPS} - \text{Consensus EPS} = \$1.26 - \$1.20 = +\$0.06$$
+           $$\text{Percentage Surprise} = \frac{+\$0.06}{\$1.20} \times 100\% = +5.0\%$$
+
+        2. Trailing Twelve-Month (TTM) EPS:
+           $$\text{TTM EPS} = \$1.10 + \$1.15 + \$1.18 + \$1.26 = \$4.69$$
+
+        3. Trailing Price-to-Earnings Ratio ($P/E$):
+           $$P/E = \frac{\$148.50}{\$4.69} \approx 31.66$$
+
+        4. Cash Conversion Quality Audit:
+           Suppose the company reported Net Income of $26.0 million for the quarter, but Operating Cash Flow was only $18.5 million.
+           $$\text{Cash Conversion Ratio} = \frac{\$18.5\text{M}}{\$26.0\text{M}} \times 100\% = 71.15\% \approx 71.2\%$$
+           If the balance sheet also reveals a $7.5 million surge in short-term debt and accounts receivable, the earnings beat was achieved with aggressive revenue accruals rather than cash collections. An informed analyst looks beyond the headline EPS beat to inspect cash conversion.
         """,
         """
-        A company's consensus EPS for the quarter is $1.20 and it reports $1.26. The surprise, stated as a distance, is
-        1.26 − 1.20 = +$0.06; as a share of consensus that is 0.06 ÷ 1.20 = 5.0%. Its last four quarters, including this
-        one, are $1.10, $1.15, $1.18 and $1.26, so trailing EPS is $4.69. At a price of 148.50 the trailing P/E is
-        148.50 ÷ 4.69 ≈ 31.66.
+        **Open company financials.** In the Command dialog, enter `NVRA FA` and press Enter. The **Company** tab opens with a **SIMULATED** badge. The header indicates whether the next report is scheduled ("Next report … with consensus") or recently released with its surprise.
 
-        The quarter's net income is $26.0 million but operating cash flow is only $18.5 million, so cash conversion is
-        18.5 ÷ 26.0 ≈ 71%. If short-term debt also rose, the beat leaned partly on borrowing. All of these figures are
-        illustrative; your run will show different ones.
+        **Inspect financial statements.** In the **Statements** panel, review **Ratios** (Valuation, Profitability, Growth, Balance Sheet, Value Screens), **Income statement**, **Balance sheet**, and **Cash flow**. Compare Net Income against Operating Cash Flow.
+
+        **Check peer comparisons.** Click the **Peers** sub-tab to view sector competitors alongside median benchmarks for operating margin, return on equity (ROE), and debt-to-equity ratios.
+
+        **Track the corporate calendar.** Open the **Calendar** tab. The **Company results** table lists Scheduled reporting dates, Symbol, Period, Consensus EPS, and Reported EPS. Before the print, the column reads "in N bars".
+
+        **Observe earnings gap.** Step forward with the **1D** jump button until an earnings report prints. Compare the actual reported EPS against consensus, compute the surprise, and inspect the resulting opening price candle on the chart.
         """,
         """
-        **Open the accounts.** Click the symbol button and type `NVRA FA`, then press Enter; Enter works even though the
-        dialog says "No matching stock is available in this run." for the combined text. The **Company** tab opens with
-        the badge "SIMULATED" and either "Next report …" with consensus or "… reported" with the surprise.
-
-        **Read the statements.** In the **Statements** group, start with **Ratios**: the groups are Valuation,
-        Profitability, Growth & distribution, Balance sheet and Value screens. Then open **Income statement**, **Balance
-        sheet** and **Cash flow**. Compare net income with operating cash flow, and look for rising short-term debt or
-        external financing. **Peers** lists the sector's other companies with a **Sector median** row.
-
-        **Find the date.** Open the **Calendar** tab. **Company results** shows When, Symbol, Period, Consensus EPS and
-        Reported; before the print, Reported reads "in N bars", and Consensus EPS may read "not yet set" until it is
-        published. **Economic releases** lists the macro calendar, marked "Scheduled" until each item is released.
-
-        **Watch a print.** Write your expectation in your notebook, then advance with the **1D** jump until Reported
-        changes to the EPS figure with its surprise in brackets. Look at the opening bar of that session on the chart.
-
-        **Check.** Recompute the surprise from the published consensus and the reported EPS, and the trailing P/E from
-        the last four reported quarters and the price, and compare them with the terminal.
-        """,
-        """
-        Try the mission [Hold a company through its results](/simulator?mission=earnings-gap). The link only preselects
-        it: open the terminal, click the **New simulation run** icon, check that **Practice mission (optional)** shows
-        "Hold a company through its results · NVRA", and click **Create new paper account**. NVRA's print falls at the
-        open of Day 5. Read the accounts and consensus first, write what you expect and why in **Trade thesis**, hold at
-        least 25 shares into the print, and stay for the session after it. The mission judges the order of these steps,
-        not whether the result made money.
+        Try the mission [Hold a company through its results](/simulator?mission=earnings-gap). The link only preselects it: open the terminal, click the **New simulation run** icon, verify that **Practice mission (optional)** shows "Hold a company through its results · NVRA", and click **Create new paper account**. NVRA reports earnings at the open of Day 5. Read the financial statements and consensus estimates beforehand, write your hypothesis in **Trade thesis**, hold at least 25 shares through the announcement, and hold through the following session.
         """,
         r"\text{surprise}=\text{EPS}_{\text{reported}}-\text{EPS}_{\text{consensus}},\qquad P/E=\frac{P}{\sum_{k=0}^{3}\text{EPS}_{t-k}}",
         '''
@@ -1378,9 +1235,7 @@ reported = 1.26
 surprise = reported - consensus
 print("Surprise:", round(surprise, 2), "or", round(surprise / consensus * 100, 1), "% of consensus")
 last_four = [1.10, 1.15, 1.18, 1.26]
-trailing = 0
-for eps in last_four:
-    trailing = trailing + eps
+trailing = sum(last_four)
 print("Trailing EPS:", round(trailing, 2))
 print("Trailing P/E at 148.50:", round(148.50 / trailing, 2))
 net_income = 26.0
@@ -1388,7 +1243,7 @@ operating_cash = 18.5
 print("Cash conversion:", round(operating_cash / net_income * 100, 1), "%")
 ''',
         "Pick a company in your run before its print. Record consensus EPS and revenue, the last four reported EPS figures, the price and operating cash flow against net income for the latest quarter. After the print, compute the surprise and the new trailing P/E, and describe the opening gap.",
-        "A complete answer records the published expectation before the print and the reported figures after it, so nothing depends on hindsight. The surprise is reported EPS minus consensus EPS, stated as a distance (and optionally as a share of consensus). The trailing P/E divides the current price by the sum of the last four reported EPS figures; if that sum is zero or negative the ratio is undefined, as the terminal's '—' shows. A good answer also compares cash flow with net income, notes any new short-term debt, and treats the gap as one observation from a simulated market, not a rule.",
+        "A rigorous fundamental audit records consensus forecasts and prior trailing earnings before the print occurs. The earnings surprise is computed as reported EPS minus consensus EPS. The trailing P/E divides market price by the sum of the last four quarters of reported EPS (displaying '—' if aggregate earnings are zero or negative). In addition, checking cash conversion (operating cash flow divided by net income) and changes in short-term debt reveals whether the earnings beat was backed by actual cash collections or merely accrual accounting adjustments.",
         [
             (
                 "Before a fictional company reports, what does its Company tab show about the coming quarter?",
@@ -1422,55 +1277,51 @@ print("Cash conversion:", round(operating_cash / net_income * 100, 1), "%")
         [READ_10K, STATEMENTS, READ_8K],
         (8, 14, 8),
     )
+
     add(
         "Desk analytics and monitor windows",
         "Read the Desk tab's quant sheet and lists, split the chart into monitor windows, and use a named screen as a hypothesis you test before trusting.",
-        """
-        The **Desk** tab carries the badge "API CALCULATED": every figure on it is computed on the server from bars the
-        clock has already reached, never from the future. The quant sheet for the selected company lists Last, SMA 20,
-        SMA 50, EMA 20, RSI 14, MACD hist., Volatility (ann.), Beta, Correlation, Session move, Since open and Relative
-        volume, and the lists below rank Top gainers, Top losers, Most active and Sectors.
+        r"""
+        The **Desk** tab serves as an automated quantitative research terminal. Every metric displayed carries the badge `API CALCULATED`, confirming that it is computed on the server exclusively from historical bars already elapsed at the current replay clock.
 
-        Monitor windows split the chart area into two or three panes, each showing a tool: Time & sales, Order book,
-        Heat map, Screener, Sessions, Quotes or News. The tape in Time & sales is invented, but it is constrained by each
-        bar: it opens at the open, closes at the close, touches the high and the low and its sizes add up to the volume.
-        The order book shows indicative size at the run's spread. Neither ever affects a fill. The Screener offers named
-        screens such as Oversold (RSI under 30) rather than adjustable thresholds, because a screen chosen in advance is a
-        hypothesis, while a threshold tuned after seeing the winners simply fits the answer.
+        The quant tear sheet provides instant algorithmic analytics:
+        $$\text{RSI} = 100 - \frac{100}{1 + RS},\qquad RS = \frac{\overline{\text{Gain}}_{14}}{\overline{\text{Loss}}_{14}}$$
+        Metrics include 14-period Relative Strength Index ($\text{RSI}_{14}$), Moving Average Convergence Divergence ($\text{MACD}$), Exponential Moving Average ($\text{EMA}_{20}$), Annualized Historical Volatility, Market Beta, and Relative Volume ($\text{RVOL} = \text{Volume} / \text{Average Volume}$). Below the sheet, market rankings highlight Top Gainers, Top Losers, Most Active, and Sector Performance.
+
+        Multi-Pane Monitor Windows:
+        The monitor feature splits the chart canvas into up to three simultaneous windows: Time & Sales (live simulated tape), Order Book (indicative market depth), Heat Map, Screener, and Real-Time Quotes.
+
+        Hypothesis Testing vs Data Snooping:
+        The stock screener provides pre-set screens (such as Oversold: $\text{RSI} < 30$, or Unusual Volume: $\text{RVOL} > 2.0$) rather than arbitrary sliders. Fixing your screening rule in advance establishes a falsifiable scientific hypothesis. Tweaking criteria after seeing which stocks rallied is data snooping, which creates an illusion of predictive power.
+        """,
+        r"""
+        Let us work through the calculation of Relative Strength Index (RSI) and Relative Volume:
+
+        1. RSI Calculation over a 14-Bar Window:
+           Suppose the average gain over the last 14 candles is $0.60 per share, and the average loss is $0.40 per share.
+           $$RS = \frac{\overline{\text{Gain}}}{\overline{\text{Loss}}} = \frac{0.60}{0.40} = 1.50$$
+           $$\text{RSI} = 100 - \frac{100}{1 + RS} = 100 - \frac{100}{1 + 1.50} = 100 - \frac{100}{2.50} = 100 - 40 = 60.0$$
+           An RSI of 60.0 reflects moderate upward momentum, sitting comfortably between the Oversold boundary (30) and Overbought boundary (70).
+
+        2. Relative Volume Calculation:
+           If a company has traded 2,400,000 shares today compared to its 20-day historical average volume of 1,600,000 shares:
+           $$\text{RVOL} = \frac{2{,}400{,}000}{1{,}600{,}000} = 1.50\times$$
+           Volume is 50% above normal, confirming institutional participation.
+
+        3. Screening Hit Rate Evaluation:
+           Suppose you run the Oversold screen across 10 sessions. Out of 16 qualifying oversold stocks, 9 rose on the following day (a 56.3% hit rate). Across the same period, 17 of 32 stocks in the Whole Listing rose (a 53.1% hit rate). The screen outperformed the broad market by just 3.2 percentage points across a tiny sample of 16 names—statistically indistinguishable from random chance.
         """,
         """
-        RSI compares average gains with average losses over 14 bars. With an average gain of 0.60 and an average loss of
-        0.40, the ratio is 1.5 and RSI = 100 − 100 ÷ (1 + 1.5) = 60, comfortably between the Oversold (30) and Overbought
-        (70) screens. A company trading 2,400,000 shares when its average is 1,600,000 has a relative volume of 1.5.
+        **Explore Desk analytics.** Click **Desk** in the right sidebar (or enter `MOV` in the Command dialog). Inspect the quant tear sheet for NVRA: compare RSI 14, Beta, and Relative Volume. Click a company in **Top gainers** to immediately load it across the terminal.
 
-        Suppose you run the Oversold screen for several sessions and 9 of the 16 names it listed rose the next session,
-        while 17 of 32 names in the Whole listing rose. That is 56% against 53%, a gap of three points on very few
-        observations: not yet evidence that the screen picks winners. These numbers are illustrative.
+        **Configure multi-monitor layout.** On the replay bar, locate the **Monitor windows** toggles and click **2** or **3**. The chart splits into multiple synchronized panes. In each pane, select a tool: Time & sales, Order book, Heat map, Screener, Sessions, Quotes, or News.
+
+        **Read the simulated tape.** Select **Time & sales** in Monitor 2 and step forward one bar. The summary reads "N prints · M shares · X% lifted the offer". Verify that prints open at the bar's open, trade within the bar's high/low range, and close at the bar's close.
+
+        **Execute a structured screen.** Set Monitor 2 to **Screener** and choose **Oversold**. The table lists qualifying tickers with their Last price, Day Change, RSI, and RVOL. Document your forward predictions in your notebook before advancing the replay clock.
         """,
         """
-        **Read the desk.** Open the **Desk** tab in the right sidebar. Check the quant sheet for the selected company and
-        click a name in **Top gainers** to select it everywhere in the terminal.
-
-        **Split the chart.** In the replay bar's **Monitor windows** group, click **2** or **3**. Each new window has a
-        select **Tool for monitor 2** or **Tool for monitor 3**; the defaults are Time & sales and Heat map. Windows are
-        hidden when the screen is 900 pixels wide or less.
-
-        **Read the tape.** With Time & sales showing, advance one bar. Its summary reads "N prints · M shares · X% lifted
-        the offer"; check that the prints start at the bar's open and end at its close. Then switch the window to
-        **Order book** and note that it shows indicative size, not a queue you can join.
-
-        **Run a screen.** Set a window to **Screener** and choose a screen in **Screen**: Trending up, Oversold,
-        Overbought, Unusual volume, Low earnings multiple, Widest ranges or Whole listing. The columns are Symbol, Last,
-        Chg, RSI, Rel vol, P/E and Vol. Write your prediction for the listed names before you advance.
-
-        **Check.** Click a symbol in any tool and confirm that the chart and ticket switch to it; then compare the RSI in
-        the Screener with the quant sheet's RSI 14 for the same company.
-        """,
-        """
-        There is no mission for this lesson. Choose one named screen, write down your prediction for its names, and
-        advance one session at a time for at least ten sessions. Record how many of its names rose and how many in the
-        Whole listing rose, and keep the screen unchanged throughout. At the end, decide whether the difference is large
-        enough, over enough observations, to mean anything.
+        Select one named screen (such as Oversold or Trending Up) and track it across 10 consecutive trading sessions without altering any criteria. Record qualifying tickers and measure how many rose during the subsequent session compared to the broader market listing. Evaluate whether the screen demonstrated genuine predictive edge.
         """,
         r"\text{RSI}=100-\frac{100}{1+RS},\qquad RS=\frac{\overline{\text{gain}}_{14}}{\overline{\text{loss}}_{14}}",
         '''
@@ -1488,7 +1339,7 @@ print("Screen hit rate:", round(screen_hits / screen_names * 100, 1), "%")
 print("Whole listing hit rate:", round(listing_hits / listing_names * 100, 1), "%")
 ''',
         "Run one named screen for ten sessions without changing it. Record each session's listed names, how many rose the next session, and the same count for the Whole listing. Report both hit rates and explain whether the difference supports the screen.",
-        "A good answer fixes the screen before the first session and keeps it unchanged, records the prediction before each advance, and reports both hit rates with their counts. With a few dozen observations in a generated market, a difference of a few percentage points is well within what chance alone produces, so the honest conclusion is usually that the screen is untested rather than proven. Tuning the RSI threshold after seeing which names rose would make the hit rate look better by construction and is not evidence.",
+        "A disciplined quantitative test fixes screening rules prior to observation and maintains them across multiple sessions. Reporting the hit rate of screened names alongside the baseline hit rate of the entire listing reveals whether the filter provided genuine edge. In small sample sizes (e.g. 16 observations), a 3% outperformance is well within normal random variance. Tuning thresholds after inspecting results constitutes data snooping and invalidates the test.",
         [
             (
                 "What does the badge 'API CALCULATED' on the Desk tab tell you?",
@@ -1522,70 +1373,68 @@ print("Whole listing hit rate:", round(listing_hits / listing_names * 100, 1), "
         [QUOTES, EWM, LEAKAGE],
         (8, 14, 8),
     )
+
     add(
         "Performance against the QX-200, journals and exports",
         "Read the Performance tab against the QX-200 benchmark, journal each order's reasoning, and export your records safely.",
-        """
-        The **Performance** tab marks your account on every observed bar and compares it with the QX-200, an
-        equal-weighted index of every company in the run rebased to the bar your account opened on. Measuring against the
-        market rather than against zero separates what the market did from what your decisions added. Beta and alpha
-        describe that split, and Sharpe, Sortino, Calmar, CAGR, daily VaR and CVaR come from session closes at 252
-        sessions a year. Below 20 closed sessions the panel warns that annualizing so few returns "produces a number, not
-        a measurement".
+        r"""
+        Evaluating trading performance against zero tells you nothing about investment skill. If broad equity markets rally 15% while your portfolio gains 4%, you have suffered an 11% opportunity loss despite your positive return. In the Quanta simulator, your portfolio is benchmarked directly against the QX-200:
+        $$\text{Win Rate} = \frac{n_{\text{win}}}{n_{\text{closing}}},\qquad \text{Profit Factor} = \frac{\sum \text{Gross Wins}}{|\sum \text{Gross Losses}|},\qquad r_{\text{excess}} = r_p - r_{\text{QX-200}}$$
+        The QX-200 is an equal-weighted benchmark index comprising all 32 synthetic companies, rebased to 100.0 on the exact bar your run was initialized. Measuring excess return ($r_{\text{excess}} = r_p - r_{\text{QX-200}}$) isolates your true alpha from market beta.
 
-        The trade statistics are simple counts you can check: a closing trade is a fill that realized a gain or a loss,
-        win rate is winning closing trades divided by all closing trades, and profit factor is gross wins divided by gross
-        losses ("—" when there is no loss). Your journal, the thesis written on each order and its fills, is the other
-        half of a review: it records what you expected before you knew the outcome. Exports keep both. CSV cells that
-        start with =, +, − or @ gain an apostrophe so that a spreadsheet cannot run them as formulas.
+        Key Portfolio Analytics:
+        • Win Rate: The percentage of closed round-trip trades that realized a net gain.
+        • Profit Factor ($\text{PF}$): Gross winning dollars divided by gross losing dollars ($> 1.0$ indicates positive expectancy).
+        • Maximum Drawdown: The peak-to-trough percentage decline in account equity.
+        • Risk-Adjusted Metrics: Sharpe ratio, Sortino ratio, and Value at Risk (VaR) are annualized across 252 sessions. The panel issues an explicit statistical warning below 20 closed sessions because small samples produce noisy estimates.
+
+        Journaling and CSV Export Security:
+        A complete trading review requires inspecting both quantitative metrics and qualitative decision journals. When exporting tables to CSV, the terminal sanitizes data against CSV formula injection by prepending an apostrophe to cells starting with `=`, `+`, `-`, or `@`.
+        """,
+        r"""
+        Suppose an account completes four round-trip closing trades with realized P&L of +$120, +$80, -$50, and -$150.
+
+        Step-by-step performance metrics:
+        1. Trade Counting and Win Rate:
+           Total closed trades: 4. Winning trades: 2.
+           $$\text{Win Rate} = \frac{2}{4} \times 100\% = 50.0\%$$
+
+        2. Profit Factor:
+           $$\text{Gross Wins} = \$120 + \$80 = \$200$$
+           $$\text{Gross Losses} = |-\$50 + (-\$150)| = \$200$$
+           $$\text{Profit Factor} = \frac{\$200}{\$200} = 1.00$$
+           The account broke even across its closed trading activity. Average win is $100, and average loss is -$100.
+
+        3. Maximum Drawdown Calculation:
+           Suppose account equity traced the following values across four sessions:
+           $$\text{Equity} = [\$100{,}000,\; \$101{,}200,\; \$99{,}800,\; \$100{,}600]$$
+           Peak equity was reached at $101,200. The subsequent lowest trough was $99,800.
+           $$\text{Dollar Drawdown} = \$101{,}200 - \$99{,}800 = \$1{,}400$$
+           $$\text{Maximum Drawdown \%} = \frac{\$1{,}400}{\$101{,}200} \times 100\% \approx 1.38\%$$
+
+        4. Excess Return Benchmarking:
+           If your portfolio returned $+0.60\%$ over the week while the QX-200 index gained $+0.90\%$:
+           $$r_{\text{excess}} = +0.60\% - (+0.90\%) = -0.30 \text{ percentage points}$$
+           Your portfolio lagged the passive benchmark by 30 basis points.
         """,
         """
-        Four closing trades realize +$120, +$80, −$50 and −$150. Two of four won, so the win rate is 50%. Gross wins are
-        $200 and gross losses are $200, so the profit factor is 200 ÷ 200 = 1.00: the account broke even on its closed
-        trades. The average win is $100 and the average loss is −$100.
+        **Open the Performance dashboard.** In the bottom panel, click the **Performance** tab (or enter `PORT` in the Command dialog). Review **Equity**, **Total return**, **Max drawdown**, **Realized P&L**, **Unrealized P&L**, **Win rate**, and **Profit factor**.
 
-        The equity path runs $100,000, $101,200, $99,800 and $100,600. The deepest fall from a peak is 101,200 − 99,800
-        = $1,400, a maximum drawdown of 1,400 ÷ 101,200 ≈ 1.38%. If the account returned +0.6% while the QX-200 returned
-        +0.9%, the excess return is −0.3 percentage points: the market did better than your choices over the same bars.
+        **Inspect benchmark chart.** Examine the **Equity path vs QX-200** chart. Note your return alongside **QX-200 return**, **Excess return**, **Beta**, and **Alpha**. Review the **Attribution by company** table to see which holdings drove your results.
+
+        **Record a trade journal entry.** In **Trade history** or **Order history**, click **Journal** on an order row. Enter a clear trade thesis and link it to a curriculum concept, then click **Save journal**.
+
+        **Export audit records.** On any bottom-panel table, click **Export table as CSV** to download a spreadsheet audit file. To export the full simulation run (including trade history, chart drawings, and journal entries), click **Export simulation** in the bottom status bar and select "Run, chart settings & journal (JSON)".
         """,
         """
-        **Read performance.** Open the **Performance** tab in the bottom panel. Note **Equity**, **Total return**, **Max
-        drawdown**, **Realized P&L** and **Unrealized P&L**, then **Closing trades**, **Win rate**, **Profit factor**,
-        **Average win**, **Average loss**, **Average exposure**, **Bars observed** and **Sessions**. The chart **Equity
-        path vs QX-200** sets your account against the benchmark, with **Your return**, **QX-200 return**, **Excess
-        return**, **Beta** and **Alpha (annualized)** beside it. **Attribution by company** shows where results came
-        from.
-
-        **Journal an order.** In **Open orders**, **Order history** or **Trade history**, click **Journal** on a row. The
-        **Trade journal** dialog has **Trade thesis** and **Linked lesson**; write what you expected and what would have
-        changed your mind, then click **Save journal** and look for "Trade journal saved."
-
-        **Export.** On any bottom-panel tab, click **Export table as CSV** to save it as a file such as
-        quanta-open-orders.csv. For the whole run, click **Export simulation** in the status bar and choose "Run, chart
-        settings & journal (JSON)".
-
-        **Check.** Recompute win rate and profit factor from the realized P&L column of your exported trade history, and
-        confirm that they match the panel.
-        """,
-        """
-        Try the mission [Size a position you could survive](/simulator?mission=position-size). The link only preselects
-        it: open the terminal, click the **New simulation run** icon, check that **Practice mission (optional)** shows
-        "Size a position you could survive · ZEPH", and click **Create new paper account**. Keep every position under 5%
-        of opening equity, place at least three orders and advance a full week. Then read the Performance tab, journal
-        every order, export the trade history and recompute the statistics yourself.
+        Try the mission [Size a position you could survive](/simulator?mission=position-size). The link only preselects it: open the terminal, click the **New simulation run** icon, verify that **Practice mission (optional)** shows "Size a position you could survive · ZEPH", and click **Create new paper account**. Maintain all positions strictly under 5% of opening equity ($5,000), place at least three orders, and trade through a full simulated week. Document each trade in your journal and export the resulting trade history.
         """,
         r"\text{win rate}=\frac{n_{\text{win}}}{n_{\text{closing}}},\qquad \text{PF}=\frac{\sum \text{wins}}{\left|\sum \text{losses}\right|},\qquad \text{excess}=R_p-R_{\text{QX-200}}",
         '''
 trades = [120, 80, -50, -150]
-wins = 0
-gross_win = 0
-gross_loss = 0
-for result in trades:
-    if result > 0:
-        wins = wins + 1
-        gross_win = gross_win + result
-    if result < 0:
-        gross_loss = gross_loss - result
+wins = sum(1 for r in trades if r > 0)
+gross_win = sum(r for r in trades if r > 0)
+gross_loss = abs(sum(r for r in trades if r < 0))
 print("Win rate:", wins / len(trades) * 100, "%")
 print("Profit factor:", gross_win / gross_loss)
 
@@ -1599,7 +1448,7 @@ print("Max drawdown:", round(worst * 100, 2), "%")
 print("Excess return vs QX-200:", round(0.6 - 0.9, 1), "points")
 ''',
         "Export your trade history after a week of practice. From the CSV, compute the number of closing trades, win rate, profit factor and average win and loss, and compare them with the Performance tab. Then write one paragraph comparing your return with the QX-200.",
-        "The closing trades are the rows with a non-zero realized P&L. Win rate is the share of those rows that are positive; profit factor divides the sum of the positive results by the absolute sum of the negative ones and is undefined if there were no losses. A good comparison with the QX-200 states both returns over the same bars, the excess return, the beta, and the number of sessions, and adds that a week of a generated market is far too short to show skill. The journal entries explain whether the results followed the reasons written beforehand.",
+        "Closing trades are rows in Trade history that realized a non-zero P&L. Win rate is calculated as profitable closing trades divided by total closing trades. Profit factor is gross winning dollars divided by gross losing dollars (undefined if zero losses occur). When comparing performance against the QX-200, document portfolio return, benchmark return, excess return, and portfolio beta across identical trading bars. A one-week sample is too brief to establish statistical skill; journal entries provide the audit trail to confirm whether results reflected disciplined adherence to rules.",
         [
             (
                 "Four closing trades realize +120, +80, −50 and −150. What is the profit factor?",
@@ -1633,59 +1482,55 @@ print("Excess return vs QX-200:", round(0.6 - 0.9, 1), "points")
         [PERFORMANCE, CSV_SAFETY, RISK_TOLERANCE],
         (8, 14, 8),
     )
+
     add(
         "Capstone: practice missions and a week inside your trading charter",
         "Complete a week of practice inside written limits, judged by process rather than profit, and deliver a review another person could check.",
-        """
-        A practice mission is a lesson's exercise carried into the terminal: a fixed seed, a fixed start, a named company,
-        a short brief and three objectives. Everyone who attempts it meets the same market, and every objective is judged
-        on the server from your orders, fills, positions and clock, never from your profit. That is deliberate. A rule
-        broken profitably is still broken, and a loss taken while following your rules is not proof that the rules were
-        wrong.
+        r"""
+        A practice mission translates curriculum theory into live operational discipline. In a mission, the market seed, start date, target instrument, and three explicit operational objectives are pre-set by the server. Every objective is verified server-side from your orders, executions, positions, and clock timestamps.
 
-        The capstone mission, "Trade inside your written limits", asks you to trade a week inside the charter you wrote in
-        the ethics course: every position under 5% of opening equity, a thesis on every order, and every position closed
-        before you finish. A position cap is judged on the largest holding the run ever carried, so closing an oversized
-        position afterwards does not undo the breach. Your review then turns the week into evidence another person could
-        check: settings, sample, costs, benchmark and the limits of what the simulator models.
+        Crucially, mission objectives never evaluate whether you made money. Profit is intentionally excluded as an assessment criterion. In trading, outcome bias is toxic: a rule broken profitably is still an operational violation, while a disciplined loss taken in accordance with your risk controls is a sound execution.
+
+        The Capstone Mission ("Trade inside your written limits"):
+        $$q_{\max} = \left\lfloor\frac{0.05 \cdot E_0 - c}{P_{\text{fill}}}\right\rfloor,\qquad \text{Position Cap} = 0.05 \times E_0$$
+        The capstone requires executing an entire simulated week (1,950 bars) inside the trading charter established in the ethics course:
+        1. Strict Position Sizing: No position may exceed 5% of opening equity ($5,000 on a $100,000 account). The server evaluates the peak holding ever carried during the run; closing an oversized position later does not erase the breach.
+        2. Documented Trade Theses: Every single submitted order must carry an auditable written thesis.
+        3. Flat Finish: All open positions must be fully closed before completing the week.
+        """,
+        r"""
+        Let us calculate the maximum allowable position size under the 5% charter cap:
+        Opening equity is $E_0 = $100,000.
+        $$\text{Position Cap} = 0.05 \times \$100{,}000 = \$5{,}000.00$$
+        This $5,000 cap is an all-inclusive limit encompassing share purchase cost and broker commissions ($c = $1.00).
+
+        Suppose Meridian Power (MRDN) opens at $52.30 per share ($f = 0.0003$):
+        1. Projected Fill Price:
+           $$P_{\text{fill}} = 52.30 \times 1.0003 = 52.31569 \implies \$52.32$$
+
+        2. Maximum Allowable Shares:
+           $$q_{\max} = \left\lfloor \frac{\$5{,}000 - \$1.00}{\$52.32} \right\rfloor = \left\lfloor \frac{4{,}999.00}{52.32} \right\rfloor = \lfloor 95.546 \rfloor = 95\text{ shares}$$
+
+        3. Total Outlay for 95 Shares:
+           $$95 \times \$52.32 + \$1.00 = \$4{,}970.40 + \$1.00 = \$4{,}971.40 \quad (\text{Compliant: } < \$5{,}000)$$
+
+        4. What happens if you buy 100 shares?
+           $$100 \times \$52.32 + \$1.00 = \$5{,}232.00 + \$1.00 = \$5{,}233.00$$
+           This purchase commits $5,233.00, exceeding the cap by $233.00. Even if the position gains 10% and you sell 5 shares one minute later, the server flags the run as breached because the cap is judged on peak exposure.
         """,
         """
-        The 5% cap on $100,000 of opening equity is $5,000, including fees. If the next bar opens at 52.30, a market buy
-        fills at 52.30 × 1.0003 = 52.31569, which rounds to 52.32. The largest whole number of shares within the cap is
-        the whole-number part of (5,000 − 1) ÷ 52.32 = 95.55, so 95 shares, costing 95 × 52.32 + 1 = $4,971.40.
+        **Initialize the capstone mission.** Open [Trade inside your written limits](/simulator?mission=charter). The link preselects the configuration: click **New simulation run**, verify that **Practice mission (optional)** displays "Trade inside your written limits · MRDN", and click **Create new paper account**. The mission starts on Day 2 at 11:19 AM ET in a cash account with $100,000.
 
-        A buy of 100 shares would cost 100 × 52.32 + 1 = $5,233.00 and breach the cap, even if you sold 5 shares a minute
-        later. The review checklist in the worksheet has twelve items, from the seed and costs to the next experiment you
-        would run; a complete review ticks all twelve.
+        **Review mission objectives.** Expand the **Practice mission** panel beneath the toolbar. Review the three objectives: (1) Keep every position under 5% of opening equity ($5,000), (2) Write a thesis on every order, and (3) Close all positions before finishing.
+
+        **Execute your trading week.** Calculate your maximum share size before submitting any order. Enter a trade thesis in the ticket drawer for every single order. Advance through the week using the **1D** jump button (390 bars) or **1W** jump button (1,950 bars).
+
+        **Close all positions flat.** In the **Positions** tab, click **Close** on every open holding. Preview, submit, and advance the clock until all closing orders fill. The mission panel displays "All objectives met" only after a full week (1,950 bars) has elapsed with zero remaining shares.
+
+        **Export audit file.** Click **Export simulation** in the bottom status bar and download "Run, chart settings & journal (JSON)". Use the 12-item review checklist to prepare your capstone analysis.
         """,
         """
-        **Start the mission.** Open [Trade inside your written limits](/simulator?mission=charter). The link only
-        preselects it: click the **New simulation run** icon, check that **Practice mission (optional)** shows "Trade
-        inside your written limits · MRDN", and click **Create new paper account**. The mission starts on Day 2 at
-        11:19 ET in a cash account with $100,000.
-
-        **Read the brief.** Open the **Practice mission** panel. It shows the title, "N of 3 objectives" and each
-        objective with a note on how far it has come. Copy your written charter into your notebook before the first
-        trade.
-
-        **Trade the week.** Size every entry with the formula above before you preview it, write a **Trade thesis** on
-        every order, and add a **Journal** entry on any order you placed without one. Advance through the week with the
-        **1D** jump or the **1W** jump, which moves 1,950 bars.
-
-        **Finish flat.** Close every position with **Close** in **Positions**, preview and place each order, and advance
-        until they fill. The panel reads "All objectives met" only when no shares remain after a full week since your
-        first order.
-
-        **Deliver the review.** Click **Export simulation** and choose "Run, chart settings & journal (JSON)". Then
-        write the review using the twelve items in the worksheet.
-
-        **Check.** Every objective is met, the exported journal contains a thesis for every order, and your review states
-        what the simulator does not model: dividends, queue position, market impact and real borrow availability.
-        """,
-        """
-        This lesson is the mission. When it is complete, give your review to someone who did not trade the week and ask
-        them to recompute one number from your export, such as the largest position's peak cost or the profit factor. A
-        review is finished when another person can check it without asking you anything.
+        Complete the charter mission and write a comprehensive one-page audit covering the twelve checklist items: seed, cost settings, sessions, orders, a thesis on every order, peak position versus cap, QX-200 benchmark return, excess return, maximum drawdown, unmodeled market frictions, key lessons learned, and the next falsifiable hypothesis.
         """,
         r"q_{\max}=\left\lfloor\frac{0.05\,E_0-c}{P_{\text{fill}}}\right\rfloor",
         '''

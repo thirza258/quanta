@@ -6,6 +6,18 @@ STOCKS = {
     "title": "U.S. SEC · Investor.gov: stocks and ownership",
     "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks",
 }
+ORDERS = {
+    "title": "U.S. SEC · Investor.gov: trading orders and execution",
+    "url": "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-14",
+}
+RESEARCH_FINRA = {
+    "title": "FINRA · Evaluating stocks and business fundamentals",
+    "url": "https://www.finra.org/investors/investing/investment-products/stocks/evaluating-stocks",
+}
+RISK_ALLOCATION = {
+    "title": "U.S. SEC · Investor.gov: asset allocation and risk",
+    "url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation",
+}
 FACTORS = {
     "title": "Kenneth R. French · Data Library and factor methodology",
     "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html",
@@ -18,7 +30,7 @@ VALIDATION = {
 
 def attach_references(catalog):
     fallback = {
-        "trading-fundamentals": [STOCKS],
+        "trading-fundamentals": [STOCKS, ORDERS, RESEARCH_FINRA, RISK_ALLOCATION],
         "econometrics": [FACTORS, VALIDATION],
         "strategy-lab": [VALIDATION, FACTORS],
         "web3": [

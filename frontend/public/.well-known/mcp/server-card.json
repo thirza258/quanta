@@ -1,0 +1,16 @@
+{
+  "serverInfo": {
+    "name": "quanta-mcp",
+    "version": "1.0.0"
+  },
+  "endpoint": "https://quant.nevatal.id/mcp",
+  "transport": {
+    "type": "streamable-http",
+    "url": "https://quant.nevatal.id/mcp"
+  },
+  "capabilities": {
+    "tools": true,
+    "resources": true,
+    "prompts": true
+  }
+}

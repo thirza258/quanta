@@ -633,6 +633,20 @@ attach_learning_guidance(catalog)
 attach_research_depth(catalog)
 attach_references(catalog)
 attach_real_world_cases(catalog)
+
+from book_courses import format_bullet_lists
+
+for track in catalog:
+    if "description" in track:
+        track["description"] = format_bullet_lists(track["description"])
+    if "readingGuide" in track:
+        track["readingGuide"] = format_bullet_lists(track["readingGuide"])
+    for module in track.get("modules", []):
+        if "content" in module:
+            module["content"] = format_bullet_lists(module["content"])
+        if "reading" in module:
+            module["reading"] = format_bullet_lists(module["reading"])
+
 output = Path(__file__).resolve().parents[2] / "content/catalog/curriculum.json"
 output.parent.mkdir(exist_ok=True)
 # Dev reloaders and image builders must see either the old or complete new catalog.

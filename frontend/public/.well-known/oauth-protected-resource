@@ -1,0 +1,16 @@
+{
+  "resource": "https://quant.nevatal.id",
+  "authorization_servers": [
+    "https://quant.nevatal.id"
+  ],
+  "scopes_supported": [
+    "read",
+    "write",
+    "quant",
+    "mcp"
+  ],
+  "bearer_methods_supported": [
+    "header"
+  ],
+  "resource_documentation": "https://quant.nevatal.id/api/docs"
+}

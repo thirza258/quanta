@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "quantitative-analysis",
+      "type": "skill-md",
+      "description": "Perform quantitative finance analysis, backtest trading strategies, compute risk metrics, and run financial simulations on Quanta.",
+      "url": "https://quant.nevatal.id/skills/quantitative-analysis/SKILL.md",
+      "digest": "sha256:fd61a773b41c70a1db040fd47b788f96a2cdcc597122377a8c0005ce81f35860"
+    }
+  ]
+}
