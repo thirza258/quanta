@@ -28,6 +28,7 @@ from quanta.domain.simulator import (
 from quanta.domain.simulator_models import (
     Advance,
     Amendment,
+    Decision,
     Journal,
     Mutation,
     OrderCreate,
@@ -440,15 +441,68 @@ def order_create(run_id: str, payload: OrderCreate, account: str, db: Session):
     return mutate(db, run_id, account, payload, "order", operation)
 
 
+def watched(state):
+    """Symbols the learner is exposed to: held, or with an order still working."""
+    names = {s for s, p in state["positions"].items() if p["quantity"]}
+    names |= {o["symbol"] for o in state["orders"] if o["status"] in (HELD, *OPEN)}
+    return names
+
+
+def _scheduled(state, target, kinds):
+    """Bars between the cursor and the target where the clock should stop.
+
+    Built from the run's own calendar and newsroom rather than from the fill
+    loop, so a stop lands on the same bar however the jump was reached, and
+    never depends on how far the market happens to have been generated.
+    """
+    room = _room(state)
+    if not room or not ({"earnings", "news"} & set(kinds)):
+        return {}
+    names = watched(state)
+    if not names:
+        return {}
+    sectors = {BY_SYMBOL[s].sector for s in names if s in BY_SYMBOL}
+    stops = {}
+    cursor = state["cursor"]
+    if "earnings" in kinds:
+        for symbol in names:
+            for quarter in room.books.get(symbol, []):
+                if cursor < quarter["index"] <= target:
+                    stops[quarter["index"]] = (
+                        f"{symbol} reported {quarter['label']}. The consensus was "
+                        f"{quarter['consensus_eps']} a share."
+                    )
+    if "news" in kinds:
+        for event in room.events:
+            if not (cursor < event["index"] <= target):
+                continue
+            if event["impact"] != "high" or not event.get("points"):
+                continue
+            if event["symbol"] in names or (
+                event["scope"] == "sector" and event["sector"] in sectors
+            ):
+                stops.setdefault(event["index"], event["headline"])
+    return stops
+
+
 def advance(run_id: str, payload: Advance, account: str, db: Session):
-    return mutate(
-        db,
-        run_id,
-        account,
-        payload,
-        "advance",
-        lambda state, data: advance_state(state, data, payload.steps),
-    )
+    def operation(state, data):
+        target = min(state["cursor"] + payload.steps, len(next(iter(data.values()))) - 1)
+        kinds = set(payload.stop_on)
+        reason = advance_state(
+            state,
+            data,
+            payload.steps,
+            _scheduled(state, target, kinds),
+            kinds,
+        )
+        # The reason travels on the state so the snapshot can carry it back; a
+        # jump that ran its course clears it rather than leaving the last one up.
+        state["interrupted"] = (
+            {"bar": state["cursor"], "reason": reason, "of": payload.steps} if reason else None
+        )
+
+    return mutate(db, run_id, account, payload, "advance", operation)
 
 
 def cancel(run_id: str, order_id: str, payload: Mutation, account: str, db: Session):
@@ -499,6 +553,33 @@ def preferences(run_id: str, payload: Preferences, account: str, db: Session):
         "preferences",
         lambda state, data: state.update(preferences=payload.preferences),
     )
+
+
+def decision(run_id: str, payload: Decision, account: str, db: Session):
+    """Record what the learner decided at a stop, and clear the stop.
+
+    A stop that could only be dismissed would teach nothing. Writing the reason
+    down is the exercise: it is the one record of what was known at the time,
+    before the outcome made the choice look obvious either way.
+    """
+
+    def operation(state, data):
+        stop = state.get("interrupted")
+        if not stop:
+            raise HTTPException(409, "The replay is not stopped at an event.")
+        state.setdefault("decisions", []).append(
+            {
+                "id": str(payload.id),
+                "bar": stop["bar"],
+                "time": int(bar_at(data, next(iter(data)), stop["bar"])["time"]),
+                "reason": stop["reason"],
+                "choice": payload.choice,
+                "note": payload.note,
+            }
+        )
+        state["interrupted"] = None
+
+    return mutate(db, run_id, account, payload, "decision", operation)
 
 
 def journal(run_id: str, order_id: str, payload: Journal, account: str, db: Session):

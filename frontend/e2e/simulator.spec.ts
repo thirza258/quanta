@@ -779,3 +779,50 @@ test("the market flow pane shows other desks trading the same bars", async ({
   await expect.poll(async () => rows.first().textContent()).not.toBe(before);
   expect(errors).toEqual([]);
 });
+
+test("the clock stops at an event and asks for a decision", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await open(page);
+
+  // Off by default: a jump runs its whole length, as it always has.
+  await expect(page.getByLabel("Stop the replay on")).toHaveValue("off");
+  const opening = (await account(page)).cursor;
+  await page.getByLabel("Jump forward by one hour").click();
+  await expect
+    .poll(async () => (await account(page)).cursor)
+    .toBe(opening + 60);
+  await expect(page.getByRole("alert", { name: "Replay stopped" })).toHaveCount(
+    0,
+  );
+
+  // Switched on, the next fill cuts the jump short.
+  await page.getByLabel("Stop the replay on").selectOption("on");
+  await page.locator(".sim-quick-trade .buy").click();
+  await page.getByLabel("Shares", { exact: true }).fill("5");
+  await submit(page);
+  const resumed = (await account(page)).cursor;
+  await page.getByLabel("Jump forward by one session").click();
+
+  const card = page.getByRole("alert", { name: "Replay stopped" });
+  await expect(card).toBeVisible();
+  await expect(card).toContainText("Your order filled");
+  await expect(card).toContainText("still to run");
+  // It stopped on the fill, far short of the 390 bars asked for.
+  expect((await account(page)).cursor).toBe(resumed + 1);
+
+  // Deciding clears it and records what was known at the time.
+  page.once(
+    "dialog",
+    (d) => void d.accept("Entry as planned; stop stays where it is."),
+  );
+  await card.getByRole("button", { name: "Hold, and say why" }).click();
+  await expect(card).toHaveCount(0);
+  const state = await account(page);
+  expect(state.interrupted).toBeNull();
+  expect(state.decisions.at(-1).note).toContain("Entry as planned");
+  expect(state.decisions.at(-1).choice).toBe("hold");
+  expect(errors).toEqual([]);
+});

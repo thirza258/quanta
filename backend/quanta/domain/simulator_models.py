@@ -58,6 +58,11 @@ class Advance(Mutation):
     # Up to five modeled sessions, so a learner can step a minute or jump a week
     # to see how a position behaves after a headline or a reported quarter.
     steps: StrictInt = Field(default=1, ge=1, le=1950)
+    # Events that cut a jump short so the learner has to decide something while
+    # the position is open. An empty list keeps the clock running to the end.
+    stop_on: list[
+        Literal["fill", "bracket", "margin_call", "earnings", "news"]
+    ] = Field(default_factory=list, max_length=5)
 
 
 class Amendment(Mutation):
@@ -67,6 +72,12 @@ class Amendment(Mutation):
 
 class Preferences(Mutation):
     preferences: dict
+
+
+class Decision(Mutation):
+    # What the learner chose to do when the clock stopped, and why.
+    choice: Literal["hold", "traded"]
+    note: str = Field(default="", max_length=2000)
 
 
 class Journal(Mutation):

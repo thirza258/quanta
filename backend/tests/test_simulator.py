@@ -1847,3 +1847,84 @@ def test_a_run_without_a_newsroom_has_no_generated_participants(client):
     ).json()["tools"]["crowd"]
     assert view["available"] is False and view["orders"] == []
     assert "predates" in view["notice"]
+
+
+def test_a_jump_stops_at_the_event_the_learner_asked_to_see(client):
+    """A replay that always runs to the end of the jump teaches watching."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    # Nothing held, nothing working: there is nothing to be interrupted about.
+    quiet = mutate(client, run, "advance", steps=390, stop_on=["earnings", "news"]).json()
+    assert quiet["interrupted"] is None
+    assert quiet["cursor"] == run["cursor"] + 390
+
+    # A fill stops the clock on the bar it happens.
+    placed = mutate(client, quiet, "orders", symbol=SYMBOL, side="buy", quantity=20).json()
+    stopped = mutate(client, placed, "advance", steps=390, stop_on=["fill"]).json()
+    assert stopped["interrupted"]
+    assert stopped["cursor"] == placed["cursor"] + 1
+    assert "Your order filled" in stopped["interrupted"]["reason"]
+    assert stopped["interrupted"]["of"] == 390
+
+    # Holding the position, the next earnings print stops it too.
+    state = stopped
+    for _ in range(14):
+        state = mutate(client, state, "advance", steps=1950, stop_on=["earnings"]).json()
+        if state["interrupted"]:
+            break
+    assert state["interrupted"], "a held position meets its company's next print"
+    assert SYMBOL in state["interrupted"]["reason"]
+    assert "reported" in state["interrupted"]["reason"]
+    # The clock stopped on the printing bar, not after it.
+    board = client.get(f"/api/v1/simulator/runs/{run['id']}/calendar").json()
+    printed = [e for e in board["earnings"] if e["symbol"] == SYMBOL and e["released"]]
+    assert printed and printed[-1]["index"] == state["cursor"]
+
+    # Running a jump to its end clears the reason rather than leaving it up.
+    cleared = mutate(client, state, "advance", steps=5).json()
+    assert cleared["interrupted"] is None
+
+
+def test_asking_for_no_stops_replays_exactly_as_before(client):
+    """The field is additive: an absent stop_on is the old behaviour."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    placed = mutate(client, run, "orders", symbol=SYMBOL, side="buy", quantity=20).json()
+    ran = mutate(client, placed, "advance", steps=600).json()
+    assert ran["cursor"] == placed["cursor"] + 600
+    assert ran["interrupted"] is None
+    assert any(f["symbol"] == SYMBOL for f in ran["fills"])
+
+
+def test_a_stop_is_cleared_by_deciding_something_and_recorded(client):
+    """A stop that could only be dismissed would teach nothing."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    placed = mutate(
+        client, run, "orders", symbol=SYMBOL, side="buy", quantity=20
+    ).json()
+    stopped = mutate(client, placed, "advance", steps=390, stop_on=["fill"]).json()
+    assert stopped["interrupted"] and stopped["decisions"] == []
+
+    # Nothing to decide until the clock is actually stopped at something.
+    recorded = client.post(
+        f"/api/v1/simulator/runs/{run['id']}/decision",
+        json={
+            "id": ident(),
+            "version": stopped["version"],
+            "choice": "hold",
+            "note": "Thesis unchanged; the fill is the entry I planned.",
+        },
+    ).json()
+    assert recorded["interrupted"] is None
+    assert len(recorded["decisions"]) == 1
+    entry = recorded["decisions"][0]
+    assert entry["choice"] == "hold" and entry["bar"] == stopped["cursor"]
+    assert "Your order filled" in entry["reason"]
+    assert entry["note"].startswith("Thesis unchanged")
+
+    refused = client.post(
+        f"/api/v1/simulator/runs/{run['id']}/decision",
+        json={"id": ident(), "version": recorded["version"], "choice": "hold"},
+    )
+    assert refused.status_code == 409 and "not stopped" in refused.json()["detail"]

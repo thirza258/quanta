@@ -9,6 +9,7 @@ from quanta.db.session import get_session
 from quanta.domain.simulator_models import (
     Advance,
     Amendment,
+    Decision,
     Journal,
     Mutation,
     OrderCreate,
@@ -160,6 +161,16 @@ def amend(
     db: Session = Depends(get_session),
 ):
     return service.amend(run_id, order_id, payload, account, db)
+
+
+@router.post("/runs/{run_id}/decision")
+def decision(
+    run_id: str,
+    payload: Decision,
+    account: str = Depends(owner),
+    db: Session = Depends(get_session),
+):
+    return service.decision(run_id, payload, account, db)
 
 
 @router.put("/runs/{run_id}/preferences")

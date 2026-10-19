@@ -131,6 +131,8 @@ export type Preferences = {
   panes?: MonitorTool[];
   /** Whether scored headlines are marked on the price chart. */
   newsMarkers?: boolean;
+  /** Events that cut a jump short so a decision has to be made. */
+  stopOn?: StopEvent[];
 };
 
 export type NewsMarker = {
@@ -146,6 +148,13 @@ export type NewsMarker = {
     impact: string;
   }[];
 };
+
+export type StopEvent =
+  | "fill"
+  | "bracket"
+  | "margin_call"
+  | "earnings"
+  | "news";
 
 export type MonitorTool =
   | "tape"
@@ -309,6 +318,8 @@ export type SimRun = {
   reserved: string;
   available: string;
   equity: string;
+  /** Why the last jump stopped short, if it did. */
+  interrupted: { bar: number; reason: string; of: number } | null;
   /** What the account is carrying, counting a short at what it owes. */
   gross_exposure: string;
   /** Cash on a cash account; twice equity less gross on a margin one. */
