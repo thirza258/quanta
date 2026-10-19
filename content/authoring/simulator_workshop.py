@@ -2087,5 +2087,8 @@ print("Reaches the usual two-standard-error bar:", excess > 2 * error)
         },
         checkpoints_for(modules, parts, len(parts)),
     )
-    track["exams"][-1]["version"] = 1
+    # Bumped when unit 4 took the final from 12 questions to 16. A draft started
+    # against the old paper must be rejected with "this exam has changed" rather
+    # than failing validation for the four answers it could not have had.
+    track["exams"][-1]["version"] = 2
     return track

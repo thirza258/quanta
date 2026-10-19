@@ -5588,7 +5588,7 @@
         "id": "simulator-workshop-final",
         "title": "Trading simulator workshop final exam",
         "kind": "final",
-        "version": 1,
+        "version": 2,
         "description": "Open-book, untimed assessment with new cases from every module. Budget about three minutes per question. Answers and explanations appear after submission. Pass at 80%; retries remain available. The written capstone is self-assessed separately.",
         "minutes": 48,
         "passingScore": 80,

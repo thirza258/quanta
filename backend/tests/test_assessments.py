@@ -145,6 +145,7 @@ def test_workspace_round_trips_exam_draft_and_results(client):
         "stock-machine-learning",
         "strategy-lab",
         "intelligent-investor",
+        "simulator-workshop",
     ],
 )
 def test_expanded_final_rejects_old_version_and_grades_exact_threshold(client, slug):
