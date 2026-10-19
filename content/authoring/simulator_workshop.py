@@ -656,7 +656,9 @@ print("Drifting afterwards:", round(total * (1 - 0.58), 2))
 
 weights = [3, 2, 1]
 directions = [1, -1, 1]
-signed = sum(w * d for w, d in zip(weights, directions))
+signed = 0
+for i in range(len(weights)):
+    signed = signed + weights[i] * directions[i]
 total_weight = sum(weights)
 print("Signed weight:", signed)
 print("Total weight:", total_weight)
@@ -1432,9 +1434,15 @@ print("Whole listing hit rate:", round(listing_hits / listing_names * 100, 1), "
         r"\text{win rate}=\frac{n_{\text{win}}}{n_{\text{closing}}},\qquad \text{PF}=\frac{\sum \text{wins}}{\left|\sum \text{losses}\right|},\qquad \text{excess}=R_p-R_{\text{QX-200}}",
         '''
 trades = [120, 80, -50, -150]
-wins = sum(1 for r in trades if r > 0)
-gross_win = sum(r for r in trades if r > 0)
-gross_loss = abs(sum(r for r in trades if r < 0))
+wins = 0
+gross_win = 0
+gross_loss = 0
+for r in trades:
+    if r > 0:
+        wins = wins + 1
+        gross_win = gross_win + r
+    else:
+        gross_loss = gross_loss + abs(r)
 print("Win rate:", wins / len(trades) * 100, "%")
 print("Profit factor:", gross_win / gross_loss)
 

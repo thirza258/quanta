@@ -33,7 +33,7 @@ ROOT = Path(__file__).resolve().parents[2]
             {
                 "Long-horizon capital": 66,
                 "Case maximum price": 52.5,
-                "Investor plan rubric total": 100,
+                "Capstone rubric total": 100,
             },
         ),
     ],
