@@ -36,6 +36,50 @@ ROOT = Path(__file__).resolve().parents[2]
                 "Capstone rubric total": 100,
             },
         ),
+        # Unit 5. Every figure is recomputed here from the lesson's own inputs
+        # rather than copied from its prose, so a worksheet that drifts away
+        # from what the lesson claims fails instead of quietly disagreeing.
+        (
+            "11.17",
+            {
+                "Straight-line price change percent": -7 * 2,
+                "With convexity, percent": round((-7 * 0.02 + 0.5 * 55 * 0.02**2) * 100, 2),
+                "Break-even annual default rate percent": round(2.0 / (1 - 0.60), 2),
+                "Loss given default, cents on the dollar": 40,
+            },
+        ),
+        (
+            "11.18",
+            {
+                "Price to earnings": round(42.00 / 3.20, 2),
+                "Price to book": round(42.00 / 24.00, 2),
+                "Product": round((42.00 / 3.20) * (42.00 / 24.00), 2),
+                "Highest passing price": round((22.5 * 3.20 * 24.00) ** 0.5, 2),
+                "Recurring product": round((42.00 / 2.80) * (42.00 / 24.00), 2),
+            },
+        ),
+        (
+            "11.19",
+            {
+                "Real opportunities in the screen": 200 * 0.06,
+                "Expected real finds among those studied": 20 * 0.06,
+                "Hours spent": 20 * 8,
+                "Hours per genuine find": round(8 / 0.06, 0),
+                "At a 12 percent hit rate, hours per find": round(8 / 0.12, 0),
+            },
+        ),
+        (
+            "11.20",
+            {
+                "Shares remaining": round(1000 - 5200 / 26.00, 0),
+                "Business value after": 1000 * 20.00 - 5200,
+                "Value per remaining share": round((1000 * 20.00 - 5200) / (1000 - 5200 / 26.00), 2),
+                "Transferred away per remaining share": round(
+                    20.00 - (1000 * 20.00 - 5200) / (1000 - 5200 / 26.00), 2
+                ),
+                "Earnings per share after": round(2000.0 / (1000 - 5200 / 26.00), 2),
+            },
+        ),
     ],
 )
 def test_original_worksheets_match_independent_arithmetic(lesson_id, expected):
