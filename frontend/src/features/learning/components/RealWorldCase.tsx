@@ -1,5 +1,6 @@
 import { caseKindLabels } from "@/features/learning/model/cases";
 import type { CaseStudy, Lesson } from "@/features/learning/model/types";
+import MarkdownRenderer from "@/shared/components/MarkdownRenderer";
 import { ArrowUpRight, BookmarkPlus, MapPin } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
@@ -44,7 +45,9 @@ export default function RealWorldCase({
         {caseStudy.setting}
       </p>
       <p className="case-period">{caseStudy.period}</p>
-      <p>{caseStudy.context}</p>
+      <p>
+        <MarkdownRenderer content={caseStudy.context} inline />
+      </p>
       <div className="case-sources" aria-label="Case references">
         <h3>Source &amp; context</h3>
         {caseStudy.references.map((reference) => (
@@ -57,18 +60,26 @@ export default function RealWorldCase({
           </div>
         ))}
       </div>
-      <p className="case-boundary">{caseStudy.boundary}</p>
+      <p className="case-boundary">
+        <MarkdownRenderer content={caseStudy.boundary} inline />
+      </p>
       <div className="case-application">
         <h3>How this connects to the lesson</h3>
-        <p>{lesson.realWorld.connection}</p>
+        <p>
+          <MarkdownRenderer content={lesson.realWorld.connection} inline />
+        </p>
         <h3>Your task</h3>
-        <p>{lesson.realWorld.task}</p>
+        <p>
+          <MarkdownRenderer content={lesson.realWorld.task} inline />
+        </p>
         <button className="button secondary small" onClick={onWrite}>
           <BookmarkPlus size={15} aria-hidden="true" /> Work through this case
         </button>
         <details className="case-walkthrough">
           <summary>Compare your reasoning</summary>
-          <p>{lesson.realWorld.walkthrough}</p>
+          <p>
+            <MarkdownRenderer content={lesson.realWorld.walkthrough} inline />
+          </p>
         </details>
       </div>
     </section>

@@ -6,6 +6,7 @@ import { trackLabel } from "@/features/learning/model/catalog";
 import { trackProgress } from "@/features/learning/model/progress";
 import type { Track } from "@/features/learning/model/types";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
+import MarkdownRenderer from "@/shared/components/MarkdownRenderer";
 import { ArrowUpRight, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 export default function TrackCard({ track }: { track: Track }) {
@@ -26,7 +27,9 @@ export default function TrackCard({ track }: { track: Track }) {
         </span>
       </div>
       <h3>{track.title}</h3>
-      <p>{track.description}</p>
+      <p>
+        <MarkdownRenderer content={track.description} inline />
+      </p>
       <div className="track-card-footer">
         <span>
           <BookOpen size={13} />

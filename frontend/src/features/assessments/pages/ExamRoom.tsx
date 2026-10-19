@@ -14,6 +14,7 @@ import {
 } from "@/features/learning/model/progress";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { api, ApiError, post } from "@/shared/api/client";
+import MarkdownRenderer from "@/shared/components/MarkdownRenderer";
 import {
   ArrowLeft,
   ArrowRight,
@@ -405,7 +406,10 @@ function Assessment({ exam }: { exam: Exam }) {
                   QUESTION {index + 1} OF {exam.questions.length}
                 </div>
                 <h2 ref={heading} tabIndex={-1} id="exam-question">
-                  {exam.questions[index].question}
+                  <MarkdownRenderer
+                    content={exam.questions[index].question}
+                    inline
+                  />
                 </h2>
                 <fieldset
                   className="exam-options"
@@ -448,7 +452,7 @@ function Assessment({ exam }: { exam: Exam }) {
                       <span className="answer-letter">
                         {String.fromCharCode(65 + answer)}
                       </span>
-                      {option}
+                      <MarkdownRenderer content={option} inline />
                     </label>
                   ))}
                 </fieldset>
@@ -603,19 +607,29 @@ function Assessment({ exam }: { exam: Exam }) {
                   Question {i + 1} ·{" "}
                   {result.answers[q.id] === q.answer ? "Correct" : "Incorrect"}
                 </span>
-                <h3>{q.question}</h3>
+                <h3>
+                  <MarkdownRenderer content={q.question} inline />
+                </h3>
                 <p>
                   Your answer:{" "}
                   <strong>
-                    {q.options[result.answers[q.id]] ?? "No answer"}
+                    <MarkdownRenderer
+                      content={q.options[result.answers[q.id]] ?? "No answer"}
+                      inline
+                    />
                   </strong>
                 </p>
                 {result.answers[q.id] !== q.answer ? (
                   <p>
-                    Correct answer: <strong>{q.options[q.answer]}</strong>
+                    Correct answer:{" "}
+                    <strong>
+                      <MarkdownRenderer content={q.options[q.answer]} inline />
+                    </strong>
                   </p>
                 ) : null}
-                <p>{q.explanation}</p>
+                <p>
+                  <MarkdownRenderer content={q.explanation} inline />
+                </p>
                 <Link className="text-link" to={`/learn/${q.lessonId}`}>
                   Review {findLesson(q.lessonId)?.title}
                   <ArrowRight size={14} />
