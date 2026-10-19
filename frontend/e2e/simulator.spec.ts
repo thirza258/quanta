@@ -748,3 +748,34 @@ test("a margin account sells short, carries the borrow, and buys it back", async
   ).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+test("the market flow pane shows other desks trading the same bars", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await open(page);
+
+  await page
+    .getByRole("group", { name: "Monitor windows" })
+    .getByText("2")
+    .click();
+  const pane = page.getByRole("region", { name: /^Monitor 2:/ });
+  await page.getByLabel("Tool for monitor 2").selectOption("crowd");
+  await expect(pane).toContainText("they do not move prices");
+  const rows = pane.locator(".sim-crowd-table tbody tr");
+  await expect(rows.first()).toBeVisible();
+
+  // Every row names a desk, a side and a size.
+  const first = rows.first();
+  await expect(first).toContainText(/BUY|SELL/);
+  await expect(pane).toContainText(/filled ·/);
+
+  // Advancing the clock brings new flow with it.
+  const before = await rows.first().textContent();
+  const refreshed = page.waitForResponse((r) => r.url().includes("/monitor?"));
+  await page.getByLabel("Jump forward by one session").click();
+  expect((await refreshed).status()).toBe(200);
+  await expect.poll(async () => rows.first().textContent()).not.toBe(before);
+  expect(errors).toEqual([]);
+});

@@ -2365,3 +2365,12 @@
   color: var(--sim-muted);
   border-color: var(--sim-border);
 }
+
+/* Market flow: the generated desks and what they are doing. */
+.sim-crowd-table td:nth-child(2) {
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
+}

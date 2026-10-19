@@ -148,7 +148,14 @@ export type NewsMarker = {
 };
 
 export type MonitorTool =
-  "tape" | "book" | "heatmap" | "screener" | "sessions" | "quotes" | "news";
+  | "tape"
+  | "book"
+  | "heatmap"
+  | "screener"
+  | "sessions"
+  | "quotes"
+  | "crowd"
+  | "news";
 
 export type TapePrint = {
   time: number;
@@ -239,6 +246,30 @@ export type MonitorTools = {
     }[];
     volatility: number | null;
     prior_close: number;
+  };
+  crowd?: {
+    symbol: string;
+    available: boolean;
+    notice: string;
+    orders: {
+      desk: string;
+      style: string;
+      side: "buy" | "sell";
+      kind: "market" | "limit";
+      quantity: number;
+      limit: number | null;
+      placed: number;
+      index: number;
+      status: "working" | "filled";
+      price: number | null;
+      filled_at: number | null;
+      reason: string;
+    }[];
+    desks: { id: string; name: string; style: string }[];
+    window_bars?: number;
+    working?: number;
+    filled?: number;
+    buy_share?: number | null;
   };
   quotes?: {
     rows: {

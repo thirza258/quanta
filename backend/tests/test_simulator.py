@@ -1043,7 +1043,7 @@ def test_no_endpoint_reveals_a_price_beyond_the_cursor(client):
         "analytics": {"symbol": SYMBOL},
         "calendar": {},
         "monitor": {
-            "panes": "tape,book,heatmap,screener,sessions,quotes",
+            "panes": "tape,book,heatmap,screener,sessions,quotes,crowd",
             "symbol": SYMBOL,
             "screen": "cheap",
         },
@@ -1656,7 +1656,7 @@ def test_nothing_leaks_past_the_cursor_with_a_short_open(client):
     advanced = mutate(client, placed, "advance", steps=500).json()
     routes = {
         "desk": {},
-        "monitor": {"panes": "screener,heatmap", "symbol": SYMBOL, "screen": "volatile"},
+        "monitor": {"panes": "screener,heatmap,crowd", "symbol": SYMBOL, "screen": "volatile"},
         "analytics": {"symbol": SYMBOL},
     }
     before = {
@@ -1764,3 +1764,86 @@ def test_a_bracket_counts_as_the_one_order_the_learner_placed(client):
     assert ok and "All 1 orders" in note
     ok, note = CHECKS["order_count"](state, mission, {"count": 3}, None, None)
     assert not ok and note.startswith("1 of 3")
+
+
+def test_the_crowd_trades_under_the_same_rules_as_the_learner(client):
+    """Generated participants, read off the bars rather than moving them."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    # Land just past a session boundary so every style has something to do.
+    advanced = mutate(client, run, "advance", steps=1171 - run["cursor"]).json()
+    url = f"/api/v1/simulator/runs/{run['id']}/monitor"
+    params = {"panes": "crowd", "symbol": SYMBOL, "limit": 200}
+    view = client.get(url, params=params).json()["tools"]["crowd"]
+    orders = view["orders"]
+    assert orders and view["available"] is True
+    assert len(view["desks"]) == 7
+    assert "do not move prices" in view["notice"]
+
+    bars = client.get(
+        f"/api/v1/simulator/runs/{run['id']}/market",
+        params={"symbol": SYMBOL, "interval": "1m", "limit": 200},
+    ).json()["bars"]
+    window = {bar["time"]: bar for bar in bars}
+
+    traded = {}
+    for order in orders:
+        assert order["desk"] and order["reason"] and order["quantity"] >= 1
+        assert order["status"] in ("working", "filled")
+        # Nothing fills on the bar its desk read, and nothing is dated ahead.
+        assert order["placed"] <= advanced["clock"]
+        if order["status"] != "filled":
+            assert order["price"] is None
+            continue
+        assert order["filled_at"] > order["placed"]
+        bar = window.get(order["filled_at"])
+        if not bar:
+            continue
+        # Every reported fill is a price that bar actually traded at.
+        assert bar["low"] <= order["price"] <= bar["high"], order
+        # A passive order never fills on the wrong side of its own limit.
+        if order["kind"] == "limit":
+            if order["side"] == "buy":
+                assert order["price"] <= order["limit"] + 0.005, order
+            else:
+                assert order["price"] >= order["limit"] - 0.005, order
+        traded[order["filled_at"]] = traded.get(order["filled_at"], 0) + order["quantity"]
+    # The desks cannot between them trade more of a bar than the bar traded.
+    for time, quantity in traded.items():
+        if time in window:
+            assert quantity <= window[time]["volume"], (time, quantity, window[time]["volume"])
+
+    # Styles do what they say: the momentum desk never leans against its own
+    # signal, and the market maker is the only one working both sides.
+    for order in orders:
+        if order["desk"] == "Momentum desk":
+            assert ("above" in order["reason"]) == (order["side"] == "buy")
+    assert {o["side"] for o in orders if o["desk"] == "Market-making desk"} == {"buy", "sell"}
+
+    # Reading it twice gives the same crowd: nothing here is rolled per request.
+    assert client.get(url, params=params).json()["tools"]["crowd"] == view
+
+
+def test_a_run_without_a_newsroom_has_no_generated_participants(client):
+    """Invented counterparties must not be attached to imported prices."""
+    from quanta.db.models import TradingRun
+    from quanta.db.session import engine
+    from sqlalchemy.orm.attributes import flag_modified
+    from sqlmodel import Session
+
+    client.get("/api/v1/simulator")
+    run = create(client, seed=42)
+    with Session(engine) as db:
+        row = db.get(TradingRun, run["id"])
+        state = dict(row.state)
+        state["config"] = {k: v for k, v in state["config"].items() if k != "universe"}
+        row.state = state
+        flag_modified(row, "state")
+        db.add(row)
+        db.commit()
+    view = client.get(
+        f"/api/v1/simulator/runs/{run['id']}/monitor",
+        params={"panes": "crowd", "symbol": "AAPL"},
+    ).json()["tools"]["crowd"]
+    assert view["available"] is False and view["orders"] == []
+    assert "predates" in view["notice"]

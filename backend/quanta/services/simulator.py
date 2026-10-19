@@ -35,6 +35,7 @@ from quanta.domain.simulator_models import (
     RunCreate,
 )
 from quanta.services import data_store
+from quanta.services import simulator_crowd as crowd
 from quanta.services import simulator_desk as desk
 from quanta.services import simulator_tools as tools
 from quanta.services.simulator_fundamentals import quarter_label, structure, valuation
@@ -684,7 +685,7 @@ def desk_view(run_id: str, account: str, db: Session):
 
 # One request serves however many panes a monitor layout is showing, so adding a
 # window to the terminal does not add a round trip to every advance of the clock.
-MONITORS = {"tape", "book", "heatmap", "screener", "sessions", "quotes"}
+MONITORS = {"tape", "book", "heatmap", "screener", "sessions", "quotes", "crowd"}
 
 
 def monitor(
@@ -721,6 +722,26 @@ def monitor(
             built[name] = tools.sessions_summary(state, data, symbol)
         elif name == "quotes":
             built[name] = {"rows": desk.quotes_table(state, data, room)}
+        elif name == "crowd":
+            if room is None:
+                # Invented participants must not be shown trading real prices,
+                # for the same reason invented headlines are not attached to them.
+                built[name] = {
+                    "symbol": symbol,
+                    "orders": [],
+                    "desks": [],
+                    "available": False,
+                    "notice": (
+                        "This run replays imported historical prices. No participants "
+                        "are generated for it, because invented counterparties must "
+                        "never be attached to real market data."
+                        if state["config"]["mode"] == "historical"
+                        else "This run predates the generated market participants. "
+                        "Start a new run to watch the desks trade."
+                    ),
+                }
+            else:
+                built[name] = {**crowd.flow(state, data, room, symbol, limit), "available": True}
     return {
         "tools": built,
         "symbol": symbol,
