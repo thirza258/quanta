@@ -1,6 +1,6 @@
 # Trading simulator & strategy lab workshops
 
-Two applied courses teach the platform's own tools. They come straight after Trading ethics, so learners practise with their written charter in hand, and before the valuation and strategy courses that rely on the tools. Each course has 12 lessons of 30 minutes (6 hours) in three units of four, 24 practice questions, three four-question checkpoints and a 12-question final.
+Two applied courses teach the platform's own tools. They come straight after Trading ethics, so learners practise with their written charter in hand, and before the valuation and strategy courses that rely on the tools. The strategy lab workshop has 12 lessons of 30 minutes (6 hours) in three units of four, 24 practice questions, three four-question checkpoints and a 12-question final. The simulator workshop has 16 lessons (8 hours) in four such units, with a 16-question final.
 
 | Course | Lessons | Builder | Units |
 | --- | --- | --- | --- |

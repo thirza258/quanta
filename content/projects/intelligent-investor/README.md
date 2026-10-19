@@ -2,8 +2,8 @@
 
 An original Quanta companion inspired by Benjamin Graham's *The Intelligent
 Investor*, with modern source-checking and planning exercises. It follows Trading
-Fundamentals and precedes Security Analysis. The 16 lessons budget eight hours of
-study, plus four unit checkpoints, a final concept exam and optional further reading.
+Fundamentals and precedes Security Analysis. The 20 lessons budget ten hours of
+study, plus five unit checkpoints, a final concept exam and optional further reading.
 
 Read the named themes in your own legally obtained copy. Editions and pagination
 vary. This download includes original exercises and a plan template, not the book,

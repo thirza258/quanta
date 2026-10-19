@@ -2,10 +2,10 @@
 
 The course at `/curriculum/intelligent-investor` is directly before Security Analysis:
 Trading Fundamentals → Intelligent & Careful Investor → Security Analysis → News
-Analysis. Stable `11.1`–`11.16` lesson IDs are independent of displayed track order.
+Analysis. Stable `11.1`–`11.20` lesson IDs are independent of displayed track order.
 Algorithm Evaluation remains the final track.
 
-Sixteen original lessons in four units budget eight hours of guided study. Themes
+Twenty original lessons in five units budget ten hours of guided study. Themes
 include investor temperament, investment versus speculation, defensive/enterprising
 approaches, market fluctuations, goals and liquidity, inflation, diversification,
 margin of safety, allocation, rebalancing, fees, contribution discipline, disclosure
@@ -13,7 +13,7 @@ reading, adviser incentives, fraud checks and decision journals.
 
 Each lesson has a worked case, equation, executable arithmetic worksheet, two
 practice questions, assignment, solution and references. Four four-question
-checkpoints require 3/4; the 16-question version-1 final requires 13/16. Exam time
+checkpoints require 3/4; the 20-question version-2 final requires 16/20. Exam time
 is additional to the study budget. A separate investor-policy capstone has a
 100-point self-assessed rubric.
 
