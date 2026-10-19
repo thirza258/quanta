@@ -25,6 +25,23 @@ class Objective:
 
 
 @dataclass(frozen=True)
+class Stage:
+    """One leg of a campaign, which opens once the clock has run far enough.
+
+    A campaign is a mission with a calendar. Its stages open at fixed offsets
+    from the bar the account started on, so every learner meets the same market
+    at the same point in the same order, and no stage can be answered before the
+    run has reached what it is about.
+    """
+
+    id: str
+    title: str
+    opens: int
+    brief: str
+    objectives: tuple
+
+
+@dataclass(frozen=True)
 class Mission:
     id: str
     title: str
@@ -35,6 +52,10 @@ class Mission:
     cursor: int
     symbol: str
     objectives: tuple
+    # A mission declares the account it is attempted on, so every attempt meets
+    # the same rules rather than whichever the learner happened to pick.
+    account: str = "cash"
+    stages: tuple = ()
 
 
 def _o(id, title, detail, check, **target):
@@ -233,6 +254,133 @@ MISSIONS = {
             ),
         ),
         Mission(
+            "desk-week",
+            "A week on the desk",
+            "Four stages across five simulated sessions, with the clock stopping "
+            "at what matters",
+            ("13.3", "13.12"),
+            "This one takes a week of market time rather than an afternoon. Turn "
+            "**Stop on** to the full list before you begin: the clock will cut "
+            "every jump short at your fills, your exits, and Zephyr Robotics' "
+            "quarterly print, and each stop asks what you want to do about it. "
+            "Four stages open as the week runs. You cannot answer a stage early, "
+            "because the market it is about has not happened yet. Nothing here is "
+            "scored on what the week earned.",
+            9103,
+            499,
+            "ZEPH",
+            (),
+            "cash",
+            (
+                Stage(
+                    "open",
+                    "Open the week",
+                    0,
+                    "Take a position in Zephyr Robotics sized under a tenth of the "
+                    "account, with the exit decided before the entry fills. Attach "
+                    "the stop to the order rather than promising yourself you will "
+                    "place it later.",
+                    (
+                        _o(
+                            "entry",
+                            "Open a position in ZEPH",
+                            "At least one buy order filled.",
+                            "filled_buy",
+                        ),
+                        _o(
+                            "stop",
+                            "Decide the exit before the entry fills",
+                            "A sell stop, stop-limit or trailing stop, including a "
+                            "bracket leg attached to the entry.",
+                            "order_kind",
+                            side="sell",
+                            kinds=["stop", "stop_limit", "trailing_stop"],
+                            count=1,
+                        ),
+                        _o(
+                            "cap",
+                            "Keep it under a tenth of opening equity",
+                            "No position exceeds $10,000 of cost at any point.",
+                            "position_cap",
+                            percent=10,
+                        ),
+                    ),
+                ),
+                Stage(
+                    "answer",
+                    "Answer the tape",
+                    390,
+                    "A session has run and the clock has been stopping. Each stop "
+                    "is a question: the event happened, the position is open, and "
+                    "the outcome is not known yet. Answer two of them in writing.",
+                    (
+                        _o(
+                            "answered",
+                            "Answer two stops with a written reason",
+                            "Two recorded decisions, each carrying a reason.",
+                            "decisions_recorded",
+                            count=2,
+                        ),
+                        _o(
+                            "thesis",
+                            "Record a thesis on every order",
+                            "Every order you place carries a written reason.",
+                            "thesis_on_every_order",
+                        ),
+                    ),
+                ),
+                Stage(
+                    "print",
+                    "Stand in front of the print",
+                    1170,
+                    "Zephyr reports inside this stage. You have seen the consensus "
+                    "and nothing else. Hold the position through the print or close "
+                    "it before — either is a decision, and the campaign only asks "
+                    "that you made it on purpose and said so.",
+                    (
+                        _o(
+                            "through",
+                            "Hold at least 50 shares through the print",
+                            "The position was open on the bar the quarter printed.",
+                            "held_through_report",
+                            shares=50,
+                        ),
+                        _o(
+                            "after",
+                            "Stay with it for a session after the print",
+                            "Advance a full session past the printing bar.",
+                            "bars_after_report",
+                            bars=390,
+                        ),
+                    ),
+                ),
+                Stage(
+                    "close",
+                    "Close the week",
+                    1950,
+                    "Five sessions are behind you. A week of trading is not one "
+                    "afternoon repeated, so the last thing the campaign asks is "
+                    "whether you were actually there for it.",
+                    (
+                        _o(
+                            "spread",
+                            "Trade in at least three separate sessions",
+                            "Orders placed on three different simulated days.",
+                            "sessions_traded",
+                            count=3,
+                        ),
+                        _o(
+                            "record",
+                            "Answer four stops in all",
+                            "Four recorded decisions, each carrying a reason.",
+                            "decisions_recorded",
+                            count=4,
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        Mission(
             "charter",
             "Trade inside your written limits",
             "The rules you wrote, applied for a week",
@@ -291,6 +439,20 @@ def listing():
             "objectives": [
                 {"id": o.id, "title": o.title, "detail": o.detail} for o in mission.objectives
             ],
+            "account": mission.account,
+            "stages": [
+                {
+                    "id": stage.id,
+                    "title": stage.title,
+                    "opens": stage.opens,
+                    "brief": stage.brief,
+                    "objectives": [
+                        {"id": o.id, "title": o.title, "detail": o.detail}
+                        for o in stage.objectives
+                    ],
+                }
+                for stage in mission.stages
+            ],
         }
         for mission in MISSIONS.values()
     ]
@@ -330,6 +492,11 @@ def _report_bar(room, symbol):
     return quarters[0]["index"] if quarters else None
 
 
+def _decisions(state):
+    """What the learner recorded at the stops the clock made."""
+    return state.get("decisions", [])
+
+
 CHECKS = {}
 
 
@@ -341,9 +508,19 @@ def check(name):
     return register
 
 
+def entries(state):
+    """Orders the learner placed, not the exits an entry carried with it.
+
+    A bracket reaches the blotter as three rows, but it was one decision. Counting
+    its legs separately would ask for a thesis the learner already wrote and make
+    a single order look like three.
+    """
+    return [order for order in state["orders"] if not order.get("parent_id")]
+
+
 @check("thesis_on_every_order")
 def _thesis(state, mission, target, room, times):
-    orders = state["orders"]
+    orders = entries(state)
     if not orders:
         return False, "No orders placed yet."
     missing = [o for o in orders if not o.get("note", "").strip()]
@@ -366,7 +543,7 @@ def _order_kind(state, mission, target, room, times):
 
 @check("order_count")
 def _order_count(state, mission, target, room, times):
-    placed = len(state["orders"])
+    placed = len(entries(state))
     return placed >= target["count"], f"{placed} of {target['count']} orders placed."
 
 
@@ -471,6 +648,74 @@ def _flat_after(state, mission, target, room, times):
             f"{quantity} {symbol}" for symbol, quantity in sorted(open_shares.items())
         )
     return True, "Every position closed and the record is complete."
+
+
+@check("decisions_recorded")
+def _decisions_recorded(state, mission, target, room, times):
+    """Every stop answered, with a reason written at the stops that asked for one.
+
+    A stop dismissed without a word is the habit the campaign exists to break:
+    the learner saw the event and moved on. What is scored is that a reason
+    exists, never whether the call turned out well.
+    """
+    recorded = _decisions(state)
+    needed = target["count"]
+    # A decision to trade carries its reason on the order's thesis instead, so
+    # both ways out of a stop count. Only a stop waved away carries nothing.
+    written = [
+        d
+        for d in recorded
+        if d.get("note", "").strip()
+        or (d.get("choice") == "traded" and d.get("order_note", "").strip())
+    ]
+    if len(recorded) < needed:
+        return False, f"{len(recorded)} of {needed} stops answered."
+    if len(written) < needed:
+        return (
+            False,
+            f"{len(recorded)} stops answered, {len(written)} of {needed} with a reason.",
+        )
+    return True, f"{len(written)} stops answered with a written reason."
+
+
+@check("sessions_traded")
+def _sessions_traded(state, mission, target, room, times):
+    """Distinct sessions the account placed an order in.
+
+    A week of trading is not one afternoon repeated. Counting sessions rather
+    than orders is what makes the campaign take the time it claims to.
+    """
+    bars = target.get("session_bars", 390)
+    sessions = set()
+    for order in entries(state):
+        for index, moment in enumerate(times):
+            if moment >= order["time"]:
+                sessions.add(index // bars)
+                break
+    needed = target["count"]
+    met = len(sessions) >= needed
+    return met, f"Orders placed in {len(sessions)} of {needed} sessions."
+
+
+def stages(mission, state, room, times):
+    """Each stage, with its objectives judged only once it has opened."""
+    start = int(state["config"].get("start_cursor", mission.cursor))
+    elapsed = state["cursor"] - start
+    out = []
+    for stage in mission.stages:
+        open_now = elapsed >= stage.opens
+        out.append(
+            {
+                "id": stage.id,
+                "title": stage.title,
+                "brief": stage.brief,
+                "opens": stage.opens,
+                "open": open_now,
+                "bars_away": max(0, stage.opens - elapsed),
+                "objectives": progress(stage, state, room, times) if open_now else [],
+            }
+        )
+    return out
 
 
 def progress(mission, state, room, times):

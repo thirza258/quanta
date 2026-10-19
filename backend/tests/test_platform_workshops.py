@@ -17,17 +17,26 @@ def test_workshops_follow_the_conduct_course_in_the_learning_sequence():
     assert order.index("simulator-workshop") + 1 == order.index("lab-workshop")
 
 
-@pytest.mark.parametrize("course_id,prefix", [("simulator-workshop", "13"), ("lab-workshop", "14")])
-def test_each_workshop_is_a_complete_six_hour_applied_course(course_id, prefix):
+@pytest.mark.parametrize(
+    "course_id,prefix,lessons", [("simulator-workshop", "13", 16), ("lab-workshop", "14", 12)]
+)
+def test_each_workshop_is_a_complete_applied_course(course_id, prefix, lessons):
     course = COURSES[course_id]
     assert course["studyType"] == "applied"
-    assert [lesson["id"] for lesson in course["modules"]] == [f"{prefix}.{i}" for i in range(1, 13)]
-    assert [part["id"] for part in course["parts"]] == ["1", "2", "3"]
-    assert sum(lesson["minutes"] for lesson in course["modules"]) == 360
+    # Units of four lessons, a checkpoint each, one question per lesson in the
+    # final, and half an hour a lesson. A course grows by whole units or not at
+    # all, so a workshop never ends mid-unit or with a unit nobody checks.
+    assert lessons % 4 == 0
+    units = lessons // 4
+    assert [lesson["id"] for lesson in course["modules"]] == [
+        f"{prefix}.{i}" for i in range(1, lessons + 1)
+    ]
+    assert [part["id"] for part in course["parts"]] == [str(i) for i in range(1, units + 1)]
+    assert sum(lesson["minutes"] for lesson in course["modules"]) == lessons * 30
     assert "exam time is additional" in course["readingGuide"]
     kinds = [exam["kind"] for exam in course["exams"]]
-    assert kinds == ["checkpoint"] * 3 + ["final"]
-    assert len(course["exams"][-1]["questions"]) == 12
+    assert kinds == ["checkpoint"] * units + ["final"]
+    assert len(course["exams"][-1]["questions"]) == lessons
     prompts = [q["question"] for exam in course["exams"] for q in exam["questions"]]
     prompts += [q["question"] for lesson in course["modules"] for q in lesson["exercises"]]
     assert len(prompts) == len(set(prompts))
@@ -55,12 +64,16 @@ def test_lab_lessons_link_only_real_tools():
     assert used == LAB_TOOLS
 
 
-@pytest.mark.parametrize("course_id,line", [
-    ("simulator-workshop", "Simulator review checklist: 12 of 12"),
-    ("lab-workshop", "Lab research loop steps: 12 of 12"),
+# The capstone is named rather than taken from the end of the course: the
+# simulator workshop now carries a unit after it, and a positional lookup would
+# silently start testing whichever lesson happened to be last.
+@pytest.mark.parametrize("course_id,lesson_id,line", [
+    ("simulator-workshop", "13.12", "Simulator review checklist: 12 of 12"),
+    ("lab-workshop", "14.12", "Lab research loop steps: 12 of 12"),
 ])
-def test_capstone_worksheets_run_in_the_guided_runtime(course_id, line):
-    capstone = COURSES[course_id]["modules"][-1]
+def test_capstone_worksheets_run_in_the_guided_runtime(course_id, lesson_id, line):
+    capstone = next(m for m in COURSES[course_id]["modules"] if m["id"] == lesson_id)
+    assert "Capstone" in capstone["title"]
     result = run(capstone["code"], {"close": [100, 101, 99]})
     assert line in result["stdout"]
     assert result["signals"] == [False, False, False]

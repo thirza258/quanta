@@ -182,6 +182,27 @@ Exercise: write your band and cost assumption, then double the cost; the scaling
              'Compares rebalancing with buy-and-hold over a 30-year dataset from the United States, United Kingdom and Germany; frequent rebalancing improved risk-adjusted performance in every country.'),
         ],
     ),
+    "11.11": (
+        r"""The lesson's two funds share a gross return, yet research shows that buyers often miss the gap. Barber, Odean and Zheng studied mutual fund flows over 30 years: flows were negatively related to front-end loads but unrelated to operating expenses, and their analyses point to marketing and advertising costs often embedded in those expenses. The fee that compounds in the lesson's formula may therefore be the one buyers see least (our inference).
+
+Choi, Laibson and Madrian ran a cleaner test. Subjects split $10,000 among four S&P 500 index funds, with rewards tied to the portfolio's later return. Search costs for fees mattered, but even without them subjects overwhelmingly failed to minimize fees; they leaned heavily on annualized returns since inception, and fees paid fell with financial literacy.
+
+Rankings tell less than they seem to. Carhart found that persistence in equity funds' returns is almost completely explained by common stock-return factors and investment expenses, except for strong underperformance by the worst funds. The yardstick matters too: Burlacu and co-authors estimate the average active fund's alpha (return beyond its benchmark) at −128 basis points a year against a market index, but an insignificant +23 against a reference portfolio built for uninformed investors.
+
+By our arithmetic, the lesson's pair ends at 10,000 × 1.058²⁰ ≈ 30,883 and 10,000 × 1.045²⁰ ≈ 24,117, so the dearer fund finishes about 22% lower. At a 4% gross return the shortfall is still about 22%.
+
+Exercise: list every charge for one fund, name the benchmark you compare it with, and rerun the formula with a gross return 2 points lower. Note what moves, the amount or the percentage shortfall.""",
+        [
+            ('paper', 'Barber, Odean & Zheng', 2005, 'Out of Sight, Out of Mind: The Effects of Expenses on Mutual Fund Flows', 'https://doi.org/10.1086/497042',
+             'Thirty years of fund flows: investors respond to salient loads and commissions but not to operating expenses, which often carry marketing and advertising costs.'),
+            ('paper', 'Choi, Laibson & Madrian', 2010, 'Why Does the Law of One Price Fail? An Experiment on Index Mutual Funds', 'https://doi.org/10.1093/rfs/hhp097',
+             'Incentivized experiment on four S&P 500 index funds: subjects overwhelmingly failed to minimize fees, even without search costs, and leaned on returns since inception.'),
+            ('paper', 'Carhart', 1997, 'On Persistence in Mutual Fund Performance', 'https://doi.org/10.1111/j.1540-6261.1997.tb03808.x',
+             'Survivor-bias-free test of whether past fund rankings last: common factors and expenses almost completely explain persistence, apart from the worst performers.'),
+            ('arxiv', 'Burlacu, Fontaine & Jimenez-Garcès', 2022, "Why do investors buy shares of actively managed equity mutual funds? Considering the Correct Reference Portfolio from an Uninformed Investor's Perspective", 'https://arxiv.org/abs/2212.02307',
+             "Shows that the average active fund's alpha is negative against a market index but insignificant against a reference portfolio for uninformed investors, so the benchmark choice matters."),
+        ],
+    ),
     "11.12": (
         r"""The lesson's formula makes average cost an amount-weighted harmonic mean of the prices paid. With equal purchases it sits below the simple average price whenever prices differ: 6.667 against 7.5 in the lesson. That is arithmetic, not a return advantage: it compares your cost with a statistic, not with a lump sum or no purchase.
 
@@ -216,72 +237,59 @@ Exercise: in one annual report, copy every reconciling item with its sign, searc
              'Rule text requiring a prominent GAAP comparison and a quantitative reconciliation, and barring items labelled non-recurring that are likely to recur within two years.'),
         ],
     ),
-    "11.11": (
-        r"""The lesson's demonstration of fee compounding reflects a central finding in empirical finance: costs are the most reliable predictor of future fund performance. Carhart evaluated mutual fund returns over three decades and showed that persistence in equity fund performance is largely explained by common factor exposures and transaction costs. In his sample, expense ratios and portfolio turnover were negatively related to risk-adjusted performance, with high-expense funds systematically lagging low-expense alternatives.
-
-Fama and French investigated whether active managers possess stock-picking skill sufficient to cover their fees. Analyzing mutual fund returns over 1984 to 2006, they found that before fees and expenses, active funds roughly matched broad market benchmarks; after deducting advisory fees and operating expenses, few managers achieved positive alpha beyond what would be expected by pure chance. The aggregate wealth generated by active mutual fund management accrued almost entirely to fund management companies rather than to their investors.
-
-Elton, Gruber and Busse investigated choices among index funds tracking the same index. Even when holding identical baskets of securities, funds charged expense ratios that varied by more than 100 basis points; investors who selected higher-cost index funds earned lower returns without receiving any compensating risk reduction or service advantage. The lesson's fee comparison assumes identical gross returns, which these empirical studies confirm is a conservative baseline for active funds.
-
-Exercise: take two real funds tracking the same market segment. Calculate their net return spread over ten years using the lesson's compounding equation, and determine what dollar difference that creates on your long-horizon capital pool.""",
-        [
-            ('paper', 'Carhart', 1997, 'On Persistence in Mutual Fund Performance', 'https://doi.org/10.1111/j.1540-6261.1997.tb03808.x',
-             'Demonstrates that fund performance persistence is largely explained by common factors, expense ratios and turnover, with high costs driving underperformance.'),
-            ('paper', 'Fama & French', 2010, 'Luck versus Skill in the Cross-Section of Mutual Fund Returns', 'https://doi.org/10.1111/j.1540-6261.2010.01598.x',
-             'Cross-sectional study finding that after deducting expenses and fees, few active mutual funds produce positive benchmark-adjusted alpha beyond luck.'),
-            ('paper', 'Elton, Gruber & Busse', 2004, 'Are Investors Rational? Choices among Index Funds', 'https://doi.org/10.1111/j.1540-6261.2004.00632.x',
-             'Shows that investors who purchase higher-fee S&P 500 index funds earn systematically lower net returns without compensating benefits.'),
-        ],
-    ),
     "11.14": (
-        r"""Agency conflicts in financial advice are neither rare nor isolated. Egan, Matvos and Seru studied records for roughly 1.2 million U.S. financial advisers from 2005 to 2015 and found that approximately 7% of advisers had records of misconduct. Misconduct was heavily concentrated among certain advisory firms and showed substantial recidivism: past offenders were five times more likely to engage in new misconduct than the average adviser. Furthermore, advisory firms with higher shares of misconduct cases hired advisers with prior misconduct histories, perpetuating regional pockets of consumer harm.
+        r"""Two different problems sit behind the lesson's checklist, and both have been measured.
 
-Compensation structures directly shape advisory recommendations. Christoffersen, Evans and Musto examined mutual fund sales intermediated by brokers and found that broker compensation arrangements, such as revenue-sharing and trailer commissions, significantly distorted investor fund flows. Brokers directed client capital toward funds that paid higher broker compensation, despite those funds charging higher total fees and exhibiting inferior subsequent performance.
+Conflicted advice. Mullainathan and co-authors sent trained auditors to financial advisers with portfolios whose biases either matched the adviser's financial interest, such as returns-chasing, or ran against it, such as company stock or very low-fee index funds. Advisers failed to de-bias clients and often reinforced biases that suited them: they encouraged returns-chasing and pushed higher-fee active funds, even for clients who arrived with diversified, low-fee portfolios. Checking pays, though. Egan and co-authors covered the universe of U.S. financial advisers from 2005 to 2015: 7% had misconduct records, more than 15% at some of the largest firms, and prior offenders were five times as likely as the average adviser to commit new misconduct. A big name is no substitute for reading the record (our inference).
 
-Fraud represents the catastrophic end of the agency spectrum. The Securities and Exchange Commission's investor guidance identifies recurring hallmarks across affinity fraud and Ponzi operations: guaranteed high returns with claimed zero volatility, secretive or proprietary trading methods, unlicensed operators, and irregular custody arrangements where client funds bypass independent clearing firms. Compounding the lesson's 3% monthly yield across multiple years demonstrates the mathematical implausibility of such claims, as no legitimate counterparty can guarantee risk-free returns exceeding economic growth rates.
+Fraud. Bartoletti and co-authors describe a Ponzi scheme as repaying users only with the investments of new users, so it implodes soon after users stop joining. Moore and co-authors followed online Ponzi schemes called HYIPs through nine months of aggregator-site data and found longer lifetimes with lower interest payments, so a lower promised rate may only lengthen a scheme's life, not make it safe (our inference). By our arithmetic, the lesson's 3% a month, reinvested, owes a deposit of 100 about 589 after five years (1.03⁶⁰ ≈ 5.89). That does not prove fraud; it shows what the promoter must be able to fund if depositors ask for their money.
 
-Exercise: check whether an investment pitch or advisory service provides independent verification through an official registry. Confirm whether client funds are deposited with an independent qualified custodian, and calculate the annual compounded return implied by any promised periodic payout.""",
+Exercise: for one offer, write who holds the money, where the return is earned and what the regulator's register shows. If any answer rests only on the promoter's say-so, stop.""",
         [
-            ('paper', 'Egan, Matvos & Seru', 2019, 'The Market for Financial Adviser Misconduct', 'https://doi.org/10.1086/700735',
-             'Analyzes records of 1.2 million financial advisers; documents that 7% have misconduct records, with high recidivism and concentration at specific advisory firms.'),
-            ('paper', 'Christoffersen, Evans & Musto', 2013, "What Do Consumers' Fund Flows Maximize? Evidence from Brokers' Incentives", 'https://doi.org/10.1111/jofi.12007',
-             'Empirical study showing broker compensation, including trailer fees and revenue sharing, directs client flows to high-cost, underperforming mutual funds.'),
-            ('official', 'U.S. SEC', None, 'Investor Bulletin: Ponzi Schemes and Avoiding Investment Scams', 'https://www.investor.gov/protect-your-investments/fraud/types-fraud/ponzi-schemes',
-             'Official guidance detailing hallmarks of fraudulent schemes: guaranteed high returns, zero volatility, unlicensed sellers, and irregular custody.'),
+            ('paper', 'Mullainathan, Nöth & Schoar', 2012, 'The Market for Financial Advice: An Audit Study', 'https://doi.org/10.3386/w17929',
+             'Audit study of financial advisers: they often reinforced client biases that served their own interests, pushing higher-fee active funds even when the client held a low-fee, diversified portfolio.'),
+            ('paper', 'Egan, Matvos & Seru', 2016, 'The Market for Financial Adviser Misconduct', 'https://doi.org/10.3386/w22050',
+             'Working-paper version covering U.S. advisers from 2005 to 2015: misconduct records reach more than 15% at some large firms, and prior offenders are about five times as likely to offend again.'),
+            ('arxiv', 'Bartoletti, Carta, Cimoli & Saia', 2017, 'Dissecting Ponzi schemes on Ethereum: identification, analysis, and impact', 'https://arxiv.org/abs/1703.03779',
+             "Defines the mechanism behind a promised-return fraud: early users are repaid only from new users' money, so the scheme implodes once joining stops."),
+            ('paper', 'Moore, Han & Clayton', 2012, 'The Postmodern Ponzi Scheme: Empirical Analysis of High-Yield Investment Programs', 'https://doi.org/10.1007/978-3-642-32946-3_4',
+             'Studies online Ponzi schemes (HYIPs) using nine months of aggregator data and finds that lower promised interest goes with longer lifetimes.'),
         ],
     ),
     "11.15": (
-        r"""The lesson's emphasis on contemporaneous recording addresses a fundamental vulnerability of human memory. Fischhoff introduced the concept of hindsight bias, demonstrating that once people know the outcome of an event, they systematically overestimate how predictable it was beforehand and falsely recall their own earlier forecasts as being closer to the outcome than was actually the case. When investment decisions are reviewed without written records, investors retroactively adjust their remembered reasoning to align with price changes, misidentifying lucky bets as analytical skill.
+        r"""A journal entry needs a date because memory edits itself. In Fischhoff's experiments, learning how things turned out raised the likelihood judges assigned to the reported events. They were largely unaware of it, so they overestimated what they would have known without the outcome, and what others did know. A buyer at 70 who later sees 100 may recall being surer than 60% (our inference); Fischhoff argued that such unawareness restricts learning from the past.
 
-Pre-registering disconfirming criteria protects against confirmation bias and biased assimilation. Lord, Ross and Lepper showed that individuals presented with mixed or ambiguous evidence interpret the data as strongly confirming their initial hypotheses, leading to increased attitude polarization rather than balanced updating. By writing explicit disconfirming evidence in advance, an investor defines what empirical observations would require reducing or closing a position, preventing post-hoc rationalization.
+Disconfirmation has experimental support. Koriat, Lichtenstein and Fischhoff tested whether overconfidence comes from justifying a chosen answer by focusing on supporting evidence. Subjects chose an answer to a two-alternative question, then listed a supporting reason, a contradicting one, or both; only the contradicting reason made confidence more appropriate. Their questions were not investments, so transfer is our inference. For the lesson's thesis, write the strongest reason the value is 50 before the reason it is 100.
 
-Tetlock and Gardner studied probabilistic judgment across thousands of forecasters and found that top performers, termed superforecasters, share specific cognitive habits: they express views as granular probability distributions, actively seek evidence that challenges their preconceptions, and update beliefs through incremental Bayesian adjustments rather than defensive commitments. Kahneman and Klein showed that intuitive judgment is unreliable in environments characterized by high noise and delayed feedback, such as financial markets, making formal checklists and structured protocols essential.
+Scoring turns a journal into a test. A forecast is calibrated when stated probabilities match observed frequencies (Dimitriadis and co-authors). In a two-year geopolitical forecasting tournament, Mellers and co-authors found that training in probability, teaming and tracking all improved calibration and resolution, the power to tell events from non-events. The Brier score is the squared gap between a probability and the outcome coded 1 or 0, lower being better. The lesson's 60% call scores 0.16 if the 100 arrives and 0.36 if not; perfectly calibrated, it averages 0.24, barely better than a coin flip's 0.25 (our arithmetic), so one outcome says little.
 
-Exercise: take an open holding and identify two specific business disclosures that would reduce your estimated probability of success by at least twenty percentage points. Record those conditions in your decision journal before observing the next price quote.""",
+Exercise: log date, probability and resolution rule for each call, and once you have a few dozen resolved, compare each stated probability, such as 60%, with how often those calls came true.""",
         [
             ('paper', 'Fischhoff', 1975, 'Hindsight is not equal to foresight: The effect of outcome knowledge on judgment under uncertainty', 'https://doi.org/10.1037/0096-1523.1.3.288',
-             'Seminal experimental study demonstrating hindsight bias: outcome knowledge causes individuals to overestimate how predictable the result was in advance.'),
-            ('paper', 'Lord, Ross & Lepper', 1979, 'Biased Assimilation and Attitude Polarization: The Effects of Prior Theories on Subsequently Considered Evidence', 'https://doi.org/10.1037/0022-3514.37.11.2098',
-             'Classic experiment showing that people assimilate ambiguous evidence to confirm initial beliefs, underscoring the necessity of pre-registered disconfirming criteria.'),
-            ('paper', 'Kahneman & Klein', 2009, 'Conditions for Intuitive Expertise: A Failure to Disagree', 'https://doi.org/10.1037/a0016755',
-             'Analyzes when professional intuition can be trusted versus when decision protocols, journals, and checklists are required in noisy environments.'),
+             'Experiments showing that outcome knowledge inflates the likelihood judges say they would have given and that they are largely unaware of it. Abstract read from the 2003 reprint, DOI 10.1136/qhc.12.4.304.'),
+            ('paper', 'Koriat, Lichtenstein & Fischhoff', 1980, 'Reasons for confidence', 'https://doi.org/10.1037/0278-7393.6.2.107',
+             'Experiments on overconfidence: listing a reason that contradicts your chosen answer improved the appropriateness of confidence, while listing only supporting reasons did not.'),
+            ('paper', 'Mellers et al.', 2014, 'Psychological Strategies for Winning a Geopolitical Forecasting Tournament', 'https://doi.org/10.1177/0956797614524255',
+             'Two-year probability-forecasting tournament in which training, teaming and tracking improved both calibration and resolution, showing that forecast quality can be measured and improved.'),
+            ('arxiv', 'Dimitriadis, Gneiting & Jordan', 2020, 'Evaluating probabilistic classifiers: Reliability diagrams and score decompositions revisited', 'https://arxiv.org/abs/2008.03033',
+             'Defines a calibrated probability forecast as one whose stated probabilities match later observed frequencies, and supplies reliability diagrams and Brier score decompositions to check it.'),
         ],
     ),
     "11.16": (
-        r"""The written investment policy statement synthesized in the capstone rests on foundational evidence in institutional asset management. Brinson, Hood and Beebower analyzed the performance of 91 large pension plans over a ten-year period and found that asset allocation policy accounted for an average of 91.5% of the quarterly variation in total portfolio returns. Superior market timing and individual security selection contributed relatively little to long-term results and frequently produced net negative drag after accounting for transaction costs and management fees.
+        r"""The CFA Institute's guide to investment policy statements for individuals shows what a plan can still lack. It asks who determines, executes and monitors the policy, and for a process, identified in advance, for refreshing the statement as circumstances or markets change. It also asks for an evaluation horizon, a minimum period that clarifies when underperformance needs action. It cautions that generic templates almost inevitably overlook factors specific to the investor, so treat this course's plan as a skeleton. Its sample liquidity clause, in examples it calls entirely fictitious, keeps up to 15 percent of a portfolio liquidatable on five days' notice; the lesson's household holds 54 of 120 million, 45%, in near-term and reserve pools (our arithmetic).
 
-Subsequent investigations reinforced this finding across varied economic regimes. Ibbotson and Kaplan examined whether asset allocation policy explains return levels as well as return variability; they concluded that while policy mix explains the vast majority of quarterly return variation, an investor's disciplined adherence to that policy determines whether the portfolio captures available market premiums over multi-decade horizons. Behavioral lapses, such as panic selling during equity drawdowns or chasing recent winners, introduce execution drag that degrades practical outcomes.
+Rules need a form. Gollwitzer and Sheeran pooled 94 independent tests and found that if-then plans that settle in advance when, where and how you will act on a goal had a medium-to-large effect on goal attainment (effect size d = 0.65). The abstract describes goal striving in general, so applying it to investing is our inference. Write "if the reserve falls below 24 million, refill it before any new purchase" rather than "keep a reserve".
 
-CFA Institute standards for the investment policy statement formalize this evidence into five operational components: defining client objectives and risk capacity, identifying non-negotiable liquidity constraints, setting baseline asset allocation bands, specifying disciplined rebalancing rules, and establishing an ongoing governance schedule. The lesson's capstone rubric translates these institutional governance standards into an accessible personal plan, bridging conceptual portfolio design with the detailed financial statement analysis taught in Security Analysis.
+Pools have costs. Campbell, Capponi and Parashar model a household with a random-deadline precautionary goal and a fixed-deadline accumulation goal. Saving for emergencies crowds out growth-oriented investment; pre-committing to fund a goal costs flexibility, and giving each goal its own account costs fungibility, the ability to move money between goals. Our inference: separate pools buy clarity at that price, so say what happens when one runs short.
 
-Exercise: review your completed My notebook page against the capstone rubric. Confirm that your stated allocation survived the joint stock-bond stress scenario, that all fee assumptions reflect net reporting conventions, and that three specific accounting questions are prepared for Security Analysis.""",
+Exercise: for each pool, write one if-then rule, one trigger for reviewing the policy, and the evaluation horizon over which you will judge results.""",
         [
-            ('paper', 'Brinson, Hood & Beebower', 1986, 'Determinants of Portfolio Performance', 'https://doi.org/10.2469/faj.v42.n4.39',
-             'Landmark empirical study showing asset allocation policy explains over 90 percent of the variation in quarterly portfolio returns across 91 pension plans.'),
-            ('paper', 'Ibbotson & Kaplan', 2000, 'Does Asset Allocation Policy Explain 40, 90, or 100 Percent of Performance?', 'https://doi.org/10.2469/faj.v56.n1.2333',
-             'Analyzes mutual fund and pension plan returns, confirming asset allocation policy dominates return variance and long-term return levels.'),
-            ('official', 'CFA Institute', None, 'Elements of an Investment Policy Statement for Institutional Investors', 'https://www.cfainstitute.org/en/membership/professional-development/refresher-readings/investment-policy-statement',
-             'Professional standards outlining the core components of an investment policy statement: risk capacity, liquidity constraints, asset allocation, and governance.'),
+            ('official', 'CFA Institute', 2010, 'Elements of an Investment Policy Statement for Individual Investors', 'https://rpc.cfainstitute.org/sites/default/files/-/media/documents/article/position-paper/investment-policy-statement-individual-investors.pdf',
+             'Professional template for a written policy: governance, a review process set in advance, an evaluation horizon, liquidity and rebalancing rules, and a caution against generic templates.'),
+            ('paper', 'Gollwitzer & Sheeran', 2006, 'Implementation Intentions and Goal Achievement: A Meta-analysis of Effects and Processes', 'https://doi.org/10.1016/S0065-2601%2806%2938002-1',
+             'Meta-analysis of 94 independent tests: if-then plans that fix the situation and the response in advance raised goal attainment with a medium-to-large effect.'),
+            ('arxiv', 'Campbell, Capponi & Parashar', 2026, 'Portfolio Choice with Competing Precautionary and Accumulation Goals', 'https://arxiv.org/abs/2606.03158',
+             'Household model with an emergency-type goal and a fixed-deadline goal: precautionary saving crowds out growth investment, and pre-commitment and separate accounts each cost flexibility or fungibility.'),
         ],
     ),
 }

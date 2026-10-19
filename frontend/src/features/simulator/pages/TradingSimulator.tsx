@@ -62,6 +62,9 @@ export default function TradingSimulator() {
   // A generated market produces the next session as the clock reaches it, so only
   // a bounded import can finish.
   const complete = !run.endless && run.cursor >= run.total_bars - 1;
+  // A stop holds the clock but not the ticket: trading is one of the two ways
+  // of answering it, so only the replay controls are disabled.
+  const stopped = !!run.interrupted;
   const estimate = orderEstimate(run, prefs.symbol, ticket);
   const marketClosed =
     run.config.base_interval === "1D" ||
@@ -94,6 +97,7 @@ export default function TradingSimulator() {
     run,
     blocked,
     complete,
+    stopped,
     estimate,
     marketClosed,
     feedback,

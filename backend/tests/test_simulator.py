@@ -1043,7 +1043,7 @@ def test_no_endpoint_reveals_a_price_beyond_the_cursor(client):
         "analytics": {"symbol": SYMBOL},
         "calendar": {},
         "monitor": {
-            "panes": "tape,book,heatmap,screener,sessions,quotes",
+            "panes": "tape,book,heatmap,screener,sessions,quotes,crowd",
             "symbol": SYMBOL,
             "screen": "cheap",
         },
@@ -1656,7 +1656,7 @@ def test_nothing_leaks_past_the_cursor_with_a_short_open(client):
     advanced = mutate(client, placed, "advance", steps=500).json()
     routes = {
         "desk": {},
-        "monitor": {"panes": "screener,heatmap", "symbol": SYMBOL, "screen": "volatile"},
+        "monitor": {"panes": "screener,heatmap,crowd", "symbol": SYMBOL, "screen": "volatile"},
         "analytics": {"symbol": SYMBOL},
     }
     before = {
@@ -1732,3 +1732,381 @@ def test_a_forced_buy_in_runs_to_flat_without_being_re_raised():
             assert "maintenance requirement" in order_row["reason"]
     assert max(seen) == 1, seen
     assert s["positions"]["AAPL"]["quantity"] == 0
+
+
+def test_a_bracket_counts_as_the_one_order_the_learner_placed(client):
+    """Three rows in the blotter, one decision. Missions must judge the decision."""
+    from quanta.services.simulator_missions import CHECKS, MISSIONS
+
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    quote = next(q for q in run["quotes"] if q["symbol"] == SYMBOL)
+    entry = float(quote["close"])
+    placed = mutate(
+        client,
+        run,
+        "orders",
+        symbol=SYMBOL,
+        side="buy",
+        quantity=10,
+        note="Entering on the breakout; out at the target or the stop.",
+        take_profit=round(entry * 1.02, 2),
+        stop_loss=round(entry * 0.98, 2),
+    ).json()
+    legs = find(placed, parent_id=placed["orders"][0]["id"])
+    # The exits carry the entry's thesis rather than an empty note.
+    assert len(legs) == 2 and all(leg["note"] == placed["orders"][0]["note"] for leg in legs)
+
+    state = {"orders": placed["orders"], "fills": [], "positions": {}, "ledger": [], "cursor": 0}
+    mission = MISSIONS["first-order"]
+    # One bracket is one order, not three, for both the thesis and the count.
+    ok, note = CHECKS["thesis_on_every_order"](state, mission, {}, None, None)
+    assert ok and "All 1 orders" in note
+    ok, note = CHECKS["order_count"](state, mission, {"count": 3}, None, None)
+    assert not ok and note.startswith("1 of 3")
+
+
+def test_the_crowd_trades_under_the_same_rules_as_the_learner(client):
+    """Generated participants, read off the bars rather than moving them."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    # Land just past a session boundary so every style has something to do.
+    advanced = mutate(client, run, "advance", steps=1171 - run["cursor"]).json()
+    url = f"/api/v1/simulator/runs/{run['id']}/monitor"
+    params = {"panes": "crowd", "symbol": SYMBOL, "limit": 200}
+    view = client.get(url, params=params).json()["tools"]["crowd"]
+    orders = view["orders"]
+    assert orders and view["available"] is True
+    assert len(view["desks"]) == 7
+    assert "do not move prices" in view["notice"]
+
+    bars = client.get(
+        f"/api/v1/simulator/runs/{run['id']}/market",
+        params={"symbol": SYMBOL, "interval": "1m", "limit": 200},
+    ).json()["bars"]
+    window = {bar["time"]: bar for bar in bars}
+
+    traded = {}
+    for order in orders:
+        assert order["desk"] and order["reason"] and order["quantity"] >= 1
+        assert order["status"] in ("working", "filled")
+        # Nothing fills on the bar its desk read, and nothing is dated ahead.
+        assert order["placed"] <= advanced["clock"]
+        if order["status"] != "filled":
+            assert order["price"] is None
+            continue
+        assert order["filled_at"] > order["placed"]
+        bar = window.get(order["filled_at"])
+        if not bar:
+            continue
+        # Every reported fill is a price that bar actually traded at.
+        assert bar["low"] <= order["price"] <= bar["high"], order
+        # A passive order never fills on the wrong side of its own limit.
+        if order["kind"] == "limit":
+            if order["side"] == "buy":
+                assert order["price"] <= order["limit"] + 0.005, order
+            else:
+                assert order["price"] >= order["limit"] - 0.005, order
+        traded[order["filled_at"]] = traded.get(order["filled_at"], 0) + order["quantity"]
+    # The desks cannot between them trade more of a bar than the bar traded.
+    for time, quantity in traded.items():
+        if time in window:
+            assert quantity <= window[time]["volume"], (time, quantity, window[time]["volume"])
+
+    # Styles do what they say: the momentum desk never leans against its own
+    # signal, and the market maker is the only one working both sides.
+    for order in orders:
+        if order["desk"] == "Momentum desk":
+            assert ("above" in order["reason"]) == (order["side"] == "buy")
+    assert {o["side"] for o in orders if o["desk"] == "Market-making desk"} == {"buy", "sell"}
+
+    # Reading it twice gives the same crowd: nothing here is rolled per request.
+    assert client.get(url, params=params).json()["tools"]["crowd"] == view
+
+
+def test_a_run_without_a_newsroom_has_no_generated_participants(client):
+    """Invented counterparties must not be attached to imported prices."""
+    from quanta.db.models import TradingRun
+    from quanta.db.session import engine
+    from sqlalchemy.orm.attributes import flag_modified
+    from sqlmodel import Session
+
+    client.get("/api/v1/simulator")
+    run = create(client, seed=42)
+    with Session(engine) as db:
+        row = db.get(TradingRun, run["id"])
+        state = dict(row.state)
+        state["config"] = {k: v for k, v in state["config"].items() if k != "universe"}
+        row.state = state
+        flag_modified(row, "state")
+        db.add(row)
+        db.commit()
+    view = client.get(
+        f"/api/v1/simulator/runs/{run['id']}/monitor",
+        params={"panes": "crowd", "symbol": "AAPL"},
+    ).json()["tools"]["crowd"]
+    assert view["available"] is False and view["orders"] == []
+    assert "predates" in view["notice"]
+
+
+def decide(client, run, choice, note=""):
+    response = client.post(
+        f"/api/v1/simulator/runs/{run['id']}/decision",
+        json={"id": ident(), "version": run["version"], "choice": choice, "note": note},
+    )
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def test_a_jump_stops_at_the_event_the_learner_asked_to_see(client):
+    """A replay that always runs to the end of the jump teaches watching."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    # Nothing held, nothing working: there is nothing to be interrupted about.
+    quiet = mutate(client, run, "advance", steps=390, stop_on=["earnings", "news"]).json()
+    assert quiet["interrupted"] is None
+    assert quiet["cursor"] == run["cursor"] + 390
+
+    # A fill stops the clock on the bar it happens.
+    placed = mutate(client, quiet, "orders", symbol=SYMBOL, side="buy", quantity=20).json()
+    stopped = mutate(client, placed, "advance", steps=390, stop_on=["fill"]).json()
+    assert stopped["interrupted"]
+    assert stopped["cursor"] == placed["cursor"] + 1
+    assert "Your order filled" in stopped["interrupted"]["reason"]
+    assert stopped["interrupted"]["of"] == 390
+
+    # The stop is the exercise, so the clock cannot simply be restarted past it.
+    refused = mutate(client, stopped, "advance", steps=5)
+    assert refused.status_code == 409 and "Answer the stop" in refused.json()["detail"]
+
+    # Holding the position, the next earnings print stops it too.
+    state = stopped
+    for _ in range(14):
+        if state["interrupted"]:
+            state = decide(client, state, "hold", "Still holding.")
+        state = mutate(client, state, "advance", steps=1950, stop_on=["earnings"]).json()
+        if state["interrupted"] and "reported" in state["interrupted"]["reason"]:
+            break
+    assert state["interrupted"], "a held position meets its company's next print"
+    assert SYMBOL in state["interrupted"]["reason"]
+    assert "reported" in state["interrupted"]["reason"]
+    # The card says how much of the jump is left, so the bars run are recorded.
+    assert 1 <= state["interrupted"]["ran"] <= 1950
+    assert state["interrupted"]["ran"] == state["interrupted"]["bar"] - (
+        state["cursor"] - state["interrupted"]["ran"]
+    )
+    # The clock stopped on the printing bar, not after it.
+    board = client.get(f"/api/v1/simulator/runs/{run['id']}/calendar").json()
+    printed = [e for e in board["earnings"] if e["symbol"] == SYMBOL and e["released"]]
+    assert printed and printed[-1]["index"] == state["cursor"]
+
+    # Deciding clears it; a jump that then runs its course leaves nothing to answer.
+    state = decide(client, state, "hold", "Read the print before acting.")
+    cleared = mutate(client, state, "advance", steps=5).json()
+    assert cleared["interrupted"] is None
+
+
+def test_asking_for_no_stops_replays_exactly_as_before(client):
+    """The field is additive: an absent stop_on is the old behaviour."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    placed = mutate(client, run, "orders", symbol=SYMBOL, side="buy", quantity=20).json()
+    ran = mutate(client, placed, "advance", steps=600).json()
+    assert ran["cursor"] == placed["cursor"] + 600
+    assert ran["interrupted"] is None
+    assert any(f["symbol"] == SYMBOL for f in ran["fills"])
+
+
+def test_a_stop_is_cleared_by_deciding_something_and_recorded(client):
+    """A stop that could only be dismissed would teach nothing."""
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    placed = mutate(
+        client, run, "orders", symbol=SYMBOL, side="buy", quantity=20
+    ).json()
+    stopped = mutate(client, placed, "advance", steps=390, stop_on=["fill"]).json()
+    assert stopped["interrupted"] and stopped["decisions"] == []
+
+    # Nothing to decide until the clock is actually stopped at something.
+    recorded = client.post(
+        f"/api/v1/simulator/runs/{run['id']}/decision",
+        json={
+            "id": ident(),
+            "version": stopped["version"],
+            "choice": "hold",
+            "note": "Thesis unchanged; the fill is the entry I planned.",
+        },
+    ).json()
+    assert recorded["interrupted"] is None
+    assert len(recorded["decisions"]) == 1
+    entry = recorded["decisions"][0]
+    assert entry["choice"] == "hold" and entry["bar"] == stopped["cursor"]
+    assert "Your order filled" in entry["reason"]
+    assert entry["note"].startswith("Thesis unchanged")
+
+    refused = client.post(
+        f"/api/v1/simulator/runs/{run['id']}/decision",
+        json={"id": ident(), "version": recorded["version"], "choice": "hold"},
+    )
+    assert refused.status_code == 409 and "not stopped" in refused.json()["detail"]
+
+
+def test_every_campaign_stage_contains_the_market_it_is_about():
+    """A stage whose event drifted out of its window would be unanswerable.
+
+    The campaign's seed and cursor are chosen so each stage meets a particular
+    piece of market. Nothing stops a later change to the generator from moving
+    that piece, and the stage would then simply never pass, so the arithmetic is
+    pinned here rather than left to the brief.
+    """
+    from quanta.services.simulator_missions import CHECKS, MISSIONS
+    from quanta.services.simulator_news import report_slot
+
+    campaigns = [m for m in MISSIONS.values() if m.stages]
+    assert campaigns, "the catalog carries at least one campaign"
+    for mission in campaigns:
+        opens = [stage.opens for stage in mission.stages]
+        assert opens == sorted(opens), f"{mission.id} stages must open in order"
+        assert opens[0] == 0, f"{mission.id} must have something to do immediately"
+        checks = {o.check for stage in mission.stages for o in stage.objectives}
+        assert checks <= set(CHECKS), f"{mission.id} uses an unregistered check"
+
+        # The stage that waits for the print must open before it and the
+        # campaign must still be running when it lands.
+        reporting = [
+            stage
+            for stage in mission.stages
+            if any(o.check in ("held_through_report", "bars_after_report") for o in stage.objectives)
+        ]
+        if not reporting:
+            continue
+        _, index = report_slot(mission.seed, mission.symbol, mission.cursor, 390)
+        away = index - mission.cursor
+        stage = reporting[0]
+        assert stage.opens < away, (
+            f"{mission.id}: {mission.symbol} prints {away} bars in, but the stage "
+            f"that waits for it only opens at {stage.opens}"
+        )
+        # And a later stage asks for a session beyond the print, so the campaign
+        # has to outlast it.
+        assert away + 390 <= opens[-1] + 390 * 2, (
+            f"{mission.id}: the print at {away} bars leaves no room to sit with it"
+        )
+
+
+def test_a_campaign_opens_its_stages_as_the_clock_runs(client):
+    client.get("/api/v1/simulator")
+    run = client.post(
+        "/api/v1/simulator/runs", json={"id": ident(), "mission": "desk-week"}
+    ).json()
+    assert run["config"]["seed"] == 9103 and run["config"]["account"] == "cash"
+    board = client.get(f"/api/v1/simulator/runs/{run['id']}/mission").json()
+    assert board["id"] == "desk-week" and len(board["stages"]) == 4
+    assert board["total"] == 9 and board["met"] == 0 and board["complete"] is False
+
+    first, second = board["stages"][0], board["stages"][1]
+    assert first["open"] is True and first["objectives"]
+    # A stage that has not opened is not failed; it has nothing to judge yet.
+    assert second["open"] is False and second["objectives"] == []
+    assert second["bars_away"] == 390
+
+    advanced = mutate(client, run, "advance", steps=390).json()
+    board = client.get(f"/api/v1/simulator/runs/{advanced['id']}/mission").json()
+    assert board["stages"][1]["open"] is True and board["stages"][1]["objectives"]
+    assert board["stages"][2]["open"] is False
+    assert board["stages"][2]["bars_away"] == 1170 - 390
+
+    # Asking for the wrong account is refused rather than quietly allowed.
+    bad = client.post(
+        "/api/v1/simulator/runs",
+        json={"id": ident(), "mission": "desk-week", "account": "margin"},
+    )
+    assert bad.status_code == 422 and "cash account" in bad.json()["detail"]
+
+
+def test_trading_at_a_stop_counts_as_much_as_holding(client):
+    """Either answer is a decision, so a learner who acts is not penalised."""
+    from quanta.services.simulator_missions import CHECKS, MISSIONS
+
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    state = run
+    traded = 0
+    for _ in range(6):
+        placed = mutate(
+            client,
+            state,
+            "orders",
+            symbol=SYMBOL,
+            side="buy",
+            quantity=5,
+            note="Adding on the stop, against the same level as before.",
+        ).json()
+        state = mutate(client, placed, "advance", steps=390, stop_on=["fill"]).json()
+        if not state["interrupted"]:
+            continue
+        # Choosing to trade writes no note of its own; the order that follows
+        # carries the reason, and that is what the objective reads.
+        state = decide(client, state, "traded", "")
+        state = mutate(
+            client,
+            state,
+            "orders",
+            symbol=SYMBOL,
+            side="buy",
+            quantity=5,
+            note="Acting on the stop: the level held, so I am adding.",
+        ).json()
+        traded += 1
+        if traded == 2:
+            break
+    assert traded == 2
+    decisions = state["decisions"]
+    assert [d["choice"] for d in decisions] == ["traded", "traded"]
+    assert all(not d["note"] and d["order_note"] for d in decisions)
+
+    mission = MISSIONS["desk-week"]
+    ok, note = CHECKS["decisions_recorded"](state, mission, {"count": 2}, None, None)
+    assert ok, note
+    assert "2 stops answered" in note
+    # A stop waved away with neither a note nor an order still carries nothing.
+    waved = {**state, "decisions": [{"choice": "hold", "note": "", "order_note": ""}]}
+    ok, note = CHECKS["decisions_recorded"](waved, mission, {"count": 1}, None, None)
+    assert not ok and "with a reason" in note
+
+
+def test_every_desk_fill_is_a_print_the_tape_shows(client):
+    """One source of truth per bar, so the two panes cannot contradict.
+
+    If the crowd drew its own fills the tape would disagree with it by chance,
+    and comparing the tick rule's guess with a desk's declared side — which is
+    what lesson 13.13 asks a learner to do — would measure nothing.
+    """
+    client.get("/api/v1/simulator")
+    run = create(client, seed=11)
+    mutate(client, run, "advance", steps=1171 - run["cursor"])
+    view = client.get(
+        f"/api/v1/simulator/runs/{run['id']}/monitor",
+        params={"panes": "crowd,tape", "symbol": SYMBOL, "limit": 200},
+    ).json()["tools"]
+    tape = {(p["time"], p["price"]): p["size"] for p in view["tape"]["prints"]}
+    assert tape, "the tape covers the recent bars"
+
+    checked = 0
+    for order in view["crowd"]["orders"]:
+        if order["status"] != "filled":
+            continue
+        key = (order["filled_at"], order["price"])
+        if order["filled_at"] < min(t for t, _ in tape):
+            continue
+        checked += 1
+        assert key in tape, f"{order['desk']} reports a fill the tape never printed: {key}"
+        # A desk cannot take more than the print it was given.
+        assert order["quantity"] <= tape[key], order
+    assert checked, "the windows overlap, so some fills are checkable against the tape"
+
+    # Two desks never claim the same print.
+    claimed = [
+        (o["filled_at"], o["price"]) for o in view["crowd"]["orders"] if o["status"] == "filled"
+    ]
+    assert len(claimed) == len(set(claimed))

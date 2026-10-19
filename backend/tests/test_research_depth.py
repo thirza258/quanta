@@ -79,6 +79,14 @@ def test_research_keeps_lesson_markdown_conventions():
         assert not re.search(r"^\s*(\||\d+[.)]\s)", body, re.M), lesson["id"]
 
 
+def test_research_bodies_use_the_course_voice():
+    # "You", "we" or neutral; roman numerals such as "Type I error" stay allowed.
+    first_person = re.compile(r"(?<!Type )(?<!Part )(?<![/-])\bI\b(?![-–./])|\b(?:[Mm]y|[Mm]e|I'm|I've|I'd)\b")
+    for lesson in RESEARCHED:
+        body = research_section(lesson).split(SOURCES, 1)[0]
+        assert not first_person.search(body), (lesson["id"], first_person.search(body)[0])
+
+
 VALID_SOURCES = [
     ("arxiv", "Gould et al.", 2010, "Limit Order Books", "https://arxiv.org/abs/1012.0349",
      "A survey of how limit order books match buyers and sellers."),

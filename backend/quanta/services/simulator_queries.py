@@ -119,6 +119,9 @@ def snapshot(run, db):
         ),
         "account": state["config"].get("account", "cash"),
         "realized": state["realized"],
+        # Why the last jump stopped short, if it did. Older runs have no key.
+        "interrupted": state.get("interrupted"),
+        "decisions": state.get("decisions", []),
         "quotes": quotes,
         "positions": positions,
         "orders": state["orders"],

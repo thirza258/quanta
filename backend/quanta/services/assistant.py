@@ -8,7 +8,13 @@ import zipfile
 
 import httpx
 from fastapi import HTTPException
-from openai import AsyncOpenAI, APIConnectionError, APIStatusError, APITimeoutError, APIResponseValidationError
+from openai import (
+    APIConnectionError,
+    APIResponseValidationError,
+    APIStatusError,
+    APITimeoutError,
+    AsyncOpenAI,
+)
 from pydantic import ValidationError
 
 from quanta.core.config import PROJECT_ROOT
