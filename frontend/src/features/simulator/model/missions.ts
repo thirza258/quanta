@@ -15,6 +15,8 @@ export const MISSION_FOR_LESSON: Record<string, string> = {
   "8.4": "read-the-tape",
   "12.13": "charter",
   "12.16": "charter",
+  "13.3": "desk-week",
+  "13.12": "desk-week",
 };
 
 export const MISSION_TITLES: Record<string, string> = {
@@ -24,6 +26,7 @@ export const MISSION_TITLES: Record<string, string> = {
   "read-the-tape": "Trade what the tape actually said",
   "stop-discipline": "Protect a position before you need to",
   charter: "Trade inside your written limits",
+  "desk-week": "A week on the desk",
 };
 
 export const missionFor = (lessonId: string): string | undefined =>

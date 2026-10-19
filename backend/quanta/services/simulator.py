@@ -28,6 +28,7 @@ from quanta.domain.simulator import (
 from quanta.domain.simulator_models import (
     Advance,
     Amendment,
+    Decision,
     Journal,
     Mutation,
     OrderCreate,
@@ -35,6 +36,7 @@ from quanta.domain.simulator_models import (
     RunCreate,
 )
 from quanta.services import data_store
+from quanta.services import simulator_crowd as crowd
 from quanta.services import simulator_desk as desk
 from quanta.services import simulator_tools as tools
 from quanta.services.simulator_fundamentals import quarter_label, structure, valuation
@@ -47,6 +49,7 @@ from quanta.services.simulator_market import (
 from quanta.services.simulator_missions import MISSIONS
 from quanta.services.simulator_missions import listing as mission_listing
 from quanta.services.simulator_missions import progress as mission_progress
+from quanta.services.simulator_missions import stages as mission_stages
 from quanta.services.simulator_news import news_window, released, report_slot, sentiment
 from quanta.services.simulator_queries import latest, run_for, snapshot
 from quanta.services.simulator_universe import (
@@ -138,12 +141,15 @@ def create_run(payload: RunCreate, account: str, db: Session):
             raise HTTPException(404, "That practice mission does not exist.")
         if payload.mode != "synthetic":
             raise HTTPException(422, "Practice missions run on the generated market.")
-        if payload.account != "cash":
-            # Every attempt at a mission should meet the same account, and none
-            # of the missions is about short selling.
-            raise HTTPException(422, "Practice missions run on a cash account.")
+        if payload.account != mission.account:
+            # The mission declares its account, so every attempt meets the same
+            # rules rather than whichever the learner happened to pick.
+            raise HTTPException(
+                422, f"This practice mission runs on a {mission.account} account."
+            )
         # Everyone attempting a mission meets the same market and starts together.
         config["seed"] = mission.seed
+        config["account"] = mission.account
     if config["seed"] is None:
         # No seed asked for: derive one from the run identifier so each new paper
         # account gets a different market, while an idempotent retry of the same
@@ -378,6 +384,12 @@ def order_create(run_id: str, payload: OrderCreate, account: str, db: Session):
         validate_order(state, data, order)
         if bracket:
             validate_bracket(payload, dec(bar["close"]))
+        # A decision to trade is answered by the order it produced, so the
+        # thesis written here is the reason that decision is read against.
+        for entry in reversed(state.get("decisions", [])):
+            if entry["choice"] == "traded" and not entry.get("order_note"):
+                entry["order_note"] = payload.note
+                break
         if order["kind"] == "trailing_stop":
             # The trail starts from where the market is now, not from a high it
             # reached before the order existed.
@@ -428,7 +440,10 @@ def order_create(run_id: str, payload: OrderCreate, account: str, db: Session):
                     "parent_id": order["id"],
                     "oco_group": group,
                     "activates": None,
-                    "note": "",
+                    # The legs carry the entry's thesis. They are part of the
+                    # same decision, and a journal that blanks them loses the
+                    # reason the exit was set where it was.
+                    "note": order["note"],
                     **leg,
                 }
             )
@@ -436,15 +451,83 @@ def order_create(run_id: str, payload: OrderCreate, account: str, db: Session):
     return mutate(db, run_id, account, payload, "order", operation)
 
 
+def watched(state):
+    """Symbols the learner is exposed to: held, or with an order still working."""
+    names = {s for s, p in state["positions"].items() if p["quantity"]}
+    names |= {o["symbol"] for o in state["orders"] if o["status"] in (HELD, *OPEN)}
+    return names
+
+
+def _scheduled(state, target, kinds):
+    """Bars between the cursor and the target where the clock should stop.
+
+    Built from the run's own calendar and newsroom rather than from the fill
+    loop, so a stop lands on the same bar however the jump was reached, and
+    never depends on how far the market happens to have been generated.
+    """
+    room = _room(state)
+    if not room or not ({"earnings", "news"} & set(kinds)):
+        return {}
+    names = watched(state)
+    if not names:
+        return {}
+    sectors = {BY_SYMBOL[s].sector for s in names if s in BY_SYMBOL}
+    stops = {}
+    cursor = state["cursor"]
+    if "earnings" in kinds:
+        for symbol in names:
+            for quarter in room.books.get(symbol, []):
+                if cursor < quarter["index"] <= target:
+                    stops[quarter["index"]] = (
+                        f"{symbol} reported {quarter['label']}. The consensus was "
+                        f"{quarter['consensus_eps']} a share."
+                    )
+    if "news" in kinds:
+        for event in room.events:
+            if not (cursor < event["index"] <= target):
+                continue
+            if event["impact"] != "high" or not event.get("points"):
+                continue
+            if event["symbol"] in names or (
+                event["scope"] == "sector" and event["sector"] in sectors
+            ):
+                stops.setdefault(event["index"], event["headline"])
+    return stops
+
+
 def advance(run_id: str, payload: Advance, account: str, db: Session):
-    return mutate(
-        db,
-        run_id,
-        account,
-        payload,
-        "advance",
-        lambda state, data: advance_state(state, data, payload.steps),
-    )
+    def operation(state, data):
+        if state.get("interrupted"):
+            # The stop is the exercise. A clock that could simply be restarted
+            # would let every decision be skipped, which is the habit the stops
+            # exist to break.
+            raise HTTPException(409, "Answer the stop before advancing the clock again.")
+        before = state["cursor"]
+        target = min(before + payload.steps, len(next(iter(data.values()))) - 1)
+        kinds = set(payload.stop_on)
+        reason = advance_state(
+            state,
+            data,
+            payload.steps,
+            _scheduled(state, target, kinds),
+            kinds,
+        )
+        # The reason travels on the state so the snapshot can carry it back; a
+        # jump that ran its course leaves nothing to answer.
+        state["interrupted"] = (
+            {
+                "bar": state["cursor"],
+                "reason": reason,
+                "of": payload.steps,
+                # Bars actually run, so the card can say what is left rather
+                # than assuming the stop landed on the first one.
+                "ran": state["cursor"] - before,
+            }
+            if reason
+            else None
+        )
+
+    return mutate(db, run_id, account, payload, "advance", operation)
 
 
 def cancel(run_id: str, order_id: str, payload: Mutation, account: str, db: Session):
@@ -495,6 +578,37 @@ def preferences(run_id: str, payload: Preferences, account: str, db: Session):
         "preferences",
         lambda state, data: state.update(preferences=payload.preferences),
     )
+
+
+def decision(run_id: str, payload: Decision, account: str, db: Session):
+    """Record what the learner decided at a stop, and clear the stop.
+
+    A stop that could only be dismissed would teach nothing. Writing the reason
+    down is the exercise: it is the one record of what was known at the time,
+    before the outcome made the choice look obvious either way.
+    """
+
+    def operation(state, data):
+        stop = state.get("interrupted")
+        if not stop:
+            raise HTTPException(409, "The replay is not stopped at an event.")
+        state.setdefault("decisions", []).append(
+            {
+                "id": str(payload.id),
+                "bar": stop["bar"],
+                "time": int(bar_at(data, next(iter(data)), stop["bar"])["time"]),
+                "reason": stop["reason"],
+                "choice": payload.choice,
+                "note": payload.note,
+                # Choosing to trade writes its reason on the order's thesis
+                # rather than twice, so the thesis of whatever is placed next
+                # is what this decision will be read against.
+                "order_note": "",
+            }
+        )
+        state["interrupted"] = None
+
+    return mutate(db, run_id, account, payload, "decision", operation)
 
 
 def journal(run_id: str, order_id: str, payload: Journal, account: str, db: Session):
@@ -681,7 +795,7 @@ def desk_view(run_id: str, account: str, db: Session):
 
 # One request serves however many panes a monitor layout is showing, so adding a
 # window to the terminal does not add a round trip to every advance of the clock.
-MONITORS = {"tape", "book", "heatmap", "screener", "sessions", "quotes"}
+MONITORS = {"tape", "book", "heatmap", "screener", "sessions", "quotes", "crowd"}
 
 
 def monitor(
@@ -718,6 +832,26 @@ def monitor(
             built[name] = tools.sessions_summary(state, data, symbol)
         elif name == "quotes":
             built[name] = {"rows": desk.quotes_table(state, data, room)}
+        elif name == "crowd":
+            if room is None:
+                # Invented participants must not be shown trading real prices,
+                # for the same reason invented headlines are not attached to them.
+                built[name] = {
+                    "symbol": symbol,
+                    "orders": [],
+                    "desks": [],
+                    "available": False,
+                    "notice": (
+                        "This run replays imported historical prices. No participants "
+                        "are generated for it, because invented counterparties must "
+                        "never be attached to real market data."
+                        if state["config"]["mode"] == "historical"
+                        else "This run predates the generated market participants. "
+                        "Start a new run to watch the desks trade."
+                    ),
+                }
+            else:
+                built[name] = {**crowd.flow(state, data, room, symbol, limit), "available": True}
     return {
         "tools": built,
         "symbol": symbol,
@@ -805,6 +939,11 @@ def mission(run_id: str, account: str, db: Session):
     room = _room(state)
     times = next(iter(data.values())).time
     objectives = mission_progress(chosen, state, room, times)
+    legs = mission_stages(chosen, state, room, times)
+    # A campaign is judged stage by stage, and a stage that has not opened yet
+    # cannot be failed: the market it is about has not happened.
+    scored = objectives + [o for stage in legs for o in stage["objectives"]]
+    total = len(objectives) + sum(len(stage.objectives) for stage in chosen.stages)
     return {
         "id": chosen.id,
         "title": chosen.title,
@@ -812,10 +951,12 @@ def mission(run_id: str, account: str, db: Session):
         "brief": chosen.brief,
         "lessons": list(chosen.lessons),
         "symbol": chosen.symbol,
+        "account": chosen.account,
         "objectives": objectives,
-        "met": sum(1 for o in objectives if o["met"]),
-        "total": len(objectives),
-        "complete": all(o["met"] for o in objectives),
+        "stages": legs,
+        "met": sum(1 for o in scored if o["met"]),
+        "total": total,
+        "complete": total > 0 and sum(1 for o in scored if o["met"]) == total,
         "cursor": state["cursor"],
         "version": run.version,
         "disclosure": DISCLOSURE,

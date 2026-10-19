@@ -748,3 +748,117 @@ test("a margin account sells short, carries the borrow, and buys it back", async
   ).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+test("the market flow pane shows other desks trading the same bars", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await open(page);
+
+  await page
+    .getByRole("group", { name: "Monitor windows" })
+    .getByText("2")
+    .click();
+  const pane = page.getByRole("region", { name: /^Monitor 2:/ });
+  await page.getByLabel("Tool for monitor 2").selectOption("crowd");
+  await expect(pane).toContainText("they do not move prices");
+  const rows = pane.locator(".sim-crowd-table tbody tr");
+  await expect(rows.first()).toBeVisible();
+
+  // Every row names a desk, a side and a size.
+  const first = rows.first();
+  await expect(first).toContainText(/BUY|SELL/);
+  await expect(pane).toContainText(/filled ·/);
+
+  // Advancing the clock brings new flow with it.
+  const before = await rows.first().textContent();
+  const refreshed = page.waitForResponse((r) => r.url().includes("/monitor?"));
+  await page.getByLabel("Jump forward by one session").click();
+  expect((await refreshed).status()).toBe(200);
+  await expect.poll(async () => rows.first().textContent()).not.toBe(before);
+  expect(errors).toEqual([]);
+});
+
+test("the clock stops at an event and asks for a decision", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await open(page);
+
+  // Off by default: a jump runs its whole length, as it always has.
+  await expect(page.getByLabel("Stop the replay on")).toHaveValue("off");
+  const opening = (await account(page)).cursor;
+  await page.getByLabel("Jump forward by one hour").click();
+  await expect
+    .poll(async () => (await account(page)).cursor)
+    .toBe(opening + 60);
+  await expect(page.getByRole("alert", { name: "Replay stopped" })).toHaveCount(
+    0,
+  );
+
+  // Switched on, the next fill cuts the jump short.
+  await page.getByLabel("Stop the replay on").selectOption("on");
+  await page.locator(".sim-quick-trade .buy").click();
+  await page.getByLabel("Shares", { exact: true }).fill("5");
+  await submit(page);
+  const resumed = (await account(page)).cursor;
+  await page.getByLabel("Jump forward by one session").click();
+
+  const card = page.getByRole("alert", { name: "Replay stopped" });
+  await expect(card).toBeVisible();
+  await expect(card).toContainText("Your order filled");
+  // It stopped after one bar of the 390 asked for, and says so.
+  await expect(card).toContainText("after 1 of the 390 bars");
+  await expect(card).toContainText("389 still");
+  expect((await account(page)).cursor).toBe(resumed + 1);
+
+  // The clock is held: a decision cannot be skipped by restarting it.
+  await expect(page.getByLabel("Jump forward by one session")).toBeDisabled();
+  await expect(page.getByLabel("Next replay bar")).toBeDisabled();
+  await expect(page.getByLabel("Play replay")).toBeDisabled();
+
+  // Deciding clears it and records what was known at the time.
+  page.once(
+    "dialog",
+    (d) => void d.accept("Entry as planned; stop stays where it is."),
+  );
+  await card.getByRole("button", { name: "Hold, and say why" }).click();
+  await expect(card).toHaveCount(0);
+  await expect(page.getByLabel("Jump forward by one session")).toBeEnabled();
+  const state = await account(page);
+  expect(state.interrupted).toBeNull();
+  expect(state.decisions.at(-1).note).toContain("Entry as planned");
+  expect(state.decisions.at(-1).choice).toBe("hold");
+  expect(errors).toEqual([]);
+});
+
+test("a campaign opens its stages as the week runs", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/simulator?mission=desk-week");
+  await expect(page.getByTestId("trading-terminal")).toBeVisible();
+  await page.getByLabel("New simulation run").click();
+  await expect(page.getByLabel("Practice mission (optional)")).toHaveValue(
+    "desk-week",
+  );
+  // The mission declares its account, so the picker is not the learner's to set.
+  await expect(page.getByLabel("Account type")).toBeDisabled();
+  await page.getByRole("button", { name: "Create new paper account" }).click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+
+  const mission = page.locator(".sim-mission");
+  await mission.locator("summary").click();
+  await expect(mission).toContainText("A week on the desk");
+  await expect(mission).toContainText("Stage 1: Open the week");
+  // A stage the clock has not reached is locked, not failed.
+  await expect(mission).toContainText("Stage 2: Answer the tape");
+  await expect(mission).toContainText("opens in 390 bars");
+  await expect(mission).toContainText("of 9 objectives");
+
+  await page.getByLabel("Jump forward by one session").click();
+  await expect(mission).not.toContainText("opens in 390 bars");
+  await expect(mission).toContainText("Stage 3: Stand in front of the print");
+  expect(errors).toEqual([]);
+});

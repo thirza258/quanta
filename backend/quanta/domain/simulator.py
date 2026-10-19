@@ -422,9 +422,46 @@ def capital(state, data):
     return buying_power(state, marks(data, state["cursor"]))
 
 
-def advance_state(state, data, steps):
+def _interrupt(state, data, before, scheduled, watch):
+    """Why the clock should stop on the bar it has just reached, if it should.
+
+    A replay that only ever runs to the end of the jump teaches watching. The
+    point of stopping is that the learner has to decide something while the
+    position is still open and the outcome is still unknown.
+    """
+    cursor = state["cursor"]
+    if "fill" in watch or "bracket" in watch:
+        for fill in state["fills"][before["fills"] :]:
+            order = next((o for o in state["orders"] if o["id"] == fill["order_id"]), None)
+            role = order.get("role") if order else None
+            if role and "bracket" in watch:
+                leg = "target" if role == "target" else "stop"
+                return f"Your {leg} leg filled {fill['quantity']} {fill['symbol']}."
+            if "fill" in watch:
+                return (
+                    f"Your order filled: {fill['side']} {fill['quantity']} "
+                    f"{fill['symbol']} at {fill['price']}."
+                )
+    if "margin_call" in watch and len(state["orders"]) > before["orders"]:
+        for order in state["orders"][before["orders"] :]:
+            if order.get("forced"):
+                return order["reason"]
+    return scheduled.get(cursor)
+
+
+def advance_state(state, data, steps, scheduled=None, watch=()):
+    """Advance the replay, optionally stopping at the first event it crosses.
+
+    `scheduled` maps a bar to the reason the clock should stop there; the caller
+    builds it from the run's own calendar, so a stop never depends on how much
+    market has been generated. `watch` names the events detected here as they
+    happen. With neither, the clock runs the whole jump, as it always has.
+    """
+    scheduled = scheduled or {}
     last = len(next(iter(data.values()))) - 1
+    stop = None
     for _ in range(min(steps, last - state["cursor"])):
+        before = {"fills": len(state["fills"]), "orders": len(state["orders"])}
         state["cursor"] += 1
         used = {}
         for order in _sequence(state):
@@ -585,6 +622,10 @@ def advance_state(state, data, steps):
                         reason="Remaining quantity canceled: insufficient buying power after the gap fill.",
                     )
         settle_margin(state, data)
+        if scheduled or watch:
+            stop = _interrupt(state, data, before, scheduled, watch)
+            if stop:
+                break
     retire_orphans(state)
     # At a session's last known bar, DAY orders cannot remain working overnight.
     cursor = state["cursor"]
@@ -602,3 +643,4 @@ def advance_state(state, data, steps):
                     status="expired", reason="DAY order expired at the end of its session."
                 )
     retire_orphans(state)
+    return stop

@@ -131,6 +131,8 @@ export type Preferences = {
   panes?: MonitorTool[];
   /** Whether scored headlines are marked on the price chart. */
   newsMarkers?: boolean;
+  /** Events that cut a jump short so a decision has to be made. */
+  stopOn?: StopEvent[];
 };
 
 export type NewsMarker = {
@@ -147,8 +149,18 @@ export type NewsMarker = {
   }[];
 };
 
+export type StopEvent =
+  "fill" | "bracket" | "margin_call" | "earnings" | "news";
+
 export type MonitorTool =
-  "tape" | "book" | "heatmap" | "screener" | "sessions" | "quotes" | "news";
+  | "tape"
+  | "book"
+  | "heatmap"
+  | "screener"
+  | "sessions"
+  | "quotes"
+  | "crowd"
+  | "news";
 
 export type TapePrint = {
   time: number;
@@ -240,6 +252,30 @@ export type MonitorTools = {
     volatility: number | null;
     prior_close: number;
   };
+  crowd?: {
+    symbol: string;
+    available: boolean;
+    notice: string;
+    orders: {
+      desk: string;
+      style: string;
+      side: "buy" | "sell";
+      kind: "market" | "limit";
+      quantity: number;
+      limit: number | null;
+      placed: number;
+      index: number;
+      status: "working" | "filled";
+      price: number | null;
+      filled_at: number | null;
+      reason: string;
+    }[];
+    desks: { id: string; name: string; style: string }[];
+    window_bars?: number;
+    working?: number;
+    filled?: number;
+    buy_share?: number | null;
+  };
   quotes?: {
     rows: {
       symbol: string;
@@ -278,6 +314,14 @@ export type SimRun = {
   reserved: string;
   available: string;
   equity: string;
+  /** Why the last jump stopped short, if it did. */
+  interrupted: {
+    bar: number;
+    reason: string;
+    of: number;
+    /** Bars actually run before the stop, so the card can say what is left. */
+    ran?: number;
+  } | null;
   /** What the account is carrying, counting a short at what it owes. */
   gross_exposure: string;
   /** Cash on a cash account; twice equity less gross on a margin one. */
@@ -472,19 +516,32 @@ export type MissionProgress = {
   brief: string;
   lessons: string[];
   symbol: string;
-  objectives: {
+  objectives: MissionObjective[];
+  /** A campaign's legs, each judged only once the clock has reached it. */
+  stages: {
     id: string;
     title: string;
-    detail: string;
-    met: boolean;
-    progress: string;
+    brief: string;
+    opens: number;
+    open: boolean;
+    bars_away: number;
+    objectives: MissionObjective[];
   }[];
+  account: string;
   met: number;
   total: number;
   complete: boolean;
   cursor: number;
   version: number;
   disclosure: string;
+};
+
+export type MissionObjective = {
+  id: string;
+  title: string;
+  detail: string;
+  met: boolean;
+  progress: string;
 };
 
 export type MissionCatalog = {
@@ -497,6 +554,15 @@ export type MissionCatalog = {
     symbol: string;
     name: string;
     objectives: { id: string; title: string; detail: string }[];
+    /** The account the mission is attempted on; the server refuses any other. */
+    account: string;
+    stages: {
+      id: string;
+      title: string;
+      opens: number;
+      brief: string;
+      objectives: { id: string; title: string; detail: string }[];
+    }[];
   }[];
   disclosure: string;
 };

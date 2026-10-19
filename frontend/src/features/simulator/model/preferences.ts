@@ -57,6 +57,7 @@ export const MONITOR_TOOLS: { id: MonitorTool; label: string }[] = [
   { id: "screener", label: "Screener" },
   { id: "sessions", label: "Sessions" },
   { id: "quotes", label: "Quotes" },
+  { id: "crowd", label: "Market flow" },
   { id: "news", label: "News" },
 ];
 

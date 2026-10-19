@@ -564,7 +564,9 @@ holding = 0
 
 for i in range(len(close)):
     start = max(0, i - window + 1)
-    total = sum(close[j] for j in range(start, i + 1))
+    total = 0.0
+    for j in range(start, i + 1):
+        total = total + close[j]
     average = total / (i + 1 - start)
     signal = 1 if close[i] > average else 0
     signal_count += signal
@@ -1177,13 +1179,19 @@ rule_returns = [-23.40, 4.90, 19.60, 2.30, -5.80]
 hold_returns = [-18.46, 5.10, 88.40, 30.70, 0.40]
 s = len(rule_returns)
 mean_return = sum(rule_returns) / s
-variance = sum((r - mean_return) ** 2 for r in rule_returns) / (s - 1)
+squared = 0.0
+for r in rule_returns:
+    squared = squared + (r - mean_return) ** 2
+variance = squared / (s - 1)
 std_dev = sqrt(variance)
 
 print("Ensemble mean return across 5 seeds:", round(mean_return, 2), "%")
 print("Sample standard deviation across seeds:", round(std_dev, 2), "percentage points")
 
-beats_hold = sum(1 for i in range(s) if rule_returns[i] > hold_returns[i])
+beats_hold = 0
+for i in range(s):
+    if rule_returns[i] > hold_returns[i]:
+        beats_hold = beats_hold + 1
 print("Seeds where strategy outperformed Buy & Hold:", beats_hold, "of", s)
 
 total_trials = 5 + 3 + 5

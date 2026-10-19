@@ -32,6 +32,10 @@ from quanta.services.simulator_universe import profile
 
 # An illustration is not a measurement, and the difference has to travel with the
 # data rather than live in the docs.
+# Enough history before the window for a smoothed indicator to settle; the same
+# margin the chart overlays are calculated across.
+OVERLAY_WARMUP = 400
+
 TAPE_NOTICE = (
     "Illustrative prints. The execution model fills from a bar's open, high, low "
     "and close and treats the path between them as unknown, so these are one "
@@ -85,6 +89,18 @@ def _prints(rng, bar, count):
     return path, sizes, seconds
 
 
+def bar_prints(seed, symbol, index, bar):
+    """The prints for one bar, as the tape draws them.
+
+    One function so the tape and the generated participants cannot disagree:
+    a desk's fill is one of these prints, which is what makes comparing the
+    tick rule's guess with the desk's declared side a real measurement rather
+    than two independent draws differing by chance.
+    """
+    rng = np.random.default_rng([seed, index, _stream(symbol)])
+    return _prints(rng, bar, int(rng.integers(5, 13)))
+
+
 def tape(state, data, symbol, limit=60):
     """Time and sales: the most recent prints, newest first.
 
@@ -100,9 +116,7 @@ def tape(state, data, symbol, limit=60):
     previous = None
     while index >= 0 and len(rows) < limit:
         bar = series[index]
-        rng = np.random.default_rng([seed, index, _stream(symbol)])
-        count = int(rng.integers(5, 13))
-        path, sizes, seconds = _prints(rng, bar, count)
+        path, sizes, seconds = bar_prints(seed, symbol, index, bar)
         block = []
         for position in range(len(path)):
             price = round(float(path[position]), 2)
@@ -300,9 +314,14 @@ def screener(state, data, room, screen="all", limit=25):
     # them, which on a minute market is the last twenty and fifty minutes and on
     # a daily replay the last twenty and fifty sessions.
     fast_period, slow_period = 20, 50
+    # Only the tail feeds the indicators. Reading the whole history for every
+    # company made this grow with the run: half a second by the sixtieth session,
+    # on an endpoint the play loop refetches every bar. The warm-up margin is the
+    # same one the chart overlays use, so the values match what the chart draws.
+    tail = slow_period + OVERLAY_WARMUP
     for row in quotes_table(state, data, room):
         symbol = row["symbol"]
-        closes = _closes(data[symbol], cursor)
+        closes = _closes(data[symbol], cursor)[-tail:]
         strength = rsi(closes, 14)
         fast = sma(closes, fast_period)
         slow = sma(closes, slow_period)

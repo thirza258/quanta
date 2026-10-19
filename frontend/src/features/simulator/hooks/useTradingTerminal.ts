@@ -624,15 +624,24 @@ export function useTradingTerminal() {
       const current = runRef.current;
       if (
         !current ||
+        current.interrupted ||
         (!current.endless && current.cursor >= current.total_bars - 1)
       ) {
         setPlaying(false);
         return;
       }
-      void perform("advance", { steps: speed }, "POST", "Replay advancing");
+      void perform(
+        "advance",
+        { steps: speed, stop_on: prefRef.current.stopOn ?? [] },
+        "POST",
+        "Replay advancing",
+      );
     }, 800);
     return () => clearInterval(timer);
   }, [playing, speed]);
+  useEffect(() => {
+    if (run?.interrupted) setPlaying(false);
+  }, [run?.interrupted?.bar, run?.interrupted?.reason]);
   useEffect(() => {
     if (!run || playing || archived) return;
     let active = true;
@@ -778,7 +787,12 @@ export function useTradingTerminal() {
   }
   async function jump(steps: number, label: string) {
     setPlaying(false);
-    await perform("advance", { steps }, "POST", `Replay advanced ${label}.`);
+    await perform(
+      "advance",
+      { steps, stop_on: prefRef.current.stopOn ?? [] },
+      "POST",
+      `Replay advanced ${label}.`,
+    );
   }
   function chooseSymbol(symbol: string) {
     setPrefs({ symbol, ticket: { ...emptyTicket(), lesson: ticket.lesson } });
@@ -873,6 +887,16 @@ export function useTradingTerminal() {
       setPrefs({ bottomOpen: true });
     }
   }
+  async function decide(choice: "hold" | "traded", note: string) {
+    await perform(
+      "decision",
+      { choice, note },
+      "POST",
+      choice === "hold"
+        ? "Decision recorded. The clock is yours again."
+        : "Noted. Place the order when you are ready.",
+    );
+  }
   async function retryPending() {
     const item = pendingRef.current;
     if (!item) return;
@@ -905,7 +929,12 @@ export function useTradingTerminal() {
         mode: newConfig.mode,
         ...(newConfig.seed.trim() ? { seed: Number(newConfig.seed) } : {}),
         ...(newConfig.mission ? { mission: newConfig.mission } : {}),
-        account: newConfig.mission ? "cash" : newConfig.account,
+        // A mission declares the account it is attempted on, and the server
+        // refuses any other, so the catalog's answer wins over the picker.
+        account: newConfig.mission
+          ? (missionCatalog?.missions.find((m) => m.id === newConfig.mission)
+              ?.account ?? "cash")
+          : newConfig.account,
         ...(newConfig.mode === "historical"
           ? { symbol: newConfig.symbol }
           : {}),
@@ -992,6 +1021,7 @@ export function useTradingTerminal() {
     screen,
     setScreen,
     jump,
+    decide,
     runCommand,
     commandFunctions: FUNCTIONS,
     prefs,

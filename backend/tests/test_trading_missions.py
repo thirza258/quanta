@@ -20,9 +20,11 @@ def start(client, mission="first-order"):
 
 def test_the_catalog_describes_every_mission(client):
     body = client.get("/api/v1/simulator/missions").json()
-    assert len(body["missions"]) == len(MISSIONS) == 6
+    assert len(body["missions"]) == len(MISSIONS) == 7
     for entry in body["missions"]:
-        assert entry["lessons"] and entry["brief"] and entry["objectives"]
+        # A campaign carries its objectives on its stages rather than at the top.
+        assert entry["lessons"] and entry["brief"]
+        assert entry["objectives"] or entry["stages"]
         assert len(entry["brief"]) > 200
         assert entry["name"] and entry["symbol"]
         for objective in entry["objectives"]:

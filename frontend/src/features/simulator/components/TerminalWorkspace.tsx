@@ -1,5 +1,8 @@
 import DeskPanel from "@/features/simulator/components/DeskPanel";
 import DrawingsPanel from "@/features/simulator/components/DrawingsPanel";
+import DecisionCard, {
+  STOP_EVENTS,
+} from "@/features/simulator/components/DecisionCard";
 import MonitorPane from "@/features/simulator/components/MonitorPane";
 import NewsPanel from "@/features/simulator/components/NewsPanel";
 import OrderTicket from "@/features/simulator/components/OrderTicket";
@@ -98,6 +101,9 @@ export default function TerminalWorkspace({
     | "monitorError"
     | "screen"
     | "setScreen"
+    | "decide"
+    | "busy"
+    | "stopped"
     | "jump"
   >;
 }) {
@@ -159,8 +165,12 @@ export default function TerminalWorkspace({
     monitorError,
     screen,
     setScreen,
+    decide,
+    busy,
+    stopped,
     jump,
   } = terminal;
+  const stops = prefs.stopOn ?? [];
   // How many windows the chart region is split into. The chart is always the
   // first; the rest are tools, each chosen independently and remembered with the
   // rest of the layout.
@@ -254,6 +264,28 @@ export default function TerminalWorkspace({
           </div>
         </nav>
         <div className="sim-chart-region">
+          {run.interrupted ? (
+            <DecisionCard
+              run={run}
+              busy={busy}
+              onDismiss={() => void decide("hold", "")}
+              onTrade={() => {
+                setSideTab("Trade");
+                setPrefs({ rightOpen: true });
+                setMobileTab("Trade");
+                void decide("traded", "");
+              }}
+              onHold={() => {
+                setPrefs({ rightOpen: true });
+                setJournal(null);
+                const why = window.prompt(
+                  `${run.interrupted?.reason}\n\nWhy are you holding? This is the only record of what you knew before the outcome.`,
+                  "",
+                );
+                if (why !== null) void decide("hold", why);
+              }}
+            />
+          ) : null}
           <div className="sim-monitors" data-monitors={monitors}>
             <div className="sim-monitor-chart">
               <SimChart
@@ -323,7 +355,7 @@ export default function TerminalWorkspace({
             <button
               className="sim-play-button"
               aria-label={playing ? "Pause replay" : "Play replay"}
-              disabled={blocked || complete}
+              disabled={blocked || complete || stopped}
               onClick={() => setPlaying(!playing)}
             >
               {playing ? <Pause size={15} /> : <Play size={15} />}
@@ -332,7 +364,7 @@ export default function TerminalWorkspace({
               className="sim-icon"
               aria-label="Next replay bar"
               title="Next replay bar"
-              disabled={blocked || complete}
+              disabled={blocked || complete || stopped}
               onClick={() => {
                 setPlaying(false);
                 void perform(
@@ -349,7 +381,7 @@ export default function TerminalWorkspace({
               {jumps.map(([label, steps, description]) => (
                 <button
                   key={label}
-                  disabled={blocked || complete}
+                  disabled={blocked || complete || stopped}
                   title={`Jump forward ${description}`}
                   aria-label={`Jump forward ${description}`}
                   onClick={() => void jump(steps, description)}
@@ -373,6 +405,26 @@ export default function TerminalWorkspace({
             >
               <Newspaper size={16} />
             </button>
+            <label className="sim-stop-picker">
+              <span className="sim-small">Stop on</span>
+              <select
+                aria-label="Stop the replay on"
+                value={stops.length ? "on" : "off"}
+                onChange={(e) =>
+                  setPrefs({
+                    stopOn:
+                      e.target.value === "off"
+                        ? []
+                        : STOP_EVENTS.map((event) => event.id),
+                  })
+                }
+              >
+                <option value="off">Nothing · run the whole jump</option>
+                <option value="on">
+                  {STOP_EVENTS.map((event) => event.label).join(", ")}
+                </option>
+              </select>
+            </label>
             <span
               className="sim-monitor-modes"
               role="group"

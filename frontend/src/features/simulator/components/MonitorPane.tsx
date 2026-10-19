@@ -325,6 +325,68 @@ function Quotes({
   );
 }
 
+function Crowd({ view }: { view: NonNullable<MonitorView["tools"]["crowd"]> }) {
+  if (!view.available)
+    return (
+      <div className="sim-monitor-body">
+        <p className="sim-monitor-summary">{view.notice}</p>
+      </div>
+    );
+  return (
+    <div className="sim-monitor-body">
+      <p className="sim-monitor-summary">
+        {view.filled} filled · {view.working} working over the last{" "}
+        {view.window_bars} bars ·{" "}
+        {view.buy_share === null || view.buy_share === undefined
+          ? "—"
+          : `${(view.buy_share * 100).toFixed(0)}% of size on the bid`}
+      </p>
+      <table className="sim-monitor-table sim-crowd-table">
+        <thead>
+          <tr>
+            <th scope="col">Time</th>
+            <th scope="col">Desk</th>
+            <th scope="col">Side</th>
+            <th scope="col">Size</th>
+            <th scope="col">Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {view.orders.map((order, index) => (
+            <tr key={`${order.index}:${order.desk}:${index}`}>
+              <td>{clock(order.filled_at ?? order.placed)}</td>
+              <td title={`${order.style} — ${order.reason}`}>
+                {order.desk.replace(" desk", "")}
+              </td>
+              <td className={order.side === "buy" ? "sim-up" : "sim-down"}>
+                {order.side.toUpperCase()}
+                {order.status === "working" ? " ·" : ""}
+              </td>
+              <td>{order.quantity.toLocaleString("en-US")}</td>
+              <td>
+                {order.status === "filled"
+                  ? `$${price(order.price ?? 0)}`
+                  : order.limit === null
+                    ? "at market"
+                    : `bid $${price(order.limit)}`}
+              </td>
+            </tr>
+          ))}
+          {!view.orders.length ? (
+            <tr>
+              <td colSpan={5}>No desk has acted in this window.</td>
+            </tr>
+          ) : null}
+        </tbody>
+      </table>
+      <p className="sim-monitor-note">
+        A dot after the side marks an order still working. Hover a desk for its
+        style and the reason it acted. {view.notice}
+      </p>
+    </div>
+  );
+}
+
 function Headlines({ feed }: { feed: NewsFeed | null }) {
   if (!feed?.items.length)
     return (
@@ -425,6 +487,8 @@ export default function MonitorPane({
         />
       ) : tool === "sessions" ? (
         <Sessions view={tools.sessions!} />
+      ) : tool === "crowd" ? (
+        <Crowd view={tools.crowd!} />
       ) : tool === "quotes" ? (
         <Quotes view={tools.quotes!} onSymbol={onSymbol} />
       ) : (

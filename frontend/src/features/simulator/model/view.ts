@@ -8,6 +8,8 @@ export type TerminalView = TerminalController & {
   run: SimRun;
   blocked: boolean;
   complete: boolean;
+  /** A stop is open: the clock is held until it is answered. */
+  stopped: boolean;
   estimate: ReturnType<typeof orderEstimate>;
   marketClosed: boolean;
   feedback: ReactNode;
