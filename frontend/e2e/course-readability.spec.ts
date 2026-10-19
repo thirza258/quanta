@@ -25,6 +25,17 @@ test("currency remains ordinary prose while lesson equations still render", asyn
   await expect(page.locator(".prose")).toContainText(
     "the initial outlay used in the denominator",
   );
+
+  await page.goto("/learn/13.1");
+  const frictionParagraph = page
+    .locator(".prose p")
+    .filter({ hasText: "flat commission per order" });
+  await expect(frictionParagraph).toContainText("($1 by default)");
+  await expect(frictionParagraph).toContainText(
+    "creates a fresh $100,000 account",
+  );
+  // $c$, $s$, $\sigma$, $\pi$ should be rendered as KaTeX elements inside the paragraph
+  await expect(frictionParagraph.locator(".katex")).toHaveCount(4);
 });
 
 test("mobile lesson tables scroll by keyboard and numbered instructions retain their markers", async ({

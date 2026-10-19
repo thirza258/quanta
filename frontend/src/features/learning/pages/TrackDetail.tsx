@@ -22,6 +22,7 @@ import {
   Play,
 } from "lucide-react";
 import { Fragment } from "react";
+import MarkdownRenderer from "@/shared/components/MarkdownRenderer";
 import { Link, useParams } from "react-router-dom";
 export default function TrackDetail() {
   const { trackId } = useParams(),
@@ -67,7 +68,9 @@ export default function TrackDetail() {
             <span className="level-badge">{track.level}</span>
           </div>
           <h1>{track.title}</h1>
-          <p className="page-subtitle">{track.description}</p>
+          <p className="page-subtitle">
+            <MarkdownRenderer content={track.description} inline />
+          </p>
           <p className="source-line">{track.source}</p>
           <div className="inline-meta">
             <span>
@@ -170,7 +173,9 @@ export default function TrackDetail() {
             {bookStudy ? "Your reading plan" : "Your course plan"}
           </h2>
           {track.readingGuide.split("\n\n").map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
+            <p key={paragraph}>
+              <MarkdownRenderer content={paragraph} inline />
+            </p>
           ))}
           <div className="course-references">
             {track.references?.map((reference) => (
@@ -244,7 +249,13 @@ export default function TrackDetail() {
                   {track.parts?.find((part) => part.id === m.part)?.title}
                 </h3>
                 <p>
-                  {track.parts?.find((part) => part.id === m.part)?.description}
+                  <MarkdownRenderer
+                    content={
+                      track.parts?.find((part) => part.id === m.part)
+                        ?.description ?? ""
+                    }
+                    inline
+                  />
                 </p>
                 <UnitCases track={track} part={m.part} />
               </div>
@@ -261,8 +272,12 @@ export default function TrackDetail() {
               </span>
               <div>
                 <span className="eyebrow">MODULE {m.id}</span>
-                <h3>{m.title}</h3>
-                <p>{m.subtitle}</p>
+                <h3>
+                  <MarkdownRenderer content={m.title} inline />
+                </h3>
+                <p>
+                  <MarkdownRenderer content={m.subtitle} inline />
+                </p>
               </div>
               <span className="module-minutes">
                 <Clock3 size={14} />
