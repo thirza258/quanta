@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, StrictInt
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator
 
 
 class Model(BaseModel):
@@ -23,9 +23,21 @@ class RunCreate(Model):
     account: Literal["cash", "margin"] = "cash"
     symbol: str | None = Field(default=None, max_length=20)
     commission: Decimal = Field(default=Decimal("1"), ge=0, le=100, decimal_places=2)
-    slippage_bps: Decimal = Field(default=Decimal("2"), ge=0, le=100)
-    spread_bps: Decimal = Field(default=Decimal("2"), ge=0, le=100)
-    participation: Decimal = Field(default=Decimal("0.01"), gt=0, le=1)
+    # The engine's decimal inputs carry at most 38 significant digits; eighteen
+    # is far more precision than a cost assumption has, and keeps every
+    # intermediate inside the arithmetic the engine proves exact.
+    slippage_bps: Decimal = Field(default=Decimal("2"), ge=0, le=100, max_digits=18)
+    spread_bps: Decimal = Field(default=Decimal("2"), ge=0, le=100, max_digits=18)
+    participation: Decimal = Field(default=Decimal("0.01"), gt=0, le=1, max_digits=18)
+
+    @field_validator("slippage_bps", "spread_bps", "participation")
+    @classmethod
+    def _digits_as_written(cls, value: Decimal) -> Decimal:
+        # max_digits is checked after Decimal.normalize(), which rounds to 28
+        # digits, so a longer rate would slip through it; count them as written.
+        if len(value.as_tuple().digits) > 18:
+            raise ValueError("Use at most 18 significant digits.")
+        return value
 
 
 class Mutation(Model):

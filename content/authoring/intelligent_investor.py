@@ -788,6 +788,180 @@ def build_intelligent_investor():
         [BOOK, ALLOCATION, FRAUD],
     )
 
+    # ---------------------------------------------------------------- Unit 5
+    add(
+        "Bonds and cash: what the safe half is actually for",
+        "The defensive investor and the bond component",
+        "Say what the fixed-income half of a policy is bought for, and recognise when reaching for yield has quietly turned it into a second equity position.",
+        "Lesson 11.9 fixed the proportions: Graham's defensive investor holds no less than 25% and no more than 75% in common stocks, with 50/50 as the neutral anchor. This lesson is about the other half, and the question most portfolios never answer explicitly: what is it for?\n\nIt is not there to earn a return. If return were the objective you would hold more equity. The fixed-income and cash half is bought so that an equity drawdown never forces a sale. That is its whole job, and it decides every other property you should want from it: it has to be worth roughly what you paid when you need it, and it has to be worth that at the exact moment equities are worst.\n\nTwo different risks sit inside a bond and they behave completely differently in that moment.\n• Interest-rate risk, measured by duration. Duration is the approximate percentage price change for a one-percentage-point move in yields. A seven-year duration means roughly a 7% price fall for a 1% rise in rates. This risk is symmetric and reverses: hold to maturity and you still receive par.\n• Credit risk, the chance the borrower does not pay. This is not symmetric and does not reverse. A default is permanent, and defaults cluster in exactly the recessions that are also pushing your equities down.\n\nThe trap is reaching for yield. A bond paying two percentage points more than a government issue is not a free two points; it is payment for taking the second risk. If recovery in default is 60 cents on the dollar, that extra 2 points compensates you for about a 5% annual default rate, and you are being paid to accept a loss that arrives on the worst possible day. A high-yield allocation held as the safe half is not a safe half. It is a second equity position wearing a bond's label, and it will fall with your shares rather than funding them.\n\nThis course stops at policy. The arithmetic of judging an individual issuer's ability to pay — coverage of fixed charges, trough-year stress, the maturity funding gap — is the opening work of Security Analysis; see lesson 1.2 rather than repeating it here.",
+        "Compare two candidates for the safe half of a plan, both quoted at par.\n\nCandidate A: a government issue with a duration of 7 and a yield of 4.0%.\nCandidate B: a corporate issue with the same duration and a yield of 6.0%.\n\nFirst, what the shared duration costs. If yields rise by one percentage point, the first-order estimate is a price change of −duration × Δy = −7 × 0.01 = −7%. For a two-point rise the straight-line estimate is −14%. Convexity softens this: at a convexity of 55 the second-order estimate is −7 × 0.02 + 0.5 × 55 × 0.02² = −12.9%. Both candidates suffer this equally, and both recover it by holding to maturity.\n\nNow what the extra 2 points is paying for. Write the break-even: with recovery R = 60% of face, an annual default rate d costs you d × (1 − R) of principal each year. Setting that equal to the spread gives d = 2.0 / (1 − 0.60) = 5.0%. So Candidate B is fair only if you believe the issuer's annual default probability is below 5%. That is a credit judgement, not a yield pickup, and you have to make it.\n\nThe decisive question is not which yields more. It is which one you can sell at close to par in the quarter your equities are down 30%. Candidate A's loss in that quarter is an interest-rate loss you can wait out, or a gain if rates have fallen. Candidate B's loss is a credit loss arriving precisely when the issuer's own prospects have worsened, and it does not wait out.",
+        "Write the purpose of your fixed-income allocation down before you choose any instrument for it:\n1. State the job in one sentence. For example: 'this half exists so that a 40% equity decline never forces me to sell shares in the following 36 months.' If you cannot write a sentence like that, you are holding bonds for a reason you have not examined.\n2. Size it against the job, not against a yield target. How many months of planned spending, or how much of a drawdown, must it cover? That number sets the amount; the yield does not.\n3. Separate the two risks in writing. For every holding, record its duration and whether it carries credit risk. Add the durations weighted by value; that is the portfolio's rate sensitivity.\n4. Price any yield pickup as a default rate. Divide the spread over the government issue by one minus your recovery assumption. If the implied default rate looks acceptable, say why in a sentence. If you cannot, the pickup is not yours to take.\n5. Re-read it after a joint drawdown. Lesson 11.9 warned that stocks and bonds can fall together in an inflation shock. A safe half that fell with your equities did not do its job, whatever its yield was.",
+        r"\Delta P \approx -D\,\Delta y + \tfrac{1}{2} C\,(\Delta y)^2,\qquad d_{\text{break-even}} = \frac{s}{1 - R}",
+        'duration = 7.0\nconvexity = 55.0\nshift = 0.02\nfirst = -duration * shift\nsecond = first + 0.5 * convexity * shift * shift\nprint("Straight-line price change percent:", round(first * 100, 1))\nprint("With convexity, percent:", round(second * 100, 2))\n\nspread = 2.0\nrecovery = 0.60\nprint("Break-even annual default rate percent:", round(spread / (1 - recovery), 2))\nprint("Loss given default, cents on the dollar:", round((1 - recovery) * 100, 0))',
+        "For the two candidates above, compute the price change on a two-point rise in yields using both the straight-line and the convexity-adjusted estimates, and compute the annual default rate at which the 2-point spread is fair at 60% recovery. Then write, in one sentence, the job your own fixed-income allocation is meant to do, and say whether Candidate B could do it.",
+        "The straight-line estimate is −7 × 0.02 = −14.0%; adding the convexity term gives −7 × 0.02 + 0.5 × 55 × 0.0004 = −12.9%, so the linear figure overstates the loss by about 1.1 points. Both candidates share this, and both recover it at maturity. The spread break-even is 2.0 / (1 − 0.60) = 5.0% a year: Candidate B pays you to accept default losses up to that rate. The job of the safe half is to let an equity drawdown pass without forcing a sale, and Candidate B is poorly suited to it, because its loss is a permanent credit loss that arrives in the same recession that is pushing equities down, rather than a recoverable rate loss you can hold through. Judging whether this particular issuer's default probability is under 5% is the work of Security Analysis lesson 1.2, not a yield comparison.",
+        [
+            (
+                "A bond with a duration of 7 faces a two-percentage-point rise in yields. The straight-line price estimate is:",
+                "About a 14% fall, before any convexity adjustment",
+                "About a 7% fall, because duration is quoted per year",
+                "No change, because the bond repays par at maturity",
+                "Duration is the approximate percentage price change per one-point move, so a two-point move gives −7 × 2 = −14%. Convexity then softens it to about −12.9%. Repayment at par is why the loss is recoverable, not why it is absent.",
+            ),
+            (
+                "A corporate bond yields two points more than a government bond of the same duration. At 60% recovery, that spread is fair if the annual default rate is below:",
+                "5%",
+                "2%",
+                "40%",
+                "Each default costs 1 − 0.60 = 40 cents of principal, so a default rate d costs 0.40d a year. Setting 0.40d = 2.0 gives d = 5.0%. The spread is payment for a judgement you still have to make.",
+            ),
+            (
+                "Why is credit risk a worse fit for the safe half than interest-rate risk?",
+                "A default is permanent and clusters in the recessions that are also hurting equities",
+                "Credit risk is larger in every scenario",
+                "Interest-rate risk does not affect bond prices",
+                "Rate losses reverse: hold to maturity and par is still paid. Default losses do not, and they arrive exactly when the equity side needs the safe half to be whole.",
+            ),
+            (
+                "What should decide the size of the fixed-income allocation?",
+                "The drawdown or spending it has to cover without forcing an equity sale",
+                "The yield available on the instruments being considered",
+                "The proportion that produced the best returns last decade",
+                "The allocation exists to stop a forced sale, so the size follows from what it must absorb. Sizing it by yield chooses the amount for a reason unrelated to the job.",
+            ),
+        ],
+        [BOOK, ALLOCATION],
+    )
+    add(
+        "A selection rule is a hypothesis, not a verdict",
+        "Stock selection for the defensive investor",
+        "Apply Graham's combined price filter honestly, and state what passing or failing it does and does not establish.",
+        "Graham gave the defensive investor a short list of tests for a common stock, set out in chapter 14 of the 1973 fourth revised edition: adequate size, a strong financial condition, a record of earnings and of dividends over many years, some earnings growth, and a moderate price against both earnings and assets. The last two are the arithmetic ones, and he set them as a price-to-earnings ratio under about 15 and a price-to-book ratio under about 1.5.\n\nOne detail of the earnings test is usually dropped in summaries and matters here. Graham applied the 15 limit twice: once to the last twelve months of earnings and once to the average of the past three years, and wanted both below it. The second check exists precisely so that a single unusual year cannot carry a share through the filter, which is the same concern lesson 11.13 raised about non-recurring items.\n\nHe then made the pair tradeable against each other. The two limits multiply to 15 × 1.5 = 22.5, and he offered that product as a rule of thumb: a share at 9 times earnings and 2.5 times book has a product of 22.5 and passes, as does one at 18 times earnings and 1.25 times book. The product is the test, not either number alone.\n\nTwo cautions belong with it. First, the closed form sometimes sold as 'the Graham number', the square root of 22.5 × EPS × book value per share, is a later derivation from these limits rather than a formula Graham put forward; treat it as arithmetic someone else arranged, not as his recommendation. Second, and much more important, a screen is a hypothesis generator. Passing the filter says the price is modest relative to two accounting numbers. It says nothing about whether those numbers are durable, whether the book value is real, or whether the business is shrinking fast enough to make a low multiple generous rather than cheap.\n\nThis is the course's recurring point in a new place. A rule that returns a list has not done the analysis; it has told you where to start. The work of deciding whether reported earnings recur and whether assets are worth their carrying value is Security Analysis — see lessons 1.6 and 11.13 on reading the business behind the headline number — and no filter substitutes for it.",
+        "Meridian Works trades at 42.00. Its trailing earnings are 3.20 a share, its three-year average earnings are also 3.20, and its book value is 24.00 a share. Both earnings figures must clear the 15 limit, and here they are the same number, so one calculation serves for both.\n\nWork the filter:\n• Price to earnings: 42.00 / 3.20 = 13.12, which is under 15 and passes on its own.\n• Price to book: 42.00 / 24.00 = 1.75, which is above 1.5 and fails on its own.\n• The product: 13.12 × 1.75 = 22.97.\n\nThe product is above 22.5, so Meridian fails the combined test — but only just, and the single-ratio readings would have given you two opposite answers. This is exactly why the product exists: a low enough multiple of earnings is allowed to buy back some excess over book.\n\nWhat price would pass? The product rule says P² / (EPS × BVPS) ≤ 22.5, so the ceiling is the square root of 22.5 × 3.20 × 24.00, which is 41.57. At 41.50 the product is 22.43 and it passes; at 42.00 it does not. The whole disagreement is 43 cents, about 1% of the price.\n\nThat margin should tell you what the filter is worth. A 1% price move flips the verdict, and so would a small revision to either accounting input — one impairment to book value, or one quarter of earnings that turns out not to recur. Lesson 11.13 asked you to separate recurring from reported earnings before using any multiple. If Meridian's 3.20 includes a one-time gain of 0.40 a share averaged across the three years — 1.20 in the single year it arose — the recurring figure is 2.80, the recurring P/E is 15.0, and the product becomes 26.25: a clear failure that the headline numbers hid. This is exactly what Graham's second earnings check is for, and why it is worth restoring when a summary has dropped it.",
+        "Use the filter as the first step of a process that does not end there:\n1. Compute the product, not the ratios. Record P/E, P/B and their product. A pass or fail on one ratio alone is not the test.\n2. Record the margin. Write how far the product sits from 22.5 in percentage terms. A name that passes by 1% has not told you much; one that passes at 12 has told you more.\n3. Re-run it on recurring earnings. Strip the non-recurring items identified in lesson 11.13 and compute the product again. Record both results side by side; the gap between them is the quality of the screen's input.\n4. Treat the output as a reading list. Everything that survives is a candidate for analysis, not a purchase. Write the three questions you would need answered before buying, before you look at the price again.\n5. Keep the names that failed. A list of rejects with the reason recorded is how you later discover the filter was wrong, which a list of only your purchases can never show.",
+        r"\frac{P}{E}\times\frac{P}{B}\le 22.5 \iff P \le \sqrt{22.5\,\times\,\mathrm{EPS}\times\mathrm{BVPS}}",
+        'price = 42.00\neps = 3.20\nbvps = 24.00\npe = price / eps\npb = price / bvps\nprint("Price to earnings:", round(pe, 2))\nprint("Price to book:", round(pb, 2))\nprint("Product:", round(pe * pb, 2))\nprint("Passes the 22.5 rule:", pe * pb <= 22.5)\n\nceiling = (22.5 * eps * bvps) ** 0.5\nprint("Highest passing price:", round(ceiling, 2))\nprint("Distance from the quote:", round(price - ceiling, 2))\n\nrecurring = 2.80\nprint("Recurring price to earnings:", round(price / recurring, 2))\nprint("Recurring product:", round((price / recurring) * pb, 2))',
+        "Compute Meridian's two ratios, their product, and the highest price that would pass the combined rule. Then recompute the product on recurring earnings of 2.80 and state, in two sentences, what the filter has and has not established about the company.",
+        "At 42.00 the ratios are 13.12 and 1.75, whose product is 22.97, so Meridian fails the combined rule despite passing on earnings alone. The highest passing price is the square root of 22.5 × 3.20 × 24.00 = 41.57, so the verdict turns on 43 cents, about 1% of the quote. On recurring earnings of 2.80 the multiple rises to 15.00 and the product to 26.25, a clear failure that the reported figure concealed. The filter has established that the price is not modest against these two accounting numbers once the one-time gain is removed. It has established nothing about whether the remaining earnings are durable, whether the 24.00 of book value would survive an impairment review, or whether the business is contracting; those are questions for analysis, and a screen that returns a name has only told you where to begin.",
+        [
+            (
+                "A share trades at 9 times earnings and 2.5 times book. Under Graham's combined rule it:",
+                "Passes, because 9 × 2.5 = 22.5 is within the limit",
+                "Fails, because the price-to-book ratio is above 1.5",
+                "Fails, because both ratios must pass separately",
+                "The two limits multiply to 22.5 and Graham offered the product as a rule of thumb that lets a low earnings multiple buy back some excess over book. Judging each ratio alone defeats the trade-off the product exists to permit.",
+            ),
+            (
+                "Meridian passes on P/E and fails on P/B, with a product of 22.97 against a ceiling of 22.5. What does that margin suggest?",
+                "That the verdict is fragile: about 1% on the price, or one revision to either input, reverses it",
+                "That the company is a clear buy once the price falls one cent",
+                "That the product rule should be abandoned for this name",
+                "The passing price is 41.57 against a quote of 42.00, so 43 cents decides it. A result that thin is a reason to look at the quality of the inputs, not to act on the output.",
+            ),
+            (
+                "Removing a one-time gain of 0.40 moves earnings from 3.20 to 2.80. The product then becomes:",
+                "26.25, a clear failure the reported figure had hidden",
+                "22.97, unchanged, because book value did not move",
+                "19.69, a pass, because lower earnings reduce the ratio",
+                "The multiple rises to 42.00 / 2.80 = 15.00 and the product to 15.00 × 1.75 = 26.25. A lower earnings figure raises a price-to-earnings ratio, which is why lesson 11.13 insists on stripping non-recurring items before any multiple is used.",
+            ),
+            (
+                "What does passing the defensive price filter establish?",
+                "Only that the price is modest against two accounting numbers, which still have to be checked",
+                "That the shares offer a margin of safety",
+                "That the business has durable earnings",
+                "A screen is a hypothesis generator. Durability of earnings, the realism of book value and the direction of the business are questions the filter cannot reach, and they are the ones that decide whether a low multiple is cheap or deserved.",
+            ),
+        ],
+        [BOOK, FILINGS],
+    )
+    add(
+        "Where bargains come from, and the arithmetic of looking for them",
+        "The enterprising investor and bargain issues",
+        "Name the conditions that let a mispricing persist, and compute honestly what a search for one costs in hours per find.",
+        "Lesson 11.3 drew the line between the defensive and enterprising investor as a commitment of time and effort rather than a tolerance for risk. This lesson asks the question that commitment implies: if a security really is mispriced, why has nobody else taken it?\n\nA mispricing that survives needs a reason to survive. Graham's bargain issues were not simply cheap; they were cheap for a structural reason that kept better-resourced buyers away. Three such reasons recur:\n• Neglect. The company is too small, too illiquid, or too obscure for an institution to buy a meaningful position without moving the price. The constraint is the buyer's size, not the analyst's insight.\n• Forced selling. An index deletion, a fund liquidation, a covenant breach or a spin-off distributes shares to holders who must sell for reasons unrelated to value. The seller's deadline, not their opinion, sets the price.\n• Complexity or ugliness. A holding company, a litigation overhang, a restatement, a business that is embarrassing to own. The work to understand it is real, and most people will not do it.\n\nNotice what is absent from that list: 'the market has not noticed'. A thesis whose only support is that a widely-followed, liquid share is obviously too cheap has no mechanism, and a mispricing without a mechanism is usually an error in your own analysis. Requiring yourself to name the reason is the cheapest filter you will ever apply.\n\nThe second half of this lesson is arithmetic, and it is unwelcome. Enterprising investing is a search with a base rate, and the base rate decides whether the search is worth running at all. Most people who choose the enterprising route never compute it.",
+        "Suppose you screen 200 companies a year and judge, generously, that 6% of them are genuinely mispriced. That is 12 real opportunities inside the list — but you do not know which 12, and you cannot analyse 200 companies properly.\n\nSay a serious analysis takes 8 hours: reading several years of filings, checking the balance sheet, understanding the business, and writing the thesis down. At that rate you can study perhaps 20 names a year alongside other work.\n\nNow the expected finds. If the 20 you choose are no better than random draws from the list, the expected number of real opportunities among them is 20 × 0.06 = 1.2. The hours are 20 × 8 = 160. That is roughly 133 hours per genuine find, before you have decided whether the one you found is large enough to matter to your portfolio, and before considering that you may be wrong about which of the 20 was the real one.\n\nThis is not an argument against the enterprising route. It is the honest budget for it, and it clarifies two things. First, the only lever with real leverage is the quality of the screen: raising the hit rate from 6% to 12% halves the hours per find, where working faster does not. Second, if 160 hours a year is not available to you, the arithmetic has answered the question lesson 11.3 posed, and the defensive route is the correct choice rather than the lesser one. Sharpe's arithmetic of active management, cited in 11.3, says the average active dollar must underperform after costs; your own time is one of those costs, and this is how you price it.",
+        "Before committing to the enterprising route, write the budget down:\n1. Name the mechanism for every candidate. In one sentence: why is this cheap, and what stops a larger buyer from taking it? If the sentence is 'the market has not noticed', discard the candidate.\n2. Record your screen's hit rate. Of the names you studied last year, how many turned out to be genuinely mispriced rather than cheap for cause? That ratio is the only input you can improve.\n3. Compute hours per find. Multiply names studied by hours each, then divide by names studied times the hit rate. Write the number in your notebook as a plain figure.\n4. Compare it against the defensive alternative. The comparison is not 'enterprising returns versus defensive returns'. It is the excess return you expect, after costs, against the hours it consumes and the risk you were wrong.\n5. Review the rejects annually. Of the names you passed over, how many would have worked? A hit rate computed only from the ones you bought is not a hit rate.",
+        r"\text{hours per find} = \frac{n \times h}{n \times p} = \frac{h}{p}",
+        'screened = 200\nhit_rate = 0.06\nstudied = 20\nhours_each = 8\n\nprint("Real opportunities in the screen:", int(screened * hit_rate))\nprint("Expected real finds among those studied:", round(studied * hit_rate, 1))\nprint("Hours spent:", studied * hours_each)\nprint("Hours per genuine find:", round(hours_each / hit_rate, 0))\n\nbetter = 0.12\nprint("At a 12 percent hit rate, hours per find:", round(hours_each / better, 0))\nprint("Hours saved by doubling the hit rate:", round(hours_each / hit_rate - hours_each / better, 0))',
+        "Compute the expected number of genuine finds and the hours per find for a search of 20 names a year at 8 hours each and a 6% hit rate. Then recompute at a 12% hit rate, and write which of the two levers — a better screen or more hours — changes the answer, and why.",
+        "Twenty names at a 6% hit rate give an expected 1.2 genuine finds for 160 hours, which is 8 / 0.06 = 133 hours per find. Doubling the hit rate to 12% halves it to 67 hours per find, saving 67 hours for each one. The arithmetic shows that the hours-per-find figure depends only on the hours each analysis takes divided by the hit rate, so the number of names studied cancels out entirely: studying more names finds more opportunities but does not make any one of them cheaper to find. The only lever with leverage is the screen's quality, because it is the denominator. This is also why the mechanism question matters so much — requiring a named reason why a mispricing persists is the cheapest available way to raise the hit rate, and it costs one sentence per candidate rather than eight hours.",
+        [
+            (
+                "Which of these is a reason a mispricing can persist?",
+                "The company is too small for an institution to buy without moving the price",
+                "The market has not yet noticed a widely-followed, liquid share",
+                "The share price has fallen a long way from its high",
+                "A surviving mispricing needs a mechanism keeping better-resourced buyers away: size, forced selling, or genuine complexity. A liquid, widely-followed name that is simply unnoticed usually means the error is in your own analysis.",
+            ),
+            (
+                "You study 20 names a year at 8 hours each with a 6% hit rate. The hours per genuine find are:",
+                "About 133, because the figure is hours each divided by the hit rate",
+                "160, the total hours spent",
+                "8, the hours one analysis takes",
+                "Expected finds are 20 × 0.06 = 1.2 and hours are 160, so 160 / 1.2 ≈ 133. Algebraically the name count cancels: the figure is 8 / 0.06, which is why studying more names does not lower it.",
+            ),
+            (
+                "Doubling the screen's hit rate from 6% to 12% does what to the hours per find?",
+                "Halves them, from about 133 to about 67",
+                "Leaves them unchanged, since the hours per analysis are the same",
+                "Doubles them, because more candidates must be studied",
+                "The figure is hours each over the hit rate, so the hit rate is the denominator. Improving the screen is the only lever with leverage; working faster reduces the numerator but not the structure of the problem.",
+            ),
+            (
+                "What does this arithmetic imply for an investor without 160 hours a year?",
+                "That the defensive route is the correct choice, not the lesser one",
+                "That they should study fewer names at the same hit rate",
+                "That they should raise their hit rate by lowering their standards",
+                "Lesson 11.3 framed the choice as a commitment of time. Pricing that commitment honestly is how the choice gets made, and a defensive process chosen for a reason is better than an enterprising one that is not actually resourced.",
+            ),
+        ],
+        [BOOK, FEES],
+    )
+    add(
+        "What a shareholder is owed: dividends, buybacks and management",
+        "Shareholders and managements, and dividend policy",
+        "Evaluate a distribution decision as an owner, and compute who gains and who loses when a company repurchases shares at a given price.",
+        "Graham's complaint about shareholders was that they behaved like ticket-holders rather than owners: passive about management quality, indifferent to how retained earnings were used, and attentive only to the quoted price. A share is a claim on a business, and the most consequential decision that business makes on your behalf is what to do with the cash it earns.\n\nThere are four things a company can do with a dollar of earnings, and they are not equivalent:\n• Reinvest it in the business, which is right only if the business earns more on that dollar than you could elsewhere.\n• Pay down debt, which transfers value from equity holders to creditors unless the leverage was genuinely threatening.\n• Pay it out as a dividend, which hands you the dollar and lets you decide.\n• Repurchase shares, which is the subtle one, because whether it helps you depends entirely on the price paid.\n\nA buyback is a purchase of your own company made with your money. Like any purchase it creates value if the price is below what the asset is worth and destroys value if it is above. This is the part that announcements never say. A repurchase at a discount to intrinsic value transfers wealth from the selling shareholders to those who remain; a repurchase above intrinsic value transfers it the other way, from the holders who stay to the ones who leave. Management is on both sides of that trade and is usually buying when the price is high, because that is when cash is plentiful and confidence is greatest.\n\nThe per-share arithmetic is why this is so easy to hide. A buyback mechanically raises earnings per share by shrinking the denominator, whatever price was paid. An EPS that rose because shares were retired is not the same event as an EPS that rose because the business earned more, and a management rewarded on EPS has a reason not to distinguish them. Lesson 11.14 asked you to read incentives; this is where that reading pays.",
+        "Harrow Industries has 1,000 shares outstanding. Your own appraisal, done before you looked at the quote, puts the business at 20.00 a share, so 20,000 in total. The shares trade at 26.00. Management announces a 5,200 repurchase and the press release calls it a vote of confidence.\n\nWork out what it does to you as a holder who is not selling.\n• Shares bought: 5,200 / 26.00 = 200 shares.\n• Shares remaining: 1,000 − 200 = 800.\n• Intrinsic value before: 1,000 × 20.00 = 20,000.\n• Intrinsic value after: 20,000 − 5,200 = 14,800, because 5,200 of cash left the business.\n• Value per remaining share: 14,800 / 800 = 18.50.\n\nYou began holding something worth 20.00 a share and now hold something worth 18.50. The company spent 5,200 to buy 200 shares worth 4,000, and the 1,200 difference came out of the holders who stayed and went to the holders who sold. Per remaining share that is a transfer of 1.50.\n\nMeanwhile the reported figures improve. If Harrow earns 2,000 a year, earnings per share rise from 2.00 to 2,000 / 800 = 2.50, a 25% increase, with no change whatever in the business. A dividend of 5,200, by contrast, would have handed each holder 5.20 a share and left the per-share value of what remains at 14,800 / 1,000 = 14.80 — the same total of 20.00 between cash in hand and shares held, with nothing transferred between holders.\n\nThe test, then, is not whether a buyback happened. It is the price it happened at, measured against an appraisal you made first.",
+        "Judge distributions as an owner, with the appraisal written down before the announcement:\n1. Appraise first, then read the announcement. A value estimate formed after reading a press release is not independent of it. Lesson 11.15 on decision journals applies directly: write the number and the date.\n2. For a buyback, compute the transfer. Subtract the cash spent from your appraisal of the whole business, divide by the shares that remain, and compare with your appraisal per share before. Record the difference as a figure, positive or negative.\n3. Separate mechanical EPS from earned EPS. Ask what earnings per share would have been with the old share count. If the entire improvement came from the denominator, say so in your notes.\n4. Read the incentive. Check whether management's compensation references earnings per share, total shareholder return or a share-price target, and whether the repurchase was funded by debt. Both change how you should read the decision.\n5. Record what you would have preferred and why. Over several years this becomes evidence about the management's capital allocation, which is a more reliable signal than any single year's result.",
+        r"V_{\text{after}} = \frac{V - C}{N - C/P},\qquad \text{transfer per share} = V_{\text{per share}} - V_{\text{after}}",
+        'shares = 1000\nvalue_per_share = 20.00\nprice = 26.00\nspend = 5200.0\n\nbought = spend / price\nremaining = shares - bought\nbefore = shares * value_per_share\nafter = before - spend\nprint("Shares repurchased:", round(bought, 0))\nprint("Shares remaining:", round(remaining, 0))\nprint("Business value before:", round(before, 0))\nprint("Business value after:", round(after, 0))\nprint("Value per remaining share:", round(after / remaining, 2))\nprint("Transferred away per remaining share:", round(value_per_share - after / remaining, 2))\n\nearnings = 2000.0\nprint("Earnings per share before:", round(earnings / shares, 2))\nprint("Earnings per share after:", round(earnings / remaining, 2))\nprint("Percent rise from the share count alone:", round((shares / remaining - 1) * 100, 1))',
+        "Compute the value per remaining share after Harrow's repurchase, the transfer per share, and the rise in earnings per share it produces. Then state the price at which the buyback would have been neutral for holders who stay, and explain why the announcement's framing as a vote of confidence is not evidence either way.",
+        "The company buys 5,200 / 26.00 = 200 shares, leaving 800. Business value falls from 20,000 to 14,800 because the cash left, so value per remaining share is 14,800 / 800 = 18.50 against 20.00 before — a transfer of 1.50 a share away from the holders who stayed and to those who sold. Earnings per share rise from 2.00 to 2.50, a 25% increase produced entirely by the smaller denominator with no change in the business. The buyback is neutral only at a price equal to intrinsic value, 20.00 a share: below that it adds value for continuing holders, above it subtracts. The vote-of-confidence framing is not evidence because it is an assertion about management's opinion of the price, and management's opinion is precisely what the repurchase price is being used to test; a confident management buying at 26.00 against a 20.00 value has expressed confidence and destroyed 1,200 of value in the same act.",
+        [
+            (
+                "A company worth 20.00 a share repurchases stock at 26.00. For a holder who does not sell, this:",
+                "Transfers value away from them and towards the holders who sold",
+                "Is neutral, because the share count and the cash both fall",
+                "Adds value, because fewer shares now share the same earnings",
+                "The company paid 26.00 for something worth 20.00. The 6.00 difference on each share bought comes out of the continuing holders; in the worked case that is 1.50 per remaining share.",
+            ),
+            (
+                "After the repurchase, Harrow's earnings per share rise from 2.00 to 2.50. What has happened to the business?",
+                "Nothing: the rise is entirely the smaller share count",
+                "It has become 25% more profitable",
+                "It has earned back the cash it spent",
+                "Earnings are unchanged at 2,000; only the denominator moved, from 1,000 shares to 800. Separating a mechanical EPS rise from an earned one is the point, especially where management is paid on EPS.",
+            ),
+            (
+                "At what price would the repurchase have been neutral for continuing holders?",
+                "At intrinsic value, 20.00 a share",
+                "At the market price, since that is what the shares are worth",
+                "At book value, whatever it happens to be",
+                "A buyback is a purchase. It creates value below intrinsic value and destroys it above, so the neutral point is intrinsic value itself — which means you need an appraisal made before the announcement to judge it at all.",
+            ),
+            (
+                "A dividend of the same 5,200 would have left each holder with:",
+                "5.20 in cash and shares worth 14.80, totalling the 20.00 they started with",
+                "Shares worth 18.50, the same as the buyback",
+                "More total value, because dividends are always preferable",
+                "A dividend distributes the cash without changing the share count, so nothing is transferred between holders: 14,800 / 1,000 = 14.80 a share plus 5.20 received. Neither form is always better; the buyback's merit depends entirely on the price paid.",
+            ),
+        ],
+        [BOOK, FILINGS],
+    )
+
     return _finish_course(modules)
 
 
@@ -809,6 +983,10 @@ def _finish_course(modules):
             "Exercise independent judgment",
             "Disclosure reading, incentives, fraud checks, decision review and a written investor plan.",
         ),
+        (
+            "Choose the securities, and know what a rule cannot decide",
+            "The purpose of the safe half, the defensive price filter, where bargains come from, and judging a distribution as an owner.",
+        ),
     ]
     track = finish(
         {
@@ -828,9 +1006,10 @@ def _finish_course(modules):
                 "Connect goals, liquidity, risk capacity, inflation and diversification to a written plan.",
                 "Calculate valuation cushions, allocation drift, fee drag and purchase averages.",
                 "Read disclosures, investigate incentives and recognize promises that need independent verification.",
+                "Judge the purpose of a fixed-income allocation, apply a price filter as a hypothesis rather than a verdict, and evaluate a dividend or repurchase as an owner.",
                 "Produce an investor-policy workbook and prepare for the deeper Security Analysis course.",
             ],
-            "readingGuide": "16 lessons × 30 minutes = 8 hours of planned study across four units; exam time is additional. Includes 32 practice questions, four four-question checkpoints, a 16-question final and a downloadable workbook with a self-assessed capstone in your notebook. This is an original thematic companion, not the full book or a substitute for it. Edition pagination varies; use the named themes in your own copy. Modern planning, fund and fraud examples are explicitly course extensions. Case allocations and thresholds are fictional assumptions, not personalized recommendations.",
+            "readingGuide": "20 lessons × 30 minutes = 10 hours of planned study across five units; exam time is additional. Includes 40 practice questions, five four-question checkpoints, a 20-question final and a downloadable workbook with a self-assessed capstone in your notebook. This is an original thematic companion, not the full book or a substitute for it. Edition pagination varies; use the named themes in your own copy. Modern planning, fund and fraud examples are explicitly course extensions. Case allocations and thresholds are fictional assumptions, not personalized recommendations.",
             "parts": [
                 {"id": str(i), "title": t, "description": d} for i, (t, d) in enumerate(parts, 1)
             ],
@@ -852,7 +1031,9 @@ def _finish_course(modules):
                 },
             ],
         },
-        checkpoints_for(modules, parts, 4),
+        checkpoints_for(modules, parts, len(parts)),
     )
-    track["exams"][-1]["version"] = 1
+    # Bumped when unit 5 took the final from 16 questions to 20, so a draft
+    # started against the old paper is told the exam changed.
+    track["exams"][-1]["version"] = 2
     return track

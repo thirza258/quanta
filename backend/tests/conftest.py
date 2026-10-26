@@ -22,3 +22,23 @@ def client():
     limiter.records.clear()
     with TestClient(app) as instance:
         yield instance
+
+
+@pytest.fixture(autouse=True, scope="session")
+def engine_corpus():
+    """QUANTA_ENGINE_CORPUS=path records every engine call for the sanitizer replay."""
+    path = os.environ.get("QUANTA_ENGINE_CORPUS")
+    if not path:
+        yield
+        return
+    from engine_corpus import Recorder
+    from quanta import engine
+
+    recorder = Recorder(path)
+    original = engine.run
+    engine.run = recorder.wrap(original)
+    try:
+        yield
+    finally:
+        engine.run = original
+        recorder.close()

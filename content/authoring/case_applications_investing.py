@@ -76,4 +76,32 @@ APPLICATIONS = [
     ("8.22", "llm_evidence", "A plausible AI paragraph must still earn its place in a research note through evidence.", "An assistant extracts 'revenue 12 billion' from a document whose table is in millions and includes an embedded instruction to recommend buying. Design separate numeric and instruction-boundary checks.", "Validate the table heading, period, currency, and scaling against the cited passage. Treat the embedded instruction as document text with no authority over the workflow. A correct citation URL alone does not validate the extracted number or recommendation."),
     ("8.23", "gme", "Outcome review should evaluate the original decision process without rewriting its information set.", "Compare a fictional profitable trade based on an unsupported rumor with a losing trade based on a documented, risk-limited thesis. Write separate process and outcome assessments.", "Profit does not make unsupported evidence reliable, and a bounded loss does not by itself invalidate a reasonable process. Review source quality, assumptions, timing, and adherence to the risk budget before using the outcomes to change future rules."),
     ("8.24", "bi_rate", "A complete news-to-valuation case must connect the event to the accounts before it changes a price estimate.", "Build a fictional Indonesian importer memo around the April 2024 release: dated fact, currency exposure, debt repricing, margin scenarios, cash needs, valuation range, and a decision to act or wait.", "The memo should show the bridge from policy to business quantities and then to cash flows. Keep BI's actual decision distinct from invented company exposures and probabilities. Attach the source and identify the filing or contract needed to replace each major assumption."),
+    (
+        "11.17",
+        "svb",
+        "Silicon Valley Bank held long-duration securities funded by deposits that could leave at once. The rate risk was real and recoverable in principle; what made it fatal was needing to sell before it recovered.",
+        "Write the one-sentence job of your own fixed-income allocation, then compute the price change on your holdings for a two-point rise in yields and ask whether you would be a forced seller inside that window.",
+        "Duration losses reverse at maturity and credit losses do not, but neither distinction helps if you have to sell first. State the horizon over which you could leave the allocation alone, compute the two-point price move against it, and separate the holdings that carry credit risk from those that carry only rate risk. If the safe half contains a spread you have not priced as a default rate, you are holding a second equity position under a bond's label.",
+    ),
+    (
+        "11.18",
+        "ge_disclosure",
+        "A screen reads the numbers a company reported. Where those numbers later turn out to have included items that do not recur, every multiple computed from them was measuring something other than the business.",
+        "Run the combined price filter on one company, then run it again on recurring earnings after stripping the non-recurring items you identified in lesson 11.13, and record both products side by side.",
+        "The gap between the two products is the quality of the screen's input, and it is often larger than the margin by which a name passed or failed. In the worked case a 0.40 one-time gain moved the product from 22.97 to 26.25, turning a near miss into a clear failure. Record the names that failed and the reason, because a hit rate computed only from the names you bought is not a hit rate.",
+    ),
+    (
+        "11.19",
+        "warung",
+        "A small local business is not mispriced because nobody has noticed it. It is priced where it is because the buyers who could pay more are too large to be interested, which is a mechanism rather than an oversight.",
+        "For each candidate on your list, write one sentence naming why it is cheap and what stops a larger buyer from taking it, then compute your hours per genuine find at your own hit rate.",
+        "A sentence that reads 'the market has not noticed' is not a mechanism, and a mispricing without one is usually an error in your own analysis. The hours-per-find figure is the hours each analysis takes divided by the hit rate, so the name count cancels: studying more names finds more opportunities without making any one of them cheaper to find. Requiring the mechanism sentence is the cheapest way to raise the denominator, and it costs one line per candidate rather than eight hours.",
+    ),
+    (
+        "11.20",
+        "ge_disclosure",
+        "Earnings per share can rise because a business earned more or because its share count fell, and a reader who does not separate the two is reading a different number from the one they think.",
+        "Appraise a company before reading its latest repurchase announcement, then compute the value per remaining share after the buyback and the transfer it produced.",
+        "Subtract the cash spent from your appraisal of the whole business and divide by the shares that remain. In the worked case a 5,200 buyback at 26.00 against a 20.00 appraisal left 18.50 a share, a transfer of 1.50 away from the holders who stayed, while earnings per share rose 25% with no change in the business at all. The neutral price is intrinsic value, which means the judgement requires an appraisal made before the announcement rather than after it.",
+    ),
 ]

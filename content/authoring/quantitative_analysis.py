@@ -431,6 +431,109 @@ When describing financial datasets:
     # -------------------------------------------------------------------------
 
     add(
+        "2.30",
+        2,
+        "Annualising returns when observations are not independent",
+        "Scale a mean and a volatility to a year correctly, and show how autocorrelation inflates an annualised Sharpe ratio.",
+        r"""
+## The analytical question
+
+Annualising is the most-performed and least-examined operation in investment analysis. A mean return scales with time, a standard deviation scales with the square root of time, and a Sharpe ratio therefore scales with the square root of time:
+
+$$\mu_{\text{annual}} = \mu_{\text{period}} \times T,\qquad \sigma_{\text{annual}} = \sigma_{\text{period}} \sqrt{T},\qquad \mathrm{SR}_{\text{annual}} = \mathrm{SR}_{\text{period}} \sqrt{T}$$
+
+The mean rule is close to harmless. The volatility rule is not, because the square root of $T$ holds **only if the period returns are independent**. The variance of a sum of $T$ returns is the sum of their variances plus twice the sum of every covariance between them:
+
+$$\mathrm{Var}\!\left(\sum_{t=1}^{T} r_t\right) = T\sigma^2 + 2\sum_{i<j}\mathrm{Cov}(r_i, r_j)$$
+
+When returns are independent every covariance is zero, the second term vanishes, and $\sigma\sqrt{T}$ is exact. When they are positively autocorrelated the second term is positive, the true annual volatility is **larger** than $\sigma\sqrt{T}$, and dividing by the understated denominator produces a Sharpe ratio that is too high.
+
+For returns following a first-order autoregressive process with correlation $\rho$, every covariance is $\mathrm{Cov}(r_t, r_{t+k}) = \rho^k \sigma^2$, so the inflation of the variance has a closed form:
+
+$$V = 1 + \frac{2}{T}\sum_{k=1}^{T-1}(T-k)\,\rho^{k} = 1 + \frac{2\rho}{T(1-\rho)}\left[T - \frac{1-\rho^{T}}{1-\rho}\right]$$
+
+The volatility is inflated by $k = \sqrt{V}$, and the corrected figures are $\sigma\sqrt{T}\,k$ and $\mathrm{SR}/k$. Lo's 2002 note on the statistics of Sharpe ratios derives this and gives the general form for arbitrary dependence. Note the long-run behaviour: as $T$ grows, $V \to (1+\rho)/(1-\rho)$, so for $\rho = 0.20$ the variance inflation approaches 1.5 however long the sample. Keeping only the lag-one term, a common shortcut, gives $1 + 2\rho = 1.4$ and understates it.
+
+Why does this matter in practice? Positive autocorrelation is not exotic. It appears mechanically wherever prices are stale or smoothed: infrequently traded holdings, appraisal-based valuations, monthly marks on illiquid positions. Exactly the strategies whose reported Sharpe ratios look most attractive are the ones where the assumption behind the annualisation fails hardest, and in the direction that flatters them.
+
+## A worked example
+
+A strategy reports a daily mean of 0.04% and a daily standard deviation of 1.00% over 252 trading days.
+
+Step 1, the conventional figures:
+
+$$\mu_{\text{annual}} = 0.0004 \times 252 = 10.08\%,\qquad \sigma_{\text{annual}} = 0.0100 \times \sqrt{252} = 15.87\%$$
+
+$$\mathrm{SR} = \frac{10.08}{15.87} = 0.635$$
+
+Step 2, test the assumption. Suppose the daily returns have a first-order autocorrelation of $\rho = 0.20$ — mild, and well within what stale pricing produces.
+
+Step 3, the inflation. Summing $(T-k)\rho^k$ over $k = 1 \ldots 251$ and applying the formula gives $V = 1.4975$, which is already within a quarter of a percent of the long-run limit of 1.5. The volatility factor is $k = \sqrt{1.4975} = 1.2237$.
+
+Step 4, the corrected figures. True annual volatility is $15.87 \times 1.2237 = 19.43\%$, and the Sharpe ratio becomes $0.635 / 1.2237 = 0.519$.
+
+The reported 0.635 was **22.4% higher** than the figure the data support, from an autocorrelation small enough that most eyeball inspections would call the series independent. The mean was unaffected; the entire error sat in the denominator.
+
+Step 5, the reporting consequence. A Sharpe ratio quoted without the autocorrelation of the underlying series is an incomplete statistic. Two strategies reporting 0.6 are not comparable if one is daily-liquid and the other is marked monthly on appraisals, and the difference between them is not performance.
+""",
+        r"\mathrm{Var}\!\left(\textstyle\sum_t r_t\right)=T\sigma^2+2\sum_{i<j}\mathrm{Cov}(r_i,r_j),\qquad \mathrm{SR}_{\text{adj}}=\frac{\mathrm{SR}}{k}",
+        '''
+from math import sqrt
+
+mean = 0.0004
+sd = 0.0100
+periods = 252
+print("Annualised mean percent:", round(mean * periods * 100, 2))
+print("Independent annualised volatility percent:", round(sd * sqrt(periods) * 100, 2))
+naive = mean * periods / (sd * sqrt(periods))
+print("Naive Sharpe:", round(naive, 3))
+
+# The covariance sum is built term by term. The guided runtime caps exponents
+# at 32, so rho to the power of T has to be reached by repeated multiplication
+# rather than written down.
+rho = 0.20
+term = 1.0
+total = 0.0
+for k in range(1, periods):
+    term = term * rho
+    total = total + (periods - k) * term
+inflation = 1 + 2 * total / periods
+factor = sqrt(inflation)
+print("Variance inflation:", round(inflation, 4))
+print("Volatility inflation factor:", round(factor, 4))
+print("Adjusted annualised volatility percent:", round(sd * sqrt(periods) * factor * 100, 2))
+print("Adjusted Sharpe:", round(naive / factor, 3))
+print("Sharpe overstated by percent:", round((factor - 1) * 100, 1))
+print("Long-run limit of the inflation:", round((1 + rho) / (1 - rho), 4))
+''',
+        "Annualise the mean, volatility and Sharpe ratio of the daily series above under independence, then recompute the volatility and Sharpe ratio for a first-order autocorrelation of 0.20. State which of the three annualised figures changed and why, check your inflation against the long-run limit, and name two kinds of strategy where this correction matters most.",
+        "Under independence the annualised mean is 0.0004 × 252 = 10.08%, the volatility is 0.0100 × sqrt(252) = 15.87%, and the Sharpe ratio is 0.635. With a first-order autocorrelation of 0.20 the variance inflation is 1.4975 and the volatility factor is its square root, 1.2237, so the true annualised volatility is 15.87 × 1.2237 = 19.43% and the Sharpe ratio falls to 0.635 / 1.2237 = 0.519, meaning the reported figure was 22.4% too high. The inflation is close to its long-run limit of (1 + 0.20) / (1 - 0.20) = 1.5, which is the check worth running: keeping only the lag-one covariance would have given 1.4 and understated the correction. Only the volatility and the Sharpe ratio changed: the mean scales linearly with time and is unaffected by the covariance structure, while the square-root rule for volatility assumes every covariance between periods is zero and understates the denominator when they are positive. The correction matters most where prices are stale or smoothed — infrequently traded holdings and positions marked on periodic appraisals rather than transactions — which is precisely where reported Sharpe ratios tend to look most attractive, so the assumption fails hardest in the direction that flatters the result.",
+        [
+            q(
+                "Which annualised statistic is unaffected by autocorrelation in the period returns?",
+                ["The mean", "The volatility", "The Sharpe ratio"],
+                0,
+                "A mean scales linearly with the number of periods regardless of dependence. Volatility uses the square-root rule, which assumes zero covariance between periods, and the Sharpe ratio inherits that error through its denominator.",
+            ),
+            q(
+                "With ρ = 0.20 over 252 periods the volatility inflation factor is 1.2237. A reported Sharpe of 0.635 corrects to:",
+                ["0.519", "0.750", "0.635"],
+                0,
+                "The adjusted ratio is the reported one divided by the factor: 0.635 / 1.2237 = 0.519, an overstatement of 22.4% from an autocorrelation most inspections would treat as negligible. The factor is the square root of the variance inflation 1.4975, which is near its long-run limit of 1.5.",
+            ),
+            q(
+                "Why are illiquid or appraisal-priced strategies the most affected?",
+                [
+                    "Stale and smoothed marks induce positive autocorrelation, which is exactly the case the square-root rule breaks in",
+                    "They have higher true volatility than liquid strategies",
+                    "Their returns are measured over longer periods",
+                ],
+                0,
+                "Carrying a stale price forward makes consecutive returns move together. The resulting positive autocorrelation understates annualised volatility and flatters the Sharpe ratio, so comparing such a figure with a daily-liquid one compares two different measurements.",
+            ),
+        ],
+    )
+    add(
         "2.9",
         3,
         "Conditional probability and Bayes updates",
@@ -1257,6 +1360,126 @@ To eliminate multiple testing bias and p-hacking in quantitative operations:
     # -------------------------------------------------------------------------
 
     add(
+        "2.29",
+        6,
+        "Statistical power and what a non-rejection is worth",
+        "Compute the power of a test before running it, and state what failing to reject does and does not establish.",
+        r"""
+## The analytical question
+
+Lesson 2.4 established the two error rates of a hypothesis test. A **Type I error** rejects a true null, and its rate $\alpha$ is the one researchers set deliberately, usually at 5%. A **Type II error** fails to reject a false null, and its rate $\beta$ is the one almost nobody computes. **Power** is $1 - \beta$: the probability that a test detects an effect that is genuinely there.
+
+The asymmetry matters because the two errors are not treated symmetrically in practice. A rejection is reported; a non-rejection is usually read as "no effect". That reading is only defensible when the test had a reasonable chance of finding the effect in the first place. An underpowered study that fails to reject has established almost nothing, and reporting it as evidence of absence is one of the most common errors in applied finance research.
+
+For a two-sided test of a mean against a null of zero, with a true effect $\delta$, population standard deviation $\sigma$ and $n$ observations, the standard error is $\sigma / \sqrt{n}$ and the effect expressed in standard errors is:
+
+$$\lambda = \frac{\delta}{\sigma / \sqrt{n}} = \frac{\delta \sqrt{n}}{\sigma}$$
+
+Power is then the probability that the test statistic lands beyond either critical value when the true mean is $\delta$:
+
+$$1 - \beta = 1 - \Phi(z_{1-\alpha/2} - \lambda) + \Phi(-z_{1-\alpha/2} - \lambda)$$
+
+Rearranging for the sample size needed to reach a target power gives the expression every research plan should contain:
+
+$$n = \left(\frac{(z_{1-\alpha/2} + z_{1-\beta})\,\sigma}{\delta}\right)^{2}$$
+
+Note the square. Halving the effect you want to detect quadruples the observations you need. This is why small edges are so expensive to establish and why claims about them should be read with the sample size in hand.
+
+The inverse question is often more useful. Given the sample you actually have, the **minimum detectable effect** is the smallest true effect the test would find with your target power:
+
+$$\delta_{\min} = (z_{1-\alpha/2} + z_{1-\beta}) \frac{\sigma}{\sqrt{n}}$$
+
+If that number is larger than any effect the strategy could plausibly produce, the test cannot answer the question, and running it anyway produces a non-rejection that means nothing.
+
+## A worked example
+
+A researcher wants to know whether a signal produces a positive mean monthly excess return. The hypothesis is two-sided at $\alpha = 0.05$, so the critical value is $z_{0.975} = 1.95996$. Suppose the true effect is $\delta = 0.40$ percentage points a month, the monthly standard deviation is $\sigma = 2.00$ points, and five years of data give $n = 60$ observations.
+
+Step 1, the standard error:
+
+$$\frac{\sigma}{\sqrt{n}} = \frac{2.00}{\sqrt{60}} = 0.2582$$
+
+Step 2, the effect in standard errors:
+
+$$\lambda = \frac{0.40}{0.2582} = 1.549$$
+
+Step 3, power. The upper tail contributes $1 - \Phi(1.95996 - 1.549) = 1 - \Phi(0.411)$ and the lower tail is negligible, giving a power of **34.1%**. The Type II error rate is therefore 65.9%.
+
+Read that carefully. The effect is real, and the test will miss it almost two times in three. If this researcher runs the test, fails to reject, and writes "the signal does not work", the conclusion is wrong about twice as often as it is right.
+
+Step 4, what would have been needed. For 80% power, $z_{0.80} = 0.84162$ and the sum of critical values is $2.80159$:
+
+$$n = \left(\frac{2.80159 \times 2.00}{0.40}\right)^{2} = 196$$
+
+Sixteen and a third years of monthly data, not five.
+
+Step 5, what the available sample can detect. With $n = 60$:
+
+$$\delta_{\min} = 2.80159 \times 0.2582 = 0.723$$
+
+The study can reliably detect an edge of 0.72 points a month, which is 8.7 points a year before costs. If no plausible signal in this asset class produces that, the test was never capable of answering the question, and the honest report says so instead of reporting a non-rejection.
+""",
+        r"1-\beta = 1-\Phi(z_{1-\alpha/2}-\lambda)+\Phi(-z_{1-\alpha/2}-\lambda),\qquad n=\left(\frac{(z_{1-\alpha/2}+z_{1-\beta})\sigma}{\delta}\right)^{2}",
+        '''
+from math import exp, sqrt
+
+# The guided runtime has no erf, so the normal CDF uses the Abramowitz and
+# Stegun 26.2.17 approximation, whose published error bound is 7.5e-8.
+def phi(x):
+    sign = 1.0
+    z = x
+    if z < 0:
+        sign = -1.0
+        z = -z
+    t = 1.0 / (1.0 + 0.2316419 * z)
+    poly = t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))))
+    tail = 0.3989422804014327 * exp(-0.5 * z * z) * poly
+    return 0.5 + sign * (0.5 - tail)
+
+critical = 1.959963985
+effect = 0.40
+sd = 2.00
+n = 60
+se = sd / sqrt(n)
+print("Standard error:", round(se, 4))
+shift = effect / se
+print("Effect in standard errors:", round(shift, 3))
+power = 1 - phi(critical - shift) + phi(-critical - shift)
+print("Power percent:", round(power * 100, 1))
+print("Type II error percent:", round((1 - power) * 100, 1))
+
+target = 2.801592
+print("Observations for 80 percent power:", round((target * sd / effect) ** 2, 0))
+print("Minimum detectable effect at n=60:", round(target * se, 3))
+''',
+        "Compute the power of the two-sided test described above, the sample size that would reach 80% power, and the minimum effect the 60-observation sample can detect. Then write the sentence you would use to report a non-rejection from this study, and explain why 'the signal does not work' is not that sentence.",
+        "The standard error is 2.00 / sqrt(60) = 0.2582, so a true effect of 0.40 is 1.549 standard errors and power is 1 − Φ(1.95996 − 1.549) + Φ(−1.95996 − 1.549) = 34.1%. The Type II error rate is 65.9%: the test misses a real effect almost two times in three. Reaching 80% power would need ((1.95996 + 0.84162) × 2.00 / 0.40)² = 196 observations, which is sixteen and a third years of monthly data rather than five. The minimum detectable effect at n = 60 is 2.80159 × 0.2582 = 0.723 points a month, about 8.7 points a year. An honest report of a non-rejection therefore reads: 'we did not reject at 5%; with 60 observations the study had 34% power against an effect of 0.40 points a month and could only reliably detect 0.72 points, so this is not evidence that the effect is absent.' Saying 'the signal does not work' claims evidence of absence from a test that was never capable of producing it, and the square in the sample-size formula is why: halving the effect you want to detect quadruples the data you need.",
+        [
+            q(
+                "A study with 34% power fails to reject the null. The strongest defensible conclusion is:",
+                [
+                    "The effect is absent",
+                    "The study could not detect an effect of this size, so it is uninformative about absence",
+                    "The effect is present but small",
+                ],
+                1,
+                "Power is the probability of detecting a real effect. At 34% the test misses a genuine effect about two times in three, so a non-rejection carries almost no information about whether the effect exists.",
+            ),
+            q(
+                "Halving the effect size you wish to detect, holding everything else fixed, changes the required sample size by a factor of:",
+                ["2", "4", "unchanged"],
+                1,
+                "The sample size formula divides by the effect and then squares, so n scales with 1/δ². Halving δ multiplies n by four, which is why small edges are so expensive to establish.",
+            ),
+            q(
+                "With σ = 2.00 and n = 60, the minimum effect detectable at 80% power and 5% significance is closest to:",
+                ["0.26", "0.72", "2.80"],
+                1,
+                "δ_min = (1.95996 + 0.84162) × 2.00 / sqrt(60) = 2.80159 × 0.2582 = 0.723. The figure 0.2582 is the standard error alone and 2.80159 is the sum of the two critical values.",
+            ),
+        ],
+    )
+    add(
         "2.5",
         7,
         "Linear regression & correlation",
@@ -1485,6 +1708,107 @@ When evaluating regression inference and predictions:
     # CHAPTER 8: MULTIPLE REGRESSION AND DIAGNOSTICS
     # -------------------------------------------------------------------------
 
+    add(
+        "2.31",
+        7,
+        "Regression to the mean and the persistence of performance",
+        "Predict next period from this one using the cross-sectional correlation, and separate genuine persistence from the arithmetic of an extreme draw.",
+        r"""
+## The analytical question
+
+Rank anything measured with noise, take the top of the ranking, and measure it again: it will usually be closer to the average. This is not a market phenomenon, a behavioural bias or evidence that success breeds complacency. It is arithmetic, and Galton named it regression towards mediocrity in his 1886 paper on hereditary stature; the modern phrase is regression to the mean.
+
+The mechanism is that any observed value is a mixture of a persistent component and a transient one:
+
+$$x_{i,1} = \theta_i + \varepsilon_{i,1}$$
+
+Selecting the largest $x_{i,1}$ selects for a large $\theta_i$ **and** for a large $\varepsilon_{i,1}$. The skill persists into the next period; the noise does not, and is replaced by a fresh draw averaging zero. The standard linear prediction of the second period given the first is:
+
+$$\mathbb{E}[x_{i,2} \mid x_{i,1}] = \bar{x} + \rho\,(x_{i,1} - \bar{x})$$
+
+where $\rho$ is the correlation between the two periods across the cross-section. The whole content of the result is in that coefficient. The expected gap above average shrinks by a factor of $\rho$ every period, so:
+- $\rho = 1$: perfect persistence; the ranking is pure skill and repeats exactly.
+- $\rho = 0$: no persistence; the best expectation for every manager next period is the average, whatever they did last period.
+- $0 < \rho < 1$: the usual case. Some of the lead is real and some of it was luck, and the coefficient says how much of each.
+
+Two traps follow, and both are common in investment writing.
+
+**Attributing the shrinkage to a cause.** When last year's best fund underperforms, the explanations write themselves: the manager grew complacent, the fund grew too large, the style went out of favour. All may be true, and none is needed. A $\rho$ below one predicts the decline before any of them is considered, so a causal story is only worth telling once the arithmetic has been accounted for.
+
+**Measuring an intervention against the extreme.** Select the worst performers, apply a remedy, and measure again: they improve. They would have improved without the remedy. This is why a comparison needs a control group drawn the same way rather than a before-and-after on a selected tail.
+
+Regression to the mean is also not a prediction that anyone will *reach* the mean. The prediction is a shrinkage of the expected gap, and a manager with genuine skill keeps the persistent part of their lead indefinitely.
+
+## A worked example
+
+Five funds report first-period excess returns of 14, 11, 9, 7 and 4 percentage points. The cross-sectional mean is 9.0. Historical data put the correlation between consecutive periods at $\rho = 0.30$.
+
+Apply $\bar{x} + \rho(x - \bar{x})$ to each:
+
+| Fund | Period 1 | Gap to mean | Expected period 2 |
+| --- | --- | --- | --- |
+| A | 14.0 | +5.0 | 9.0 + 0.30 × 5.0 = **10.5** |
+| B | 11.0 | +2.0 | **9.6** |
+| C | 9.0 | 0.0 | **9.0** |
+| D | 7.0 | −2.0 | **8.4** |
+| E | 4.0 | −5.0 | **7.5** |
+
+The top fund led the mean by 5.0 points and is expected to lead by 1.5 next period: **30% of the lead persists**, which is exactly $\rho$. The bottom fund is expected to recover 3.5 of its 5.0-point deficit, for the same reason and with no change in its behaviour.
+
+Notice what the table does not say. It does not say Fund A has no skill: its expected return is still above average, and over many periods the persistent part accumulates. It does not say Fund E is about to improve as a matter of fact; it says the *expectation* has risen because the unusually bad draw is not repeated in expectation.
+
+The practical reading: a one-period ranking tells you $\rho$ as much as it tells you about the funds. If $\rho$ is 0.30, roughly 70% of the dispersion you are looking at will not be there next period, and any selection rule that acts on the full 100% of it is paying for noise.
+""",
+        r"\mathbb{E}[x_2\mid x_1]=\bar{x}+\rho\,(x_1-\bar{x}),\qquad \text{expected lead}=\rho\times\text{observed lead}",
+        '''
+first = [14.0, 11.0, 9.0, 7.0, 4.0]
+mean = sum(first) / len(first)
+rho = 0.30
+print("Cross-sectional mean percent:", round(mean, 2))
+print("Correlation between periods:", rho)
+for value in first:
+    print("First period:", value, "expected next:", round(mean + rho * (value - mean), 2))
+
+top = first[0]
+bottom = first[len(first) - 1]
+print("Top performer lead over mean:", round(top - mean, 2))
+print("Expected lead next period:", round(rho * (top - mean), 2))
+print("Share of the lead that persists percent:", round(rho * 100, 0))
+print("Bottom performer deficit:", round(mean - bottom, 2))
+print("Expected deficit next period:", round(rho * (mean - bottom), 2))
+print("Expected recovery with no change in behaviour:", round((1 - rho) * (mean - bottom), 2))
+''',
+        "Compute the expected second-period return for each of the five funds, the share of the top fund's lead that persists, and the recovery the bottom fund is expected to show without changing anything. Then explain why attributing the top fund's decline to complacency requires evidence beyond the decline itself.",
+        "The cross-sectional mean is 9.0, so applying 9.0 + 0.30 × (x − 9.0) gives expected second-period returns of 10.5, 9.6, 9.0, 8.4 and 7.5. The top fund's 5.0-point lead is expected to shrink to 1.5, meaning 30% of it persists, which is exactly the correlation; the bottom fund's 5.0-point deficit is expected to shrink to 1.5 as well, a recovery of 3.5 points with no change whatever in how it is run. Attributing the top fund's decline to complacency requires evidence beyond the decline because a correlation below one predicts that decline before any behavioural explanation is considered: the observed lead mixed a persistent component with a transient one, and only the persistent part is expected to repeat. A causal story is worth telling only for the part of the move the arithmetic does not already account for, and establishing that needs a comparison group selected the same way rather than a before-and-after on the selected tail.",
+        [
+            q(
+                "Five funds average 9.0 and the correlation between periods is 0.30. A fund that returned 14.0 has an expected next-period return of:",
+                ["14.0", "10.5", "9.0"],
+                1,
+                "The prediction is 9.0 + 0.30 × (14.0 − 9.0) = 10.5. The expected return stays above average because part of the lead is persistent; it shrinks because the rest was a transient draw.",
+            ),
+            q(
+                "Last year's worst performers improve this year with no change in process. The most economical explanation is:",
+                [
+                    "Regression to the mean: an unusually bad transient draw is not repeated in expectation",
+                    "The remedy applied to them worked",
+                    "Mean reversion in the underlying asset prices",
+                ],
+                0,
+                "Selecting an extreme selects for an extreme noise term as well as the persistent component, and the noise is redrawn. Measuring an intervention against a selected tail will credit it with an improvement that would have occurred anyway, which is why a control group drawn the same way is required.",
+            ),
+            q(
+                "What does a cross-sectional correlation of 0.30 between consecutive periods imply about a one-period ranking?",
+                [
+                    "About 70% of the dispersion you are looking at is not expected to persist",
+                    "About 30% of the funds are skilled",
+                    "The ranking will reverse entirely next period",
+                ],
+                0,
+                "ρ is the fraction of the gap to the mean expected to carry forward, so the complement is the part that does not. It is a statement about the dispersion, not about which individual funds are skilled or about the ordering reversing.",
+            ),
+        ],
+    )
     add(
         "2.15",
         8,
@@ -2277,6 +2601,121 @@ To ensure robust deployment of alternative data features:
     # CHAPTER 12: MULTIFACTOR RETURN MODELS AND ATTRIBUTION
     # -------------------------------------------------------------------------
 
+    add(
+        "2.32",
+        11,
+        "Missing data and the choices that look like no choice",
+        "Name the mechanism behind a gap in the data, and compute what the common fixes do to the mean and the variance.",
+        r"""
+## The analytical question
+
+Lesson 2.21 insisted that a research pipeline record when a figure became available. This lesson is about the figures that never arrive at all, and about a decision every pipeline makes whether or not anyone notices making it. Dropping the row, filling the blank with zero, and filling it with the column mean are three different estimators, and none of them is "doing nothing".
+
+Start with the mechanism, because it decides whether any fix is safe. Rubin's taxonomy gives three cases:
+- **Missing completely at random (MCAR).** The gap is unrelated to anything, observed or unobserved. A feed dropped a packet. Dropping those rows loses precision but does not bias the estimate.
+- **Missing at random (MAR).** The gap depends on something you *did* observe. Small companies file late, so the missing rows are the small ones — and you have the size column. Conditioning on what you observed can repair this.
+- **Missing not at random (MNAR).** The gap depends on the unobserved value itself. A fund stops reporting *because* the quarter was bad. Nothing in the observed data can repair this, and the estimate is biased however carefully you fill.
+
+The third case is the common one in finance, and it is the reason survivorship bias is a missing-data problem rather than a separate topic.
+
+Now the arithmetic of the fixes.
+
+**Reading a blank as zero** is the most damaging and the easiest to do by accident, because a CSV parser will do it silently. It is a claim that the missing value *was* zero, which for a return, a margin or a ratio is almost never true. It biases the mean toward zero by a factor equal to the share of rows that are present.
+
+**Filling with the column mean** leaves the mean untouched, which is why it feels harmless, and destroys the variance. Each filled row contributes exactly zero to the sum of squared deviations while still counting in the denominator:
+
+$$s^2_{\text{filled}} = \frac{\sum_{\text{observed}} (x_i - \bar{x})^2}{n_{\text{all}} - 1} = s^2_{\text{observed}} \times \frac{n_{\text{obs}} - 1}{n_{\text{all}} - 1}$$
+
+Every downstream standard error, confidence interval and $t$-statistic built on that variance is then too small, and the study looks more precise than the data support.
+
+**Dropping the rows** is honest under MCAR and defensible under MAR if you say so. What it must never be is invisible: the count of rows dropped belongs in the output beside the estimate, because a mean computed from 5 of 7 rows is a different claim from one computed from 7.
+
+## A worked example
+
+A column holds seven observations, of which five carry a value — 12.0, 15.0, 9.0, 18.0 and 11.0 — and two are blank.
+
+**Dropping the blanks.** The mean of the five is $65.0 / 5 = 13.0$, and the sample variance is $50.0 / 4 = 12.5$. Both are computed from five rows, and the report must say five.
+
+**Reading blanks as zero.** The sum is unchanged at 65.0 but the denominator becomes seven: $65.0 / 7 = 9.286$. The mean is understated by 3.714 points, or **28.6%**, which is exactly the share of rows that were blank ($2/7 = 28.6\%$). The relationship is not a coincidence: zero-filling multiplies the mean by $n_{\text{obs}} / n_{\text{all}}$.
+
+**Filling with the mean.** The mean stays at 13.0, as advertised. The sum of squared deviations also stays at 50.0, because each filled row sits exactly on the mean and contributes nothing — but the denominator rises from 4 to 6. The variance becomes $50.0 / 6 = 8.333$, understated by **33.3%**. The standard deviation, being its square root, is understated by $1 - \sqrt{8.333/12.5} = 18.4\%$ — and the standard error of the mean by considerably more, because mean-filling raises $n$ as well: $\sqrt{8.333/7} = 1.091$ against the honest $\sqrt{12.5/5} = 1.581$, an understatement of **31.0%**.
+
+So the three "fixes" give means of 13.0, 9.29 and 13.0, and variances of 12.5, something larger still, and 8.33. The one that leaves the mean alone is the one that quietly breaks every inference built on top of it.
+
+The reporting rule that follows is short: state the mechanism you believe, the number of rows affected, and the treatment you applied. A result whose missing-data treatment is unstated is not reproducible, because the reader cannot tell which of these three numbers they are looking at.
+""",
+        r"s^2_{\text{filled}} = s^2_{\text{obs}}\times\frac{n_{\text{obs}}-1}{n_{\text{all}}-1},\qquad \bar{x}_{\text{zero}} = \bar{x}_{\text{obs}}\times\frac{n_{\text{obs}}}{n_{\text{all}}}",
+        '''
+values = [12.0, 15.0, 0.0, 9.0, 18.0, 0.0, 11.0]
+observed = [1, 1, 0, 1, 1, 0, 1]
+
+rows = len(values)
+have = sum(observed)
+total = 0.0
+for i in range(rows):
+    if observed[i] == 1:
+        total = total + values[i]
+print("Rows in all:", rows)
+print("Rows carrying a value:", have)
+print("Rows missing:", rows - have)
+
+mean_present = total / have
+print("Mean of the rows that have one:", round(mean_present, 3))
+print("Mean if a blank is read as zero:", round(sum(values) / rows, 3))
+print("Understated by:", round(mean_present - sum(values) / rows, 3))
+print("Understated by percent:", round((1 - (sum(values) / rows) / mean_present) * 100, 1))
+
+spread = 0.0
+for i in range(rows):
+    if observed[i] == 1:
+        spread = spread + (values[i] - mean_present) ** 2
+var_present = spread / (have - 1)
+var_filled = spread / (rows - 1)
+print("Variance over the rows that have a value:", round(var_present, 3))
+print("Variance after filling blanks with the mean:", round(var_filled, 3))
+print("Variance understated by percent:", round((1 - var_filled / var_present) * 100, 1))
+print("Standard deviation understated by percent:", round((1 - (var_filled / var_present) ** 0.5) * 100, 1))
+se_present = (var_present / have) ** 0.5
+se_filled = (var_filled / rows) ** 0.5
+print("Standard error of the mean, rows with a value:", round(se_present, 4))
+print("Standard error after mean filling:", round(se_filled, 4))
+print("Standard error understated by percent:", round((1 - se_filled / se_present) * 100, 1))
+''',
+        "Compute the mean and variance for the seven-row column under all three treatments: dropping the blanks, reading them as zero, and filling them with the column mean. Then classify a fund that stops reporting after a bad quarter under Rubin's taxonomy, and say which of the three treatments repairs it.",
+        "Dropping the blanks gives a mean of 65.0 / 5 = 13.0 and a sample variance of 50.0 / 4 = 12.5, both computed from five rows. Reading the blanks as zero leaves the sum at 65.0 but raises the denominator to seven, giving 9.286 — understated by 3.714, or 28.6%, which is exactly the share of rows that were blank, because zero-filling multiplies the mean by the ratio of observed rows to all rows. Filling with the column mean leaves the mean at 13.0 but leaves the sum of squared deviations at 50.0 while raising its denominator from 4 to 6, giving a variance of 8.333, understated by 33.3%; the standard deviation is then understated by 18.4% and the standard error of the mean by 31.0%, since filling shrinks the spread and inflates the row count at once. A fund that stops reporting because the quarter was bad is missing not at random: the probability of the gap depends on the unobserved value itself. None of the three treatments repairs it, because nothing in the observed data carries the information needed, and this is why survivorship bias is a missing-data problem rather than a separate one. The only honest response is to state the mechanism, the number of rows affected and the treatment applied, so a reader can tell which of the three numbers they are being shown.",
+        [
+            q(
+                "A fund stops reporting returns after a poor quarter. Under Rubin's taxonomy this is:",
+                [
+                    "Missing not at random, because the gap depends on the unobserved value",
+                    "Missing completely at random, because reporting is voluntary",
+                    "Missing at random, because fund size is observed",
+                ],
+                0,
+                "The probability of the value being absent depends on the value itself. No conditioning on observed columns repairs it, which is exactly why survivorship bias cannot be fixed by better imputation.",
+            ),
+            q(
+                "Filling blanks with the column mean leaves the mean unchanged. What does it do to the variance?",
+                [
+                    "Understates it, because filled rows add nothing to the sum of squares but still count in the denominator",
+                    "Leaves it unchanged, since the mean is unchanged",
+                    "Overstates it, because more rows add more dispersion",
+                ],
+                0,
+                "Each filled row sits exactly on the mean and contributes zero squared deviation while raising n. In the worked case the variance falls from 12.5 to 8.333, so every standard error built on it is too small and the study looks more precise than the data support.",
+            ),
+            q(
+                "Which missing-data treatment is defensible without further justification?",
+                [
+                    "Dropping the rows, if the mechanism is missing completely at random and the dropped count is reported",
+                    "Reading blanks as zero, because it preserves every row",
+                    "Mean-filling, because it leaves the mean unbiased",
+                ],
+                0,
+                "Under MCAR dropping rows loses precision but not accuracy. It only stays defensible if the count is reported, because a mean from five rows is a different claim from one over seven; zero-filling asserts a value that is almost never true, and mean-filling trades an unbiased mean for broken inference.",
+            ),
+        ],
+    )
     add(
         "2.23",
         12,
@@ -3113,7 +3552,7 @@ An institutional-grade quantitative research packet must include:
         ),
     ]
 
-    return finish(
+    track = finish(
         {
             "id": "statistical-foundations",
             "number": 2,
@@ -3132,7 +3571,7 @@ An institutional-grade quantitative research packet must include:
                 "Build point-in-time research pipelines free from look-ahead leakage, process text sentiment features, and prevent backtest overfitting.",
                 "Decompose portfolio returns with multifactor models, calculate active risk and Information Ratios, estimate VaR and Expected Shortfall, and formulate stress tests.",
             ],
-            "readingGuide": "The textbook Quantitative Investment Analysis (CFA Institute Investment Series, 4th Edition) is structurally organized into two major halves: Part I (Chapters 1–7) covers classical foundational statistics (time value of money, probability distributions, sampling, hypothesis tests, simple regression), while Part II (Chapters 8–14) covers advanced quantitative applications (multiple regression, time series, machine learning, big data engineering, multifactor models, risk measures, and backtesting). The platform unifies both parts into a single 28-module learning path across 14 parts to deliver a continuous, unbroken progression from basic principles to institutional-grade quantitative research. Each unit maps directly to the corresponding textbook chapter.",
+            "readingGuide": "The textbook Quantitative Investment Analysis (CFA Institute Investment Series, 4th Edition) is structurally organized into two major halves: Part I (Chapters 1–7) covers classical foundational statistics (time value of money, probability distributions, sampling, hypothesis tests, simple regression), while Part II (Chapters 8–14) covers advanced quantitative applications (multiple regression, time series, machine learning, big data engineering, multifactor models, risk measures, and backtesting). The platform unifies both parts into a single 32-module learning path across 14 parts to deliver a continuous, unbroken progression from basic principles to institutional-grade quantitative research. Each unit maps directly to the corresponding textbook chapter.",
             "references": [
                 {"title": "Fourth edition · publisher contents and reading reference", "url": BOOK}
             ],
@@ -3143,4 +3582,8 @@ An institutional-grade quantitative research packet must include:
         },
         checkpoints,
     )
-
+    # Bumped where the course grew from 28 lessons to 32 and the final with it,
+    # so a draft against the old paper is told the exam changed rather than
+    # failing validation for the four answers it could not have had.
+    track["exams"][-1]["version"] = 3
+    return track

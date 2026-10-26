@@ -39,7 +39,7 @@ def test_every_lesson_and_unit_has_a_sourced_specific_application(course):
 
 def test_applications_are_individual_and_mix_local_context_with_global_methods():
     applications = [lesson["realWorld"] for lesson in LESSONS.values()]
-    assert len(applications) == 344
+    assert len(applications) == 352
     for key in ("connection", "task", "walkthrough"):
         assert len({application[key] for application in applications}) == len(applications)
     cases = {item["id"]: item for course in CATALOG for item in course["caseStudies"]}

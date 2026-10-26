@@ -5,8 +5,7 @@ from fastapi import HTTPException
 from sqlmodel import select
 
 from quanta.db.models import TradingRun
-from quanta.domain.simulator import OPEN, bar_at, dec, money, reservations
-from quanta.domain.simulator_margin import buying_power, marks
+from quanta.domain.simulator import account
 from quanta.services.simulator_market import markets
 from quanta.services.simulator_universe import disclosure, profile, universe
 
@@ -41,7 +40,10 @@ def prior_session_close(rows, cursor, bar):
 def snapshot(run, db):
     state = run.state
     data = markets(state, db)
-    reserved, share_reservations = reservations(state)
+    # Reservations, equity, exposure, buying power and every position's figures
+    # come from the engine that keeps the ledger, so the panel and the fills
+    # cannot disagree about what the account holds.
+    figures = account(state, data)
     tag = universe(state["config"])
     quotes = []
     for symbol, rows in data.items():
@@ -56,44 +58,20 @@ def snapshot(run, db):
                 "change_pct": round((bar["close"] / prior - 1) * 100, 2),
             }
         )
-    covering = {}
-    for working in state["orders"]:
-        if working["side"] == "buy" and working["status"] in OPEN:
-            covering[working["symbol"]] = covering.get(working["symbol"], 0) + (
-                working["quantity"] - working["filled"]
-            )
-    positions = []
-    equity = dec(state["cash"])
-    gross = dec(0)
-    for symbol, position in state["positions"].items():
-        if not position["quantity"]:
-            continue
-        mark = dec(bar_at(data, symbol, state["cursor"])["close"])
-        value = mark * position["quantity"]
-        equity += value
-        # A short is market risk of the same size as the long it mirrors, so
-        # gross adds what is owed rather than subtracting it.
-        gross += abs(value)
-        positions.append(
-            {
-                "symbol": symbol,
-                **position,
-                "mark": money(mark),
-                "market_value": money(value),
-                "average": money(dec(position["cost"]) / position["quantity"]),
-                "unrealized": money(value - dec(position["cost"])),
-                "available": max(0, position["quantity"]) - share_reservations.get(symbol, 0),
-                "short": position["quantity"] < 0,
-                # What a close button should act on, whichever way the position
-                # is facing: shares free to sell, or borrowed shares still to
-                # buy back after any cover already working.
-                "closable": (
-                    max(0, position["quantity"]) - share_reservations.get(symbol, 0)
-                    if position["quantity"] > 0
-                    else max(0, -position["quantity"] - covering.get(symbol, 0))
-                ),
-            }
-        )
+    # A short is market risk of the same size as the long it mirrors, so gross
+    # adds what is owed rather than subtracting it. "closable" is what a close
+    # button should act on, whichever way the position is facing: shares free to
+    # sell, or borrowed shares still to buy back after any cover already working.
+    held = {row["symbol"]: row for row in figures["positions"]}
+    positions = [
+        {
+            "symbol": symbol,
+            **position,
+            **{key: value for key, value in held[symbol].items() if key != "symbol"},
+        }
+        for symbol, position in state["positions"].items()
+        if position["quantity"]
+    ]
     return {
         "id": run.id,
         "version": run.version,
@@ -108,15 +86,13 @@ def snapshot(run, db):
         "clock": quotes[0]["time"],
         "config": state["config"],
         "cash": state["cash"],
-        "reserved": money(reserved),
-        "available": money(dec(state["cash"]) - reserved),
-        "equity": money(equity),
+        "reserved": figures["reserved"],
+        "available": figures["available"],
+        "equity": figures["equity"],
         # What the account is carrying and what it could still buy. On a cash
         # account buying power is simply the cash it has not committed.
-        "gross_exposure": money(gross),
-        "buying_power": money(
-            max(dec(0), buying_power(state, marks(data, state["cursor"])) - reserved)
-        ),
+        "gross_exposure": figures["gross_exposure"],
+        "buying_power": figures["buying_power"],
         "account": state["config"].get("account", "cash"),
         "realized": state["realized"],
         # Why the last jump stopped short, if it did. Older runs have no key.

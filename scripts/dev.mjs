@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { createServer } from "node:net";
 import { fileURLToPath } from "node:url";
@@ -13,6 +13,17 @@ const python =
     : "backend/.venv/bin/python";
 if (!existsSync(python)) {
   console.error("Run npm run setup first to install the API environment.");
+  process.exit(1);
+}
+// The simulator engine is C++ (backend/engine). Building it is a no-op when it
+// is up to date; the API reloads whenever the library is rebuilt.
+const engine = spawnSync("make", ["-s", "-C", "backend/engine"], {
+  stdio: "inherit",
+});
+if (engine.status !== 0) {
+  console.error(
+    "Building the simulator engine failed. It needs make and a C++17 compiler; see backend/engine/README.md.",
+  );
   process.exit(1);
 }
 async function available(start, explicit) {
@@ -59,8 +70,14 @@ const api = spawn(
     "backend/quanta",
     "--reload-dir",
     "content/catalog",
+    "--reload-dir",
+    "backend/engine/build",
     "--reload-include",
     "*.json",
+    "--reload-include",
+    "*.so",
+    "--reload-include",
+    "*.dylib",
     "--host",
     "127.0.0.1",
     "--port",

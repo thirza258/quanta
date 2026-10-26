@@ -5588,7 +5588,7 @@
         "id": "simulator-workshop-final",
         "title": "Trading simulator workshop final exam",
         "kind": "final",
-        "version": 1,
+        "version": 2,
         "description": "Open-book, untimed assessment with new cases from every module. Budget about three minutes per question. Answers and explanations appear after submission. Pass at 80%; retries remain available. The written capstone is self-assessed separately.",
         "minutes": 48,
         "passingScore": 80,
@@ -9324,6 +9324,320 @@
           "task": "Combine Rani's reserve, goal horizon, contribution schedule, allocation band, fee check, and fraud checks into a policy. Add a job-loss scenario and a rule for reviewing assumptions.",
           "walkthrough": "The policy should give concrete next actions: protect essential liquidity, reconsider contributions when income changes, and review portfolio drift at defined intervals. Separate these rules from an uncertain expected return. This is an exercise in process, not a personalized portfolio recommendation."
         }
+      },
+      {
+        "id": "11.17",
+        "part": "5",
+        "title": "Bonds and cash: what the safe half is actually for",
+        "subtitle": "Say what the fixed-income half of a policy is bought for, and recognise when reaching for yield has quietly turned it into a second equity position.",
+        "objective": "Say what the fixed-income half of a policy is bought for, and recognise when reaching for yield has quietly turned it into a second equity position.",
+        "reading": "Book companion theme: The defensive investor and the bond component. 30-minute session: 10 minutes of reading, 8 minutes of calculations, and 12 minutes of notebook work. Modern product, fraud and planning examples are course extensions, not claims about Graham's historical recommendations.",
+        "minutes": 30,
+        "kind": "applied-study",
+        "content": "## Understand the idea\n\nLesson 11.9 fixed the proportions: Graham's defensive investor holds no less than 25% and no more than 75% in common stocks, with 50/50 as the neutral anchor. This lesson is about the other half, and the question most portfolios never answer explicitly: what is it for?\n\nIt is not there to earn a return. If return were the objective you would hold more equity. The fixed-income and cash half is bought so that an equity drawdown never forces a sale. That is its whole job, and it decides every other property you should want from it: it has to be worth roughly what you paid when you need it, and it has to be worth that at the exact moment equities are worst.\n\nTwo different risks sit inside a bond and they behave completely differently in that moment.\n\n1. Interest-rate risk, measured by duration. Duration is the approximate percentage price change for a one-percentage-point move in yields. A seven-year duration means roughly a 7% price fall for a 1% rise in rates. This risk is symmetric and reverses: hold to maturity and you still receive par.\n2. Credit risk, the chance the borrower does not pay. This is not symmetric and does not reverse. A default is permanent, and defaults cluster in exactly the recessions that are also pushing your equities down.\n\nThe trap is reaching for yield. A bond paying two percentage points more than a government issue is not a free two points; it is payment for taking the second risk. If recovery in default is 60 cents on the dollar, that extra 2 points compensates you for about a 5% annual default rate, and you are being paid to accept a loss that arrives on the worst possible day. A high-yield allocation held as the safe half is not a safe half. It is a second equity position wearing a bond's label, and it will fall with your shares rather than funding them.\n\nThis course stops at policy. The arithmetic of judging an individual issuer's ability to pay — coverage of fixed charges, trough-year stress, the maturity funding gap — is the opening work of Security Analysis; see lesson 1.2 rather than repeating it here.\n\n$$\n\\Delta P \\approx -D\\,\\Delta y + \\tfrac{1}{2} C\\,(\\Delta y)^2,\\qquad d_{\\text{break-even}} = \\frac{s}{1 - R}\n$$\n\n## A worked example\n\nCompare two candidates for the safe half of a plan, both quoted at par.\n\nCandidate A: a government issue with a duration of 7 and a yield of 4.0%.\nCandidate B: a corporate issue with the same duration and a yield of 6.0%.\n\nFirst, what the shared duration costs. If yields rise by one percentage point, the first-order estimate is a price change of −duration × Δy = −7 × 0.01 = −7%. For a two-point rise the straight-line estimate is −14%. Convexity softens this: at a convexity of 55 the second-order estimate is −7 × 0.02 + 0.5 × 55 × 0.02² = −12.9%. Both candidates suffer this equally, and both recover it by holding to maturity.\n\nNow what the extra 2 points is paying for. Write the break-even: with recovery R = 60% of face, an annual default rate d costs you d × (1 − R) of principal each year. Setting that equal to the spread gives d = 2.0 / (1 − 0.60) = 5.0%. So Candidate B is fair only if you believe the issuer's annual default probability is below 5%. That is a credit judgement, not a yield pickup, and you have to make it.\n\nThe decisive question is not which yields more. It is which one you can sell at close to par in the quarter your equities are down 30%. Candidate A's loss in that quarter is an interest-rate loss you can wait out, or a gain if rates have fallen. Candidate B's loss is a credit loss arriving precisely when the issuer's own prospects have worsened, and it does not wait out.\n\n## Put the idea into practice\n\nWrite the purpose of your fixed-income allocation down before you choose any instrument for it:\n1. State the job in one sentence. For example: 'this half exists so that a 40% equity decline never forces me to sell shares in the following 36 months.' If you cannot write a sentence like that, you are holding bonds for a reason you have not examined.\n2. Size it against the job, not against a yield target. How many months of planned spending, or how much of a drawdown, must it cover? That number sets the amount; the yield does not.\n3. Separate the two risks in writing. For every holding, record its duration and whether it carries credit risk. Add the durations weighted by value; that is the portfolio's rate sensitivity.\n4. Price any yield pickup as a default rate. Divide the spread over the government issue by one minus your recovery assumption. If the implied default rate looks acceptable, say why in a sentence. If you cannot, the pickup is not yours to take.\n5. Re-read it after a joint drawdown. Lesson 11.9 warned that stocks and bonds can fall together in an inflation shock. A safe half that fell with your equities did not do its job, whatever its yield was.\n\n### Build your careful-investor plan\n\nWrite the calculation, decision rule and one reason the conclusion might be wrong in your notebook. Add the evidence to your My notebook page. Read the named theme in your own copy of The Intelligent Investor; these explanations and fictional cases are original Quanta material, not reproduced chapters or publisher exercises. The worksheet calculates the case and keeps the price sandbox in cash. Its chart is not an investment recommendation or a test of Graham's approach.",
+        "formula": "\\Delta P \\approx -D\\,\\Delta y + \\tfrac{1}{2} C\\,(\\Delta y)^2,\\qquad d_{\\text{break-even}} = \\frac{s}{1 - R}",
+        "code": "duration = 7.0\nconvexity = 55.0\nshift = 0.02\nfirst = -duration * shift\nsecond = first + 0.5 * convexity * shift * shift\nprint(\"Straight-line price change percent:\", round(first * 100, 1))\nprint(\"With convexity, percent:\", round(second * 100, 2))\n\nspread = 2.0\nrecovery = 0.60\nprint(\"Break-even annual default rate percent:\", round(spread / (1 - recovery), 2))\nprint(\"Loss given default, cents on the dollar:\", round((1 - recovery) * 100, 0))\n\n# This worksheet computes the case above. The price sandbox stays in cash.\n# Its equity curve is not evidence for the model or strategy's performance.\ndef strategy(data):\n    return data[\"close\"] < 0\n",
+        "assignment": {
+          "prompt": "For the two candidates above, compute the price change on a two-point rise in yields using both the straight-line and the convexity-adjusted estimates, and compute the annual default rate at which the 2-point spread is fair at 60% recovery. Then write, in one sentence, the job your own fixed-income allocation is meant to do, and say whether Candidate B could do it.",
+          "solution": "The straight-line estimate is −7 × 0.02 = −14.0%; adding the convexity term gives −7 × 0.02 + 0.5 × 55 × 0.0004 = −12.9%, so the linear figure overstates the loss by about 1.1 points. Both candidates share this, and both recover it at maturity. The spread break-even is 2.0 / (1 − 0.60) = 5.0% a year: Candidate B pays you to accept default losses up to that rate. The job of the safe half is to let an equity drawdown pass without forcing a sale, and Candidate B is poorly suited to it, because its loss is a permanent credit loss that arrives in the same recession that is pushing equities down, rather than a recoverable rate loss you can hold through. Judging whether this particular issuer's default probability is under 5% is the work of Security Analysis lesson 1.2, not a yield comparison."
+        },
+        "exercise": {
+          "question": "A bond with a duration of 7 faces a two-percentage-point rise in yields. The straight-line price estimate is:",
+          "options": [
+            "No change, because the bond repays par at maturity",
+            "About a 14% fall, before any convexity adjustment",
+            "About a 7% fall, because duration is quoted per year"
+          ],
+          "answer": 1,
+          "explanation": "Duration is the approximate percentage price change per one-point move, so a two-point move gives −7 × 2 = −14%. Convexity then softens it to about −12.9%. Repayment at par is why the loss is recoverable, not why it is absent."
+        },
+        "exercises": [
+          {
+            "question": "A bond with a duration of 7 faces a two-percentage-point rise in yields. The straight-line price estimate is:",
+            "options": [
+              "No change, because the bond repays par at maturity",
+              "About a 14% fall, before any convexity adjustment",
+              "About a 7% fall, because duration is quoted per year"
+            ],
+            "answer": 1,
+            "explanation": "Duration is the approximate percentage price change per one-point move, so a two-point move gives −7 × 2 = −14%. Convexity then softens it to about −12.9%. Repayment at par is why the loss is recoverable, not why it is absent."
+          },
+          {
+            "question": "A corporate bond yields two points more than a government bond of the same duration. At 60% recovery, that spread is fair if the annual default rate is below:",
+            "options": [
+              "5%",
+              "2%",
+              "40%"
+            ],
+            "answer": 0,
+            "explanation": "Each default costs 1 − 0.60 = 40 cents of principal, so a default rate d costs 0.40d a year. Setting 0.40d = 2.0 gives d = 5.0%. The spread is payment for a judgement you still have to make."
+          }
+        ],
+        "references": [
+          {
+            "title": "Benjamin Graham & Jason Zweig · The Intelligent Investor, book information",
+            "url": "https://jasonzweig.com/books/the-intelligent-investor/"
+          },
+          {
+            "title": "U.S. SEC · Investor.gov: asset allocation and diversification",
+            "url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation"
+          },
+          {
+            "title": "Federal Reserve · SVB review: key takeaways",
+            "url": "https://www.federalreserve.gov/publications/2023-April-SVB-Key-Takeaways.htm"
+          }
+        ],
+        "terms": [
+          {
+            "term": "Drawdown",
+            "definition": "The decline in portfolio value from an earlier peak to a later value. Drawdown depth, time spent below the peak, and recovery time describe different parts of the experience."
+          },
+          {
+            "term": "Inflation",
+            "definition": "An increase in the overall price level over a stated period. A measured inflation rate describes a particular basket of prices; the change in one household's actual spending costs can differ."
+          }
+        ],
+        "realWorld": {
+          "caseId": "svb",
+          "connection": "Silicon Valley Bank held long-duration securities funded by deposits that could leave at once. The rate risk was real and recoverable in principle; what made it fatal was needing to sell before it recovered.",
+          "task": "Write the one-sentence job of your own fixed-income allocation, then compute the price change on your holdings for a two-point rise in yields and ask whether you would be a forced seller inside that window.",
+          "walkthrough": "Duration losses reverse at maturity and credit losses do not, but neither distinction helps if you have to sell first. State the horizon over which you could leave the allocation alone, compute the two-point price move against it, and separate the holdings that carry credit risk from those that carry only rate risk. If the safe half contains a spread you have not priced as a default rate, you are holding a second equity position under a bond's label."
+        }
+      },
+      {
+        "id": "11.18",
+        "part": "5",
+        "title": "A selection rule is a hypothesis, not a verdict",
+        "subtitle": "Apply Graham's combined price filter honestly, and state what passing or failing it does and does not establish.",
+        "objective": "Apply Graham's combined price filter honestly, and state what passing or failing it does and does not establish.",
+        "reading": "Book companion theme: Stock selection for the defensive investor. 30-minute session: 10 minutes of reading, 8 minutes of calculations, and 12 minutes of notebook work. Modern product, fraud and planning examples are course extensions, not claims about Graham's historical recommendations.",
+        "minutes": 30,
+        "kind": "applied-study",
+        "content": "## Understand the idea\n\nGraham gave the defensive investor a short list of tests for a common stock, set out in chapter 14 of the 1973 fourth revised edition: adequate size, a strong financial condition, a record of earnings and of dividends over many years, some earnings growth, and a moderate price against both earnings and assets. The last two are the arithmetic ones, and he set them as a price-to-earnings ratio under about 15 and a price-to-book ratio under about 1.5.\n\nOne detail of the earnings test is usually dropped in summaries and matters here. Graham applied the 15 limit twice: once to the last twelve months of earnings and once to the average of the past three years, and wanted both below it. The second check exists precisely so that a single unusual year cannot carry a share through the filter, which is the same concern lesson 11.13 raised about non-recurring items.\n\nHe then made the pair tradeable against each other. The two limits multiply to 15 × 1.5 = 22.5, and he offered that product as a rule of thumb: a share at 9 times earnings and 2.5 times book has a product of 22.5 and passes, as does one at 18 times earnings and 1.25 times book. The product is the test, not either number alone.\n\nTwo cautions belong with it. First, the closed form sometimes sold as 'the Graham number', the square root of 22.5 × EPS × book value per share, is a later derivation from these limits rather than a formula Graham put forward; treat it as arithmetic someone else arranged, not as his recommendation. Second, and much more important, a screen is a hypothesis generator. Passing the filter says the price is modest relative to two accounting numbers. It says nothing about whether those numbers are durable, whether the book value is real, or whether the business is shrinking fast enough to make a low multiple generous rather than cheap.\n\nThis is the course's recurring point in a new place. A rule that returns a list has not done the analysis; it has told you where to start. The work of deciding whether reported earnings recur and whether assets are worth their carrying value is Security Analysis — see lessons 1.6 and 11.13 on reading the business behind the headline number — and no filter substitutes for it.\n\n$$\n\\frac{P}{E}\\times\\frac{P}{B}\\le 22.5 \\iff P \\le \\sqrt{22.5\\,\\times\\,\\mathrm{EPS}\\times\\mathrm{BVPS}}\n$$\n\n## A worked example\n\nMeridian Works trades at 42.00. Its trailing earnings are 3.20 a share, its three-year average earnings are also 3.20, and its book value is 24.00 a share. Both earnings figures must clear the 15 limit, and here they are the same number, so one calculation serves for both.\n\nWork the filter:\n\n1. Price to earnings: 42.00 / 3.20 = 13.12, which is under 15 and passes on its own.\n2. Price to book: 42.00 / 24.00 = 1.75, which is above 1.5 and fails on its own.\n3. The product: 13.12 × 1.75 = 22.97.\n\nThe product is above 22.5, so Meridian fails the combined test — but only just, and the single-ratio readings would have given you two opposite answers. This is exactly why the product exists: a low enough multiple of earnings is allowed to buy back some excess over book.\n\nWhat price would pass? The product rule says P² / (EPS × BVPS) ≤ 22.5, so the ceiling is the square root of 22.5 × 3.20 × 24.00, which is 41.57. At 41.50 the product is 22.43 and it passes; at 42.00 it does not. The whole disagreement is 43 cents, about 1% of the price.\n\nThat margin should tell you what the filter is worth. A 1% price move flips the verdict, and so would a small revision to either accounting input — one impairment to book value, or one quarter of earnings that turns out not to recur. Lesson 11.13 asked you to separate recurring from reported earnings before using any multiple. If Meridian's 3.20 includes a one-time gain of 0.40 a share averaged across the three years — 1.20 in the single year it arose — the recurring figure is 2.80, the recurring P/E is 15.0, and the product becomes 26.25: a clear failure that the headline numbers hid. This is exactly what Graham's second earnings check is for, and why it is worth restoring when a summary has dropped it.\n\n## Put the idea into practice\n\nUse the filter as the first step of a process that does not end there:\n1. Compute the product, not the ratios. Record P/E, P/B and their product. A pass or fail on one ratio alone is not the test.\n2. Record the margin. Write how far the product sits from 22.5 in percentage terms. A name that passes by 1% has not told you much; one that passes at 12 has told you more.\n3. Re-run it on recurring earnings. Strip the non-recurring items identified in lesson 11.13 and compute the product again. Record both results side by side; the gap between them is the quality of the screen's input.\n4. Treat the output as a reading list. Everything that survives is a candidate for analysis, not a purchase. Write the three questions you would need answered before buying, before you look at the price again.\n5. Keep the names that failed. A list of rejects with the reason recorded is how you later discover the filter was wrong, which a list of only your purchases can never show.\n\n### Build your careful-investor plan\n\nWrite the calculation, decision rule and one reason the conclusion might be wrong in your notebook. Add the evidence to your My notebook page. Read the named theme in your own copy of The Intelligent Investor; these explanations and fictional cases are original Quanta material, not reproduced chapters or publisher exercises. The worksheet calculates the case and keeps the price sandbox in cash. Its chart is not an investment recommendation or a test of Graham's approach.",
+        "formula": "\\frac{P}{E}\\times\\frac{P}{B}\\le 22.5 \\iff P \\le \\sqrt{22.5\\,\\times\\,\\mathrm{EPS}\\times\\mathrm{BVPS}}",
+        "code": "price = 42.00\neps = 3.20\nbvps = 24.00\npe = price / eps\npb = price / bvps\nprint(\"Price to earnings:\", round(pe, 2))\nprint(\"Price to book:\", round(pb, 2))\nprint(\"Product:\", round(pe * pb, 2))\nprint(\"Passes the 22.5 rule:\", pe * pb <= 22.5)\n\nceiling = (22.5 * eps * bvps) ** 0.5\nprint(\"Highest passing price:\", round(ceiling, 2))\nprint(\"Distance from the quote:\", round(price - ceiling, 2))\n\nrecurring = 2.80\nprint(\"Recurring price to earnings:\", round(price / recurring, 2))\nprint(\"Recurring product:\", round((price / recurring) * pb, 2))\n\n# This worksheet computes the case above. The price sandbox stays in cash.\n# Its equity curve is not evidence for the model or strategy's performance.\ndef strategy(data):\n    return data[\"close\"] < 0\n",
+        "assignment": {
+          "prompt": "Compute Meridian's two ratios, their product, and the highest price that would pass the combined rule. Then recompute the product on recurring earnings of 2.80 and state, in two sentences, what the filter has and has not established about the company.",
+          "solution": "At 42.00 the ratios are 13.12 and 1.75, whose product is 22.97, so Meridian fails the combined rule despite passing on earnings alone. The highest passing price is the square root of 22.5 × 3.20 × 24.00 = 41.57, so the verdict turns on 43 cents, about 1% of the quote. On recurring earnings of 2.80 the multiple rises to 15.00 and the product to 26.25, a clear failure that the reported figure concealed. The filter has established that the price is not modest against these two accounting numbers once the one-time gain is removed. It has established nothing about whether the remaining earnings are durable, whether the 24.00 of book value would survive an impairment review, or whether the business is contracting; those are questions for analysis, and a screen that returns a name has only told you where to begin."
+        },
+        "exercise": {
+          "question": "A share trades at 9 times earnings and 2.5 times book. Under Graham's combined rule it:",
+          "options": [
+            "Passes, because 9 × 2.5 = 22.5 is within the limit",
+            "Fails, because the price-to-book ratio is above 1.5",
+            "Fails, because both ratios must pass separately"
+          ],
+          "answer": 0,
+          "explanation": "The two limits multiply to 22.5 and Graham offered the product as a rule of thumb that lets a low earnings multiple buy back some excess over book. Judging each ratio alone defeats the trade-off the product exists to permit."
+        },
+        "exercises": [
+          {
+            "question": "A share trades at 9 times earnings and 2.5 times book. Under Graham's combined rule it:",
+            "options": [
+              "Passes, because 9 × 2.5 = 22.5 is within the limit",
+              "Fails, because the price-to-book ratio is above 1.5",
+              "Fails, because both ratios must pass separately"
+            ],
+            "answer": 0,
+            "explanation": "The two limits multiply to 22.5 and Graham offered the product as a rule of thumb that lets a low earnings multiple buy back some excess over book. Judging each ratio alone defeats the trade-off the product exists to permit."
+          },
+          {
+            "question": "Meridian passes on P/E and fails on P/B, with a product of 22.97 against a ceiling of 22.5. What does that margin suggest?",
+            "options": [
+              "That the company is a clear buy once the price falls one cent",
+              "That the product rule should be abandoned for this name",
+              "That the verdict is fragile: about 1% on the price, or one revision to either input, reverses it"
+            ],
+            "answer": 2,
+            "explanation": "The passing price is 41.57 against a quote of 42.00, so 43 cents decides it. A result that thin is a reason to look at the quality of the inputs, not to act on the output."
+          }
+        ],
+        "references": [
+          {
+            "title": "Benjamin Graham & Jason Zweig · The Intelligent Investor, book information",
+            "url": "https://jasonzweig.com/books/the-intelligent-investor/"
+          },
+          {
+            "title": "U.S. SEC · EDGAR company disclosure APIs",
+            "url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
+          },
+          {
+            "title": "General Electric · Form 8-K, 9 December 2020",
+            "url": "https://www.sec.gov/Archives/edgar/data/40545/000004054520000062/ge-20201209.htm"
+          }
+        ],
+        "realWorld": {
+          "caseId": "ge_disclosure",
+          "connection": "A screen reads the numbers a company reported. Where those numbers later turn out to have included items that do not recur, every multiple computed from them was measuring something other than the business.",
+          "task": "Run the combined price filter on one company, then run it again on recurring earnings after stripping the non-recurring items you identified in lesson 11.13, and record both products side by side.",
+          "walkthrough": "The gap between the two products is the quality of the screen's input, and it is often larger than the margin by which a name passed or failed. In the worked case a 0.40 one-time gain moved the product from 22.97 to 26.25, turning a near miss into a clear failure. Record the names that failed and the reason, because a hit rate computed only from the names you bought is not a hit rate."
+        }
+      },
+      {
+        "id": "11.19",
+        "part": "5",
+        "title": "Where bargains come from, and the arithmetic of looking for them",
+        "subtitle": "Name the conditions that let a mispricing persist, and compute honestly what a search for one costs in hours per find.",
+        "objective": "Name the conditions that let a mispricing persist, and compute honestly what a search for one costs in hours per find.",
+        "reading": "Book companion theme: The enterprising investor and bargain issues. 30-minute session: 10 minutes of reading, 8 minutes of calculations, and 12 minutes of notebook work. Modern product, fraud and planning examples are course extensions, not claims about Graham's historical recommendations.",
+        "minutes": 30,
+        "kind": "applied-study",
+        "content": "## Understand the idea\n\nLesson 11.3 drew the line between the defensive and enterprising investor as a commitment of time and effort rather than a tolerance for risk. This lesson asks the question that commitment implies: if a security really is mispriced, why has nobody else taken it?\n\nA mispricing that survives needs a reason to survive. Graham's bargain issues were not simply cheap; they were cheap for a structural reason that kept better-resourced buyers away. Three such reasons recur:\n\n1. Neglect. The company is too small, too illiquid, or too obscure for an institution to buy a meaningful position without moving the price. The constraint is the buyer's size, not the analyst's insight.\n2. Forced selling. An index deletion, a fund liquidation, a covenant breach or a spin-off distributes shares to holders who must sell for reasons unrelated to value. The seller's deadline, not their opinion, sets the price.\n3. Complexity or ugliness. A holding company, a litigation overhang, a restatement, a business that is embarrassing to own. The work to understand it is real, and most people will not do it.\n\nNotice what is absent from that list: 'the market has not noticed'. A thesis whose only support is that a widely-followed, liquid share is obviously too cheap has no mechanism, and a mispricing without a mechanism is usually an error in your own analysis. Requiring yourself to name the reason is the cheapest filter you will ever apply.\n\nThe second half of this lesson is arithmetic, and it is unwelcome. Enterprising investing is a search with a base rate, and the base rate decides whether the search is worth running at all. Most people who choose the enterprising route never compute it.\n\n$$\n\\text{hours per find} = \\frac{n \\times h}{n \\times p} = \\frac{h}{p}\n$$\n\n## A worked example\n\nSuppose you screen 200 companies a year and judge, generously, that 6% of them are genuinely mispriced. That is 12 real opportunities inside the list — but you do not know which 12, and you cannot analyse 200 companies properly.\n\nSay a serious analysis takes 8 hours: reading several years of filings, checking the balance sheet, understanding the business, and writing the thesis down. At that rate you can study perhaps 20 names a year alongside other work.\n\nNow the expected finds. If the 20 you choose are no better than random draws from the list, the expected number of real opportunities among them is 20 × 0.06 = 1.2. The hours are 20 × 8 = 160. That is roughly 133 hours per genuine find, before you have decided whether the one you found is large enough to matter to your portfolio, and before considering that you may be wrong about which of the 20 was the real one.\n\nThis is not an argument against the enterprising route. It is the honest budget for it, and it clarifies two things. First, the only lever with real leverage is the quality of the screen: raising the hit rate from 6% to 12% halves the hours per find, where working faster does not. Second, if 160 hours a year is not available to you, the arithmetic has answered the question lesson 11.3 posed, and the defensive route is the correct choice rather than the lesser one. Sharpe's arithmetic of active management, cited in 11.3, says the average active dollar must underperform after costs; your own time is one of those costs, and this is how you price it.\n\n## Put the idea into practice\n\nBefore committing to the enterprising route, write the budget down:\n1. Name the mechanism for every candidate. In one sentence: why is this cheap, and what stops a larger buyer from taking it? If the sentence is 'the market has not noticed', discard the candidate.\n2. Record your screen's hit rate. Of the names you studied last year, how many turned out to be genuinely mispriced rather than cheap for cause? That ratio is the only input you can improve.\n3. Compute hours per find. Multiply names studied by hours each, then divide by names studied times the hit rate. Write the number in your notebook as a plain figure.\n4. Compare it against the defensive alternative. The comparison is not 'enterprising returns versus defensive returns'. It is the excess return you expect, after costs, against the hours it consumes and the risk you were wrong.\n5. Review the rejects annually. Of the names you passed over, how many would have worked? A hit rate computed only from the ones you bought is not a hit rate.\n\n### Build your careful-investor plan\n\nWrite the calculation, decision rule and one reason the conclusion might be wrong in your notebook. Add the evidence to your My notebook page. Read the named theme in your own copy of The Intelligent Investor; these explanations and fictional cases are original Quanta material, not reproduced chapters or publisher exercises. The worksheet calculates the case and keeps the price sandbox in cash. Its chart is not an investment recommendation or a test of Graham's approach.",
+        "formula": "\\text{hours per find} = \\frac{n \\times h}{n \\times p} = \\frac{h}{p}",
+        "code": "screened = 200\nhit_rate = 0.06\nstudied = 20\nhours_each = 8\n\nprint(\"Real opportunities in the screen:\", int(screened * hit_rate))\nprint(\"Expected real finds among those studied:\", round(studied * hit_rate, 1))\nprint(\"Hours spent:\", studied * hours_each)\nprint(\"Hours per genuine find:\", round(hours_each / hit_rate, 0))\n\nbetter = 0.12\nprint(\"At a 12 percent hit rate, hours per find:\", round(hours_each / better, 0))\nprint(\"Hours saved by doubling the hit rate:\", round(hours_each / hit_rate - hours_each / better, 0))\n\n# This worksheet computes the case above. The price sandbox stays in cash.\n# Its equity curve is not evidence for the model or strategy's performance.\ndef strategy(data):\n    return data[\"close\"] < 0\n",
+        "assignment": {
+          "prompt": "Compute the expected number of genuine finds and the hours per find for a search of 20 names a year at 8 hours each and a 6% hit rate. Then recompute at a 12% hit rate, and write which of the two levers — a better screen or more hours — changes the answer, and why.",
+          "solution": "Twenty names at a 6% hit rate give an expected 1.2 genuine finds for 160 hours, which is 8 / 0.06 = 133 hours per find. Doubling the hit rate to 12% halves it to 67 hours per find, saving 67 hours for each one. The arithmetic shows that the hours-per-find figure depends only on the hours each analysis takes divided by the hit rate, so the number of names studied cancels out entirely: studying more names finds more opportunities but does not make any one of them cheaper to find. The only lever with leverage is the screen's quality, because it is the denominator. This is also why the mechanism question matters so much — requiring a named reason why a mispricing persists is the cheapest available way to raise the hit rate, and it costs one sentence per candidate rather than eight hours."
+        },
+        "exercise": {
+          "question": "Which of these is a reason a mispricing can persist?",
+          "options": [
+            "The market has not yet noticed a widely-followed, liquid share",
+            "The share price has fallen a long way from its high",
+            "The company is too small for an institution to buy without moving the price"
+          ],
+          "answer": 2,
+          "explanation": "A surviving mispricing needs a mechanism keeping better-resourced buyers away: size, forced selling, or genuine complexity. A liquid, widely-followed name that is simply unnoticed usually means the error is in your own analysis."
+        },
+        "exercises": [
+          {
+            "question": "Which of these is a reason a mispricing can persist?",
+            "options": [
+              "The market has not yet noticed a widely-followed, liquid share",
+              "The share price has fallen a long way from its high",
+              "The company is too small for an institution to buy without moving the price"
+            ],
+            "answer": 2,
+            "explanation": "A surviving mispricing needs a mechanism keeping better-resourced buyers away: size, forced selling, or genuine complexity. A liquid, widely-followed name that is simply unnoticed usually means the error is in your own analysis."
+          },
+          {
+            "question": "You study 20 names a year at 8 hours each with a 6% hit rate. The hours per genuine find are:",
+            "options": [
+              "8, the hours one analysis takes",
+              "About 133, because the figure is hours each divided by the hit rate",
+              "160, the total hours spent"
+            ],
+            "answer": 1,
+            "explanation": "Expected finds are 20 × 0.06 = 1.2 and hours are 160, so 160 / 1.2 ≈ 133. Algebraically the name count cancels: the figure is 8 / 0.06, which is why studying more names does not lower it."
+          }
+        ],
+        "references": [
+          {
+            "title": "Benjamin Graham & Jason Zweig · The Intelligent Investor, book information",
+            "url": "https://jasonzweig.com/books/the-intelligent-investor/"
+          },
+          {
+            "title": "U.S. SEC · Investor.gov: understanding investment fees",
+            "url": "https://www.investor.gov/introduction-investing/getting-started/understanding-fees"
+          },
+          {
+            "title": "U.S. SEC · Beginners' guide to financial statements",
+            "url": "https://www.sec.gov/about/reports-publications/investorpubsbegfinstmtguide"
+          }
+        ],
+        "terms": [
+          {
+            "term": "Liquidation",
+            "definition": "The process of selling assets and settling obligations when a business or position is wound down. The cash left after costs and senior claims can differ from recorded asset values."
+          },
+          {
+            "term": "Covenant",
+            "definition": "A condition in a borrowing agreement, such as a limit on additional debt. Check exactly how it is defined and what happens if it is breached."
+          }
+        ],
+        "realWorld": {
+          "caseId": "warung",
+          "connection": "A small local business is not mispriced because nobody has noticed it. It is priced where it is because the buyers who could pay more are too large to be interested, which is a mechanism rather than an oversight.",
+          "task": "For each candidate on your list, write one sentence naming why it is cheap and what stops a larger buyer from taking it, then compute your hours per genuine find at your own hit rate.",
+          "walkthrough": "A sentence that reads 'the market has not noticed' is not a mechanism, and a mispricing without one is usually an error in your own analysis. The hours-per-find figure is the hours each analysis takes divided by the hit rate, so the name count cancels: studying more names finds more opportunities without making any one of them cheaper to find. Requiring the mechanism sentence is the cheapest way to raise the denominator, and it costs one line per candidate rather than eight hours."
+        }
+      },
+      {
+        "id": "11.20",
+        "part": "5",
+        "title": "What a shareholder is owed: dividends, buybacks and management",
+        "subtitle": "Evaluate a distribution decision as an owner, and compute who gains and who loses when a company repurchases shares at a given price.",
+        "objective": "Evaluate a distribution decision as an owner, and compute who gains and who loses when a company repurchases shares at a given price.",
+        "reading": "Book companion theme: Shareholders and managements, and dividend policy. 30-minute session: 10 minutes of reading, 8 minutes of calculations, and 12 minutes of notebook work. Modern product, fraud and planning examples are course extensions, not claims about Graham's historical recommendations.",
+        "minutes": 30,
+        "kind": "applied-study",
+        "content": "## Understand the idea\n\nGraham's complaint about shareholders was that they behaved like ticket-holders rather than owners: passive about management quality, indifferent to how retained earnings were used, and attentive only to the quoted price. A share is a claim on a business, and the most consequential decision that business makes on your behalf is what to do with the cash it earns.\n\nThere are four things a company can do with a dollar of earnings, and they are not equivalent:\n\n1. Reinvest it in the business, which is right only if the business earns more on that dollar than you could elsewhere.\n2. Pay down debt, which transfers value from equity holders to creditors unless the leverage was genuinely threatening.\n3. Pay it out as a dividend, which hands you the dollar and lets you decide.\n4. Repurchase shares, which is the subtle one, because whether it helps you depends entirely on the price paid.\n\nA buyback is a purchase of your own company made with your money. Like any purchase it creates value if the price is below what the asset is worth and destroys value if it is above. This is the part that announcements never say. A repurchase at a discount to intrinsic value transfers wealth from the selling shareholders to those who remain; a repurchase above intrinsic value transfers it the other way, from the holders who stay to the ones who leave. Management is on both sides of that trade and is usually buying when the price is high, because that is when cash is plentiful and confidence is greatest.\n\nThe per-share arithmetic is why this is so easy to hide. A buyback mechanically raises earnings per share by shrinking the denominator, whatever price was paid. An EPS that rose because shares were retired is not the same event as an EPS that rose because the business earned more, and a management rewarded on EPS has a reason not to distinguish them. Lesson 11.14 asked you to read incentives; this is where that reading pays.\n\n$$\nV_{\\text{after}} = \\frac{V - C}{N - C/P},\\qquad \\text{transfer per share} = V_{\\text{per share}} - V_{\\text{after}}\n$$\n\n## A worked example\n\nHarrow Industries has 1,000 shares outstanding. Your own appraisal, done before you looked at the quote, puts the business at 20.00 a share, so 20,000 in total. The shares trade at 26.00. Management announces a 5,200 repurchase and the press release calls it a vote of confidence.\n\nWork out what it does to you as a holder who is not selling.\n\n1. Shares bought: 5,200 / 26.00 = 200 shares.\n2. Shares remaining: 1,000 − 200 = 800.\n3. Intrinsic value before: 1,000 × 20.00 = 20,000.\n4. Intrinsic value after: 20,000 − 5,200 = 14,800, because 5,200 of cash left the business.\n5. Value per remaining share: 14,800 / 800 = 18.50.\n\nYou began holding something worth 20.00 a share and now hold something worth 18.50. The company spent 5,200 to buy 200 shares worth 4,000, and the 1,200 difference came out of the holders who stayed and went to the holders who sold. Per remaining share that is a transfer of 1.50.\n\nMeanwhile the reported figures improve. If Harrow earns 2,000 a year, earnings per share rise from 2.00 to 2,000 / 800 = 2.50, a 25% increase, with no change whatever in the business. A dividend of 5,200, by contrast, would have handed each holder 5.20 a share and left the per-share value of what remains at 14,800 / 1,000 = 14.80 — the same total of 20.00 between cash in hand and shares held, with nothing transferred between holders.\n\nThe test, then, is not whether a buyback happened. It is the price it happened at, measured against an appraisal you made first.\n\n## Put the idea into practice\n\nJudge distributions as an owner, with the appraisal written down before the announcement:\n1. Appraise first, then read the announcement. A value estimate formed after reading a press release is not independent of it. Lesson 11.15 on decision journals applies directly: write the number and the date.\n2. For a buyback, compute the transfer. Subtract the cash spent from your appraisal of the whole business, divide by the shares that remain, and compare with your appraisal per share before. Record the difference as a figure, positive or negative.\n3. Separate mechanical EPS from earned EPS. Ask what earnings per share would have been with the old share count. If the entire improvement came from the denominator, say so in your notes.\n4. Read the incentive. Check whether management's compensation references earnings per share, total shareholder return or a share-price target, and whether the repurchase was funded by debt. Both change how you should read the decision.\n5. Record what you would have preferred and why. Over several years this becomes evidence about the management's capital allocation, which is a more reliable signal than any single year's result.\n\n### Build your careful-investor plan\n\nWrite the calculation, decision rule and one reason the conclusion might be wrong in your notebook. Add the evidence to your My notebook page. Read the named theme in your own copy of The Intelligent Investor; these explanations and fictional cases are original Quanta material, not reproduced chapters or publisher exercises. The worksheet calculates the case and keeps the price sandbox in cash. Its chart is not an investment recommendation or a test of Graham's approach.",
+        "formula": "V_{\\text{after}} = \\frac{V - C}{N - C/P},\\qquad \\text{transfer per share} = V_{\\text{per share}} - V_{\\text{after}}",
+        "code": "shares = 1000\nvalue_per_share = 20.00\nprice = 26.00\nspend = 5200.0\n\nbought = spend / price\nremaining = shares - bought\nbefore = shares * value_per_share\nafter = before - spend\nprint(\"Shares repurchased:\", round(bought, 0))\nprint(\"Shares remaining:\", round(remaining, 0))\nprint(\"Business value before:\", round(before, 0))\nprint(\"Business value after:\", round(after, 0))\nprint(\"Value per remaining share:\", round(after / remaining, 2))\nprint(\"Transferred away per remaining share:\", round(value_per_share - after / remaining, 2))\n\nearnings = 2000.0\nprint(\"Earnings per share before:\", round(earnings / shares, 2))\nprint(\"Earnings per share after:\", round(earnings / remaining, 2))\nprint(\"Percent rise from the share count alone:\", round((shares / remaining - 1) * 100, 1))\n\n# This worksheet computes the case above. The price sandbox stays in cash.\n# Its equity curve is not evidence for the model or strategy's performance.\ndef strategy(data):\n    return data[\"close\"] < 0\n",
+        "assignment": {
+          "prompt": "Compute the value per remaining share after Harrow's repurchase, the transfer per share, and the rise in earnings per share it produces. Then state the price at which the buyback would have been neutral for holders who stay, and explain why the announcement's framing as a vote of confidence is not evidence either way.",
+          "solution": "The company buys 5,200 / 26.00 = 200 shares, leaving 800. Business value falls from 20,000 to 14,800 because the cash left, so value per remaining share is 14,800 / 800 = 18.50 against 20.00 before — a transfer of 1.50 a share away from the holders who stayed and to those who sold. Earnings per share rise from 2.00 to 2.50, a 25% increase produced entirely by the smaller denominator with no change in the business. The buyback is neutral only at a price equal to intrinsic value, 20.00 a share: below that it adds value for continuing holders, above it subtracts. The vote-of-confidence framing is not evidence because it is an assertion about management's opinion of the price, and management's opinion is precisely what the repurchase price is being used to test; a confident management buying at 26.00 against a 20.00 value has expressed confidence and destroyed 1,200 of value in the same act."
+        },
+        "exercise": {
+          "question": "A company worth 20.00 a share repurchases stock at 26.00. For a holder who does not sell, this:",
+          "options": [
+            "Adds value, because fewer shares now share the same earnings",
+            "Transfers value away from them and towards the holders who sold",
+            "Is neutral, because the share count and the cash both fall"
+          ],
+          "answer": 1,
+          "explanation": "The company paid 26.00 for something worth 20.00. The 6.00 difference on each share bought comes out of the continuing holders; in the worked case that is 1.50 per remaining share."
+        },
+        "exercises": [
+          {
+            "question": "A company worth 20.00 a share repurchases stock at 26.00. For a holder who does not sell, this:",
+            "options": [
+              "Adds value, because fewer shares now share the same earnings",
+              "Transfers value away from them and towards the holders who sold",
+              "Is neutral, because the share count and the cash both fall"
+            ],
+            "answer": 1,
+            "explanation": "The company paid 26.00 for something worth 20.00. The 6.00 difference on each share bought comes out of the continuing holders; in the worked case that is 1.50 per remaining share."
+          },
+          {
+            "question": "After the repurchase, Harrow's earnings per share rise from 2.00 to 2.50. What has happened to the business?",
+            "options": [
+              "Nothing: the rise is entirely the smaller share count",
+              "It has become 25% more profitable",
+              "It has earned back the cash it spent"
+            ],
+            "answer": 0,
+            "explanation": "Earnings are unchanged at 2,000; only the denominator moved, from 1,000 shares to 800. Separating a mechanical EPS rise from an earned one is the point, especially where management is paid on EPS."
+          }
+        ],
+        "references": [
+          {
+            "title": "Benjamin Graham & Jason Zweig · The Intelligent Investor, book information",
+            "url": "https://jasonzweig.com/books/the-intelligent-investor/"
+          },
+          {
+            "title": "U.S. SEC · EDGAR company disclosure APIs",
+            "url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
+          },
+          {
+            "title": "General Electric · Form 8-K, 9 December 2020",
+            "url": "https://www.sec.gov/Archives/edgar/data/40545/000004054520000062/ge-20201209.htm"
+          }
+        ],
+        "terms": [
+          {
+            "term": "Intrinsic value",
+            "definition": "An estimate of what an investment is worth based on the business, its assets, cash flows, and obligations. It depends on assumptions and can differ from the current market price."
+          },
+          {
+            "term": "Incentive",
+            "definition": "A reason someone may prefer one outcome over another, such as a fee, commission, or personal interest. Understanding an incentive helps you assess a recommendation alongside its evidence."
+          },
+          {
+            "term": "Decision journal",
+            "definition": "A record of your reasons, evidence, alternatives, and expectations written before an outcome is known. It helps you review the original decision without rewriting its history."
+          },
+          {
+            "term": "Signal",
+            "definition": "A value or rule output used to inform a decision. A signal becomes an actual trade only after the system applies timing, position, risk, and execution rules."
+          }
+        ],
+        "realWorld": {
+          "caseId": "ge_disclosure",
+          "connection": "Earnings per share can rise because a business earned more or because its share count fell, and a reader who does not separate the two is reading a different number from the one they think.",
+          "task": "Appraise a company before reading its latest repurchase announcement, then compute the value per remaining share after the buyback and the transfer it produced.",
+          "walkthrough": "Subtract the cash spent from your appraisal of the whole business and divide by the shares that remain. In the worked case a 5,200 buyback at 26.00 against a 20.00 appraisal left 18.50 a share, a transfer of 1.50 away from the holders who stayed, while earnings per share rose 25% with no change in the business at all. The neutral price is intrinsic value, which means the judgement requires an appraisal made before the announcement rather than after it."
+        }
       }
     ],
     "prerequisites": "Complete Trading Fundamentals or understand basic shares, bonds, returns and orders. No coding experience is required; worksheets explain their inputs. Read your own legally obtained copy of the book for the original discussion.",
@@ -9333,9 +9647,10 @@
       "Connect goals, liquidity, risk capacity, inflation and diversification to a written plan.",
       "Calculate valuation cushions, allocation drift, fee drag and purchase averages.",
       "Read disclosures, investigate incentives and recognize promises that need independent verification.",
+      "Judge the purpose of a fixed-income allocation, apply a price filter as a hypothesis rather than a verdict, and evaluate a dividend or repurchase as an owner.",
       "Produce an investor-policy workbook and prepare for the deeper Security Analysis course."
     ],
-    "readingGuide": "Before choosing individual stocks, it helps to understand the person making the decisions: you. This course connects investing habits with practical choices about goals, available cash, diversification, fees, and how to respond when prices move. A careful investor needs a process they can maintain through uncertainty.\n\nEach lesson connects one idea from the book's themes to an original everyday example. First explain the choice in ordinary language, then work through the calculation, and finally add a decision rule to your My notebook page. For example, a discussion of losses should lead you to explain which money you can leave invested and which money you may need soon. Build the plan gradually; you do not need to decide everything in the first lesson.\n\n16 lessons × 30 minutes = 8 hours of planned study across four units; exam time is additional. Includes 32 practice questions, four four-question checkpoints, a 16-question final and a downloadable workbook with a self-assessed capstone in your notebook.\n\nThis is an original thematic companion, not the full book or a substitute for it. Edition pagination varies; use the named themes in your own copy.\n\nModern planning, fund and fraud examples are explicitly course extensions. Case allocations and thresholds are fictional assumptions, not personalized recommendations.",
+    "readingGuide": "Before choosing individual stocks, it helps to understand the person making the decisions: you. This course connects investing habits with practical choices about goals, available cash, diversification, fees, and how to respond when prices move. A careful investor needs a process they can maintain through uncertainty.\n\nEach lesson connects one idea from the book's themes to an original everyday example. First explain the choice in ordinary language, then work through the calculation, and finally add a decision rule to your My notebook page. For example, a discussion of losses should lead you to explain which money you can leave invested and which money you may need soon. Build the plan gradually; you do not need to decide everything in the first lesson.\n\n20 lessons × 30 minutes = 10 hours of planned study across five units; exam time is additional. Includes 40 practice questions, five four-question checkpoints, a 20-question final and a downloadable workbook with a self-assessed capstone in your notebook.\n\nThis is an original thematic companion, not the full book or a substitute for it. Edition pagination varies; use the named themes in your own copy.\n\nModern planning, fund and fraud examples are explicitly course extensions. Case allocations and thresholds are fictional assumptions, not personalized recommendations.",
     "parts": [
       {
         "id": "1",
@@ -9356,6 +9671,11 @@
         "id": "4",
         "title": "Exercise independent judgment",
         "description": "Disclosure reading, incentives, fraud checks, decision review and a written investor plan."
+      },
+      {
+        "id": "5",
+        "title": "Choose the securities, and know what a rule cannot decide",
+        "description": "The purpose of the safe half, the defensive price filter, where bargains come from, and judging a distribution as an owner."
       }
     ],
     "references": [
@@ -9680,12 +10000,77 @@
         ]
       },
       {
+        "id": "intelligent-investor-checkpoint-5",
+        "title": "Unit 5: Choose the securities, and know what a rule cannot decide",
+        "kind": "checkpoint",
+        "version": 1,
+        "description": "Four original transfer questions. Use your notes, show calculations, and review the explanations after submitting. This checkpoint samples the preceding unit; the final covers every module.",
+        "minutes": 16,
+        "passingScore": 75,
+        "moduleIds": [
+          "11.17",
+          "11.18",
+          "11.19",
+          "11.20"
+        ],
+        "questions": [
+          {
+            "id": "intelligent-investor-checkpoint-5-q1",
+            "lessonId": "11.17",
+            "question": "What should decide the size of the fixed-income allocation?",
+            "options": [
+              "The proportion that produced the best returns last decade",
+              "The drawdown or spending it has to cover without forcing an equity sale",
+              "The yield available on the instruments being considered"
+            ],
+            "answer": 1,
+            "explanation": "The allocation exists to stop a forced sale, so the size follows from what it must absorb. Sizing it by yield chooses the amount for a reason unrelated to the job."
+          },
+          {
+            "id": "intelligent-investor-checkpoint-5-q2",
+            "lessonId": "11.18",
+            "question": "What does passing the defensive price filter establish?",
+            "options": [
+              "Only that the price is modest against two accounting numbers, which still have to be checked",
+              "That the shares offer a margin of safety",
+              "That the business has durable earnings"
+            ],
+            "answer": 0,
+            "explanation": "A screen is a hypothesis generator. Durability of earnings, the realism of book value and the direction of the business are questions the filter cannot reach, and they are the ones that decide whether a low multiple is cheap or deserved."
+          },
+          {
+            "id": "intelligent-investor-checkpoint-5-q3",
+            "lessonId": "11.19",
+            "question": "What does this arithmetic imply for an investor without 160 hours a year?",
+            "options": [
+              "That they should study fewer names at the same hit rate",
+              "That they should raise their hit rate by lowering their standards",
+              "That the defensive route is the correct choice, not the lesser one"
+            ],
+            "answer": 2,
+            "explanation": "Lesson 11.3 framed the choice as a commitment of time. Pricing that commitment honestly is how the choice gets made, and a defensive process chosen for a reason is better than an enterprising one that is not actually resourced."
+          },
+          {
+            "id": "intelligent-investor-checkpoint-5-q4",
+            "lessonId": "11.20",
+            "question": "A dividend of the same 5,200 would have left each holder with:",
+            "options": [
+              "More total value, because dividends are always preferable",
+              "5.20 in cash and shares worth 14.80, totalling the 20.00 they started with",
+              "Shares worth 18.50, the same as the buyback"
+            ],
+            "answer": 1,
+            "explanation": "A dividend distributes the cash without changing the share count, so nothing is transferred between holders: 14,800 / 1,000 = 14.80 a share plus 5.20 received. Neither form is always better; the buyback's merit depends entirely on the price paid."
+          }
+        ]
+      },
+      {
         "id": "intelligent-investor-final",
         "title": "The intelligent & careful investor final exam",
         "kind": "final",
-        "version": 1,
+        "version": 2,
         "description": "Open-book, untimed assessment with new cases from every module. Budget about three minutes per question. Answers and explanations appear after submission. Pass at 80%; retries remain available. The written capstone is self-assessed separately.",
-        "minutes": 48,
+        "minutes": 60,
         "passingScore": 80,
         "moduleIds": [
           "11.1",
@@ -9703,7 +10088,11 @@
           "11.13",
           "11.14",
           "11.15",
-          "11.16"
+          "11.16",
+          "11.17",
+          "11.18",
+          "11.19",
+          "11.20"
         ],
         "questions": [
           {
@@ -9897,6 +10286,54 @@
             ],
             "answer": 0,
             "explanation": "Academic exam completion tests conceptual understanding; determining whether a specific financial allocation is suitable requires analyzing individual personal liabilities, tax status, family commitments, and risk capacity."
+          },
+          {
+            "id": "intelligent-investor-final-11.17",
+            "lessonId": "11.17",
+            "question": "Why is credit risk a worse fit for the safe half than interest-rate risk?",
+            "options": [
+              "Credit risk is larger in every scenario",
+              "Interest-rate risk does not affect bond prices",
+              "A default is permanent and clusters in the recessions that are also hurting equities"
+            ],
+            "answer": 2,
+            "explanation": "Rate losses reverse: hold to maturity and par is still paid. Default losses do not, and they arrive exactly when the equity side needs the safe half to be whole."
+          },
+          {
+            "id": "intelligent-investor-final-11.18",
+            "lessonId": "11.18",
+            "question": "Removing a one-time gain of 0.40 moves earnings from 3.20 to 2.80. The product then becomes:",
+            "options": [
+              "19.69, a pass, because lower earnings reduce the ratio",
+              "26.25, a clear failure the reported figure had hidden",
+              "22.97, unchanged, because book value did not move"
+            ],
+            "answer": 1,
+            "explanation": "The multiple rises to 42.00 / 2.80 = 15.00 and the product to 15.00 × 1.75 = 26.25. A lower earnings figure raises a price-to-earnings ratio, which is why lesson 11.13 insists on stripping non-recurring items before any multiple is used."
+          },
+          {
+            "id": "intelligent-investor-final-11.19",
+            "lessonId": "11.19",
+            "question": "Doubling the screen's hit rate from 6% to 12% does what to the hours per find?",
+            "options": [
+              "Halves them, from about 133 to about 67",
+              "Leaves them unchanged, since the hours per analysis are the same",
+              "Doubles them, because more candidates must be studied"
+            ],
+            "answer": 0,
+            "explanation": "The figure is hours each over the hit rate, so the hit rate is the denominator. Improving the screen is the only lever with leverage; working faster reduces the numerator but not the structure of the problem."
+          },
+          {
+            "id": "intelligent-investor-final-11.20",
+            "lessonId": "11.20",
+            "question": "At what price would the repurchase have been neutral for continuing holders?",
+            "options": [
+              "At the market price, since that is what the shares are worth",
+              "At book value, whatever it happens to be",
+              "At intrinsic value, 20.00 a share"
+            ],
+            "answer": 2,
+            "explanation": "A buyback is a purchase. It creates value below intrinsic value and destroys it above, so the neutral point is intrinsic value itself — which means you need an appraisal made before the announcement to judge it at all."
           }
         ]
       }
@@ -16523,6 +16960,89 @@
         }
       },
       {
+        "id": "2.30",
+        "part": "2",
+        "title": "Annualising returns when observations are not independent",
+        "subtitle": "Scale a mean and a volatility to a year correctly, and show how autocorrelation inflates an annualised Sharpe ratio.",
+        "objective": "Scale a mean and a volatility to a year correctly, and show how autocorrelation inflates an annualised Sharpe ratio.",
+        "reading": "CFA Institute, Quantitative Investment Analysis, fourth edition · Chapter 2. Pair the book reading with this original application; course lesson numbers are independent of book chapter numbers.",
+        "minutes": 14,
+        "kind": "book-study",
+        "content": "## The analytical question\n\nAnnualising is the most-performed and least-examined operation in investment analysis. A mean return scales with time, a standard deviation scales with the square root of time, and a Sharpe ratio therefore scales with the square root of time:\n\n$$\n\\mu_{\\text{annual}} = \\mu_{\\text{period}} \\times T,\\qquad \\sigma_{\\text{annual}} = \\sigma_{\\text{period}} \\sqrt{T},\\qquad \\mathrm{SR}_{\\text{annual}} = \\mathrm{SR}_{\\text{period}} \\sqrt{T}\n$$\n\nThe mean rule is close to harmless. The volatility rule is not, because the square root of $T$ holds **only if the period returns are independent**. The variance of a sum of $T$ returns is the sum of their variances plus twice the sum of every covariance between them:\n\n$$\n\\mathrm{Var}\\!\\left(\\sum_{t=1}^{T} r_t\\right) = T\\sigma^2 + 2\\sum_{i<j}\\mathrm{Cov}(r_i, r_j)\n$$\n\nWhen returns are independent every covariance is zero, the second term vanishes, and $\\sigma\\sqrt{T}$ is exact. When they are positively autocorrelated the second term is positive, the true annual volatility is **larger** than $\\sigma\\sqrt{T}$, and dividing by the understated denominator produces a Sharpe ratio that is too high.\n\nFor returns following a first-order autoregressive process with correlation $\\rho$, every covariance is $\\mathrm{Cov}(r_t, r_{t+k}) = \\rho^k \\sigma^2$, so the inflation of the variance has a closed form:\n\n$$\nV = 1 + \\frac{2}{T}\\sum_{k=1}^{T-1}(T-k)\\,\\rho^{k} = 1 + \\frac{2\\rho}{T(1-\\rho)}\\left[T - \\frac{1-\\rho^{T}}{1-\\rho}\\right]\n$$\n\nThe volatility is inflated by $k = \\sqrt{V}$, and the corrected figures are $\\sigma\\sqrt{T}\\,k$ and $\\mathrm{SR}/k$. Lo's 2002 note on the statistics of Sharpe ratios derives this and gives the general form for arbitrary dependence. Note the long-run behaviour: as $T$ grows, $V \\to (1+\\rho)/(1-\\rho)$, so for $\\rho = 0.20$ the variance inflation approaches 1.5 however long the sample. Keeping only the lag-one term, a common shortcut, gives $1 + 2\\rho = 1.4$ and understates it.\n\nWhy does this matter in practice? Positive autocorrelation is not exotic. It appears mechanically wherever prices are stale or smoothed: infrequently traded holdings, appraisal-based valuations, monthly marks on illiquid positions. Exactly the strategies whose reported Sharpe ratios look most attractive are the ones where the assumption behind the annualisation fails hardest, and in the direction that flatters them.\n\n## A worked example\n\nA strategy reports a daily mean of 0.04% and a daily standard deviation of 1.00% over 252 trading days.\n\nStep 1, the conventional figures:\n\n$$\n\\mu_{\\text{annual}} = 0.0004 \\times 252 = 10.08\\%,\\qquad \\sigma_{\\text{annual}} = 0.0100 \\times \\sqrt{252} = 15.87\\%\n$$\n\n$$\n\\mathrm{SR} = \\frac{10.08}{15.87} = 0.635\n$$\n\nStep 2, test the assumption. Suppose the daily returns have a first-order autocorrelation of $\\rho = 0.20$ — mild, and well within what stale pricing produces.\n\nStep 3, the inflation. Summing $(T-k)\\rho^k$ over $k = 1 \\ldots 251$ and applying the formula gives $V = 1.4975$, which is already within a quarter of a percent of the long-run limit of 1.5. The volatility factor is $k = \\sqrt{1.4975} = 1.2237$.\n\nStep 4, the corrected figures. True annual volatility is $15.87 \\times 1.2237 = 19.43\\%$, and the Sharpe ratio becomes $0.635 / 1.2237 = 0.519$.\n\nThe reported 0.635 was **22.4% higher** than the figure the data support, from an autocorrelation small enough that most eyeball inspections would call the series independent. The mean was unaffected; the entire error sat in the denominator.\n\nStep 5, the reporting consequence. A Sharpe ratio quoted without the autocorrelation of the underlying series is an incomplete statistic. Two strategies reporting 0.6 are not comparable if one is daily-liquid and the other is marked monthly on appraisals, and the difference between them is not performance.",
+        "formula": "\\mathrm{Var}\\!\\left(\\textstyle\\sum_t r_t\\right)=T\\sigma^2+2\\sum_{i<j}\\mathrm{Cov}(r_i,r_j),\\qquad \\mathrm{SR}_{\\text{adj}}=\\frac{\\mathrm{SR}}{k}",
+        "code": "from math import sqrt\n\nmean = 0.0004\nsd = 0.0100\nperiods = 252\nprint(\"Annualised mean percent:\", round(mean * periods * 100, 2))\nprint(\"Independent annualised volatility percent:\", round(sd * sqrt(periods) * 100, 2))\nnaive = mean * periods / (sd * sqrt(periods))\nprint(\"Naive Sharpe:\", round(naive, 3))\n\n# The covariance sum is built term by term. The guided runtime caps exponents\n# at 32, so rho to the power of T has to be reached by repeated multiplication\n# rather than written down.\nrho = 0.20\nterm = 1.0\ntotal = 0.0\nfor k in range(1, periods):\n    term = term * rho\n    total = total + (periods - k) * term\ninflation = 1 + 2 * total / periods\nfactor = sqrt(inflation)\nprint(\"Variance inflation:\", round(inflation, 4))\nprint(\"Volatility inflation factor:\", round(factor, 4))\nprint(\"Adjusted annualised volatility percent:\", round(sd * sqrt(periods) * factor * 100, 2))\nprint(\"Adjusted Sharpe:\", round(naive / factor, 3))\nprint(\"Sharpe overstated by percent:\", round((factor - 1) * 100, 1))\nprint(\"Long-run limit of the inflation:\", round((1 + rho) / (1 - rho), 4))\n\n# This worksheet computes the case above. The price sandbox stays in cash.\n# Its equity curve is not evidence for the valuation or statistical claim.\ndef strategy(data):\n    return data[\"close\"] < 0\n",
+        "assignment": {
+          "prompt": "Annualise the mean, volatility and Sharpe ratio of the daily series above under independence, then recompute the volatility and Sharpe ratio for a first-order autocorrelation of 0.20. State which of the three annualised figures changed and why, check your inflation against the long-run limit, and name two kinds of strategy where this correction matters most.",
+          "solution": "Under independence the annualised mean is 0.0004 × 252 = 10.08%, the volatility is 0.0100 × sqrt(252) = 15.87%, and the Sharpe ratio is 0.635. With a first-order autocorrelation of 0.20 the variance inflation is 1.4975 and the volatility factor is its square root, 1.2237, so the true annualised volatility is 15.87 × 1.2237 = 19.43% and the Sharpe ratio falls to 0.635 / 1.2237 = 0.519, meaning the reported figure was 22.4% too high. The inflation is close to its long-run limit of (1 + 0.20) / (1 - 0.20) = 1.5, which is the check worth running: keeping only the lag-one covariance would have given 1.4 and understated the correction. Only the volatility and the Sharpe ratio changed: the mean scales linearly with time and is unaffected by the covariance structure, while the square-root rule for volatility assumes every covariance between periods is zero and understates the denominator when they are positive. The correction matters most where prices are stale or smoothed — infrequently traded holdings and positions marked on periodic appraisals rather than transactions — which is precisely where reported Sharpe ratios tend to look most attractive, so the assumption fails hardest in the direction that flatters the result."
+        },
+        "exercise": {
+          "question": "Which annualised statistic is unaffected by autocorrelation in the period returns?",
+          "options": [
+            "The mean",
+            "The volatility",
+            "The Sharpe ratio"
+          ],
+          "answer": 0,
+          "explanation": "A mean scales linearly with the number of periods regardless of dependence. Volatility uses the square-root rule, which assumes zero covariance between periods, and the Sharpe ratio inherits that error through its denominator."
+        },
+        "exercises": [
+          {
+            "question": "Which annualised statistic is unaffected by autocorrelation in the period returns?",
+            "options": [
+              "The mean",
+              "The volatility",
+              "The Sharpe ratio"
+            ],
+            "answer": 0,
+            "explanation": "A mean scales linearly with the number of periods regardless of dependence. Volatility uses the square-root rule, which assumes zero covariance between periods, and the Sharpe ratio inherits that error through its denominator."
+          },
+          {
+            "question": "With ρ = 0.20 over 252 periods the volatility inflation factor is 1.2237. A reported Sharpe of 0.635 corrects to:",
+            "options": [
+              "0.519",
+              "0.750",
+              "0.635"
+            ],
+            "answer": 0,
+            "explanation": "The adjusted ratio is the reported one divided by the factor: 0.635 / 1.2237 = 0.519, an overstatement of 22.4% from an autocorrelation most inspections would treat as negligible. The factor is the square root of the variance inflation 1.4975, which is near its long-run limit of 1.5."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Volatility",
+            "definition": "A measure of variability in returns, commonly based on their standard deviation. State the observation frequency and any annualization convention when comparing values."
+          },
+          {
+            "term": "Autocorrelation",
+            "definition": "A relationship between a series and its earlier values, or between errors at different dates. It means observations may contain less independent information than their count suggests."
+          },
+          {
+            "term": "Variance",
+            "definition": "A measure of how widely values differ from their mean, based on squared deviations. Its units are squared; taking the square root gives the standard deviation in the original units."
+          },
+          {
+            "term": "Covariance",
+            "definition": "A measure of how two quantities vary together. It is positive when above-average values tend to occur together and negative when one tends to be above average as the other is below."
+          }
+        ],
+        "references": [
+          {
+            "title": "Fourth edition · publisher contents and reading reference",
+            "url": "https://www.wiley-vch.de/en/areas-interest/finance-economics-law/finance-investments-13fi/investments-securities-13fi3/quantitative-investment-analysis-978-1-119-74362-0"
+          },
+          {
+            "title": "CFA Institute · GIPS standards for firms",
+            "url": "https://www.gipsstandards.org/standards/gips-standards-for-firms/"
+          }
+        ],
+        "realWorld": {
+          "caseId": "reporting",
+          "connection": "The GIPS standards ask for the method behind a performance figure, not only the figure. An annualised Sharpe ratio carries a hidden method: the square-root-of-time rule, which assumes something about the data that is rarely checked.",
+          "task": "Measure the first-order autocorrelation of your return series, compute the variance inflation factor, and report the adjusted annualised volatility and Sharpe ratio beside the conventional ones.",
+          "walkthrough": "The variance of a sum of T returns is Tσ² plus twice every covariance between them, so σ√T is exact only under independence. At ρ = 0.20 over 252 periods the variance inflation is 1.4975 and the volatility factor its square root, 1.2237: a reported Sharpe of 0.635 is really 0.519, an overstatement of 22.4%. Check it against the long-run limit (1+ρ)/(1−ρ) = 1.5; keeping only the lag-one term gives 1.4 and understates the correction. Stale and smoothed marks produce exactly this, so the strategies whose ratios look best are the ones where the assumption fails hardest. Quote the autocorrelation with the ratio or the ratio is incomplete."
+        }
+      },
+      {
         "id": "2.9",
         "part": "3",
         "title": "Conditional probability and Bayes updates",
@@ -17179,6 +17699,89 @@
         }
       },
       {
+        "id": "2.29",
+        "part": "6",
+        "title": "Statistical power and what a non-rejection is worth",
+        "subtitle": "Compute the power of a test before running it, and state what failing to reject does and does not establish.",
+        "objective": "Compute the power of a test before running it, and state what failing to reject does and does not establish.",
+        "reading": "CFA Institute, Quantitative Investment Analysis, fourth edition · Chapter 6. Pair the book reading with this original application; course lesson numbers are independent of book chapter numbers.",
+        "minutes": 15,
+        "kind": "book-study",
+        "content": "## The analytical question\n\nLesson 2.4 established the two error rates of a hypothesis test. A **Type I error** rejects a true null, and its rate $\\alpha$ is the one researchers set deliberately, usually at 5%. A **Type II error** fails to reject a false null, and its rate $\\beta$ is the one almost nobody computes. **Power** is $1 - \\beta$: the probability that a test detects an effect that is genuinely there.\n\nThe asymmetry matters because the two errors are not treated symmetrically in practice. A rejection is reported; a non-rejection is usually read as \"no effect\". That reading is only defensible when the test had a reasonable chance of finding the effect in the first place. An underpowered study that fails to reject has established almost nothing, and reporting it as evidence of absence is one of the most common errors in applied finance research.\n\nFor a two-sided test of a mean against a null of zero, with a true effect $\\delta$, population standard deviation $\\sigma$ and $n$ observations, the standard error is $\\sigma / \\sqrt{n}$ and the effect expressed in standard errors is:\n\n$$\n\\lambda = \\frac{\\delta}{\\sigma / \\sqrt{n}} = \\frac{\\delta \\sqrt{n}}{\\sigma}\n$$\n\nPower is then the probability that the test statistic lands beyond either critical value when the true mean is $\\delta$:\n\n$$\n1 - \\beta = 1 - \\Phi(z_{1-\\alpha/2} - \\lambda) + \\Phi(-z_{1-\\alpha/2} - \\lambda)\n$$\n\nRearranging for the sample size needed to reach a target power gives the expression every research plan should contain:\n\n$$\nn = \\left(\\frac{(z_{1-\\alpha/2} + z_{1-\\beta})\\,\\sigma}{\\delta}\\right)^{2}\n$$\n\nNote the square. Halving the effect you want to detect quadruples the observations you need. This is why small edges are so expensive to establish and why claims about them should be read with the sample size in hand.\n\nThe inverse question is often more useful. Given the sample you actually have, the **minimum detectable effect** is the smallest true effect the test would find with your target power:\n\n$$\n\\delta_{\\min} = (z_{1-\\alpha/2} + z_{1-\\beta}) \\frac{\\sigma}{\\sqrt{n}}\n$$\n\nIf that number is larger than any effect the strategy could plausibly produce, the test cannot answer the question, and running it anyway produces a non-rejection that means nothing.\n\n## A worked example\n\nA researcher wants to know whether a signal produces a positive mean monthly excess return. The hypothesis is two-sided at $\\alpha = 0.05$, so the critical value is $z_{0.975} = 1.95996$. Suppose the true effect is $\\delta = 0.40$ percentage points a month, the monthly standard deviation is $\\sigma = 2.00$ points, and five years of data give $n = 60$ observations.\n\nStep 1, the standard error:\n\n$$\n\\frac{\\sigma}{\\sqrt{n}} = \\frac{2.00}{\\sqrt{60}} = 0.2582\n$$\n\nStep 2, the effect in standard errors:\n\n$$\n\\lambda = \\frac{0.40}{0.2582} = 1.549\n$$\n\nStep 3, power. The upper tail contributes $1 - \\Phi(1.95996 - 1.549) = 1 - \\Phi(0.411)$ and the lower tail is negligible, giving a power of **34.1%**. The Type II error rate is therefore 65.9%.\n\nRead that carefully. The effect is real, and the test will miss it almost two times in three. If this researcher runs the test, fails to reject, and writes \"the signal does not work\", the conclusion is wrong about twice as often as it is right.\n\nStep 4, what would have been needed. For 80% power, $z_{0.80} = 0.84162$ and the sum of critical values is $2.80159$:\n\n$$\nn = \\left(\\frac{2.80159 \\times 2.00}{0.40}\\right)^{2} = 196\n$$\n\nSixteen and a third years of monthly data, not five.\n\nStep 5, what the available sample can detect. With $n = 60$:\n\n$$\n\\delta_{\\min} = 2.80159 \\times 0.2582 = 0.723\n$$\n\nThe study can reliably detect an edge of 0.72 points a month, which is 8.7 points a year before costs. If no plausible signal in this asset class produces that, the test was never capable of answering the question, and the honest report says so instead of reporting a non-rejection.",
+        "formula": "1-\\beta = 1-\\Phi(z_{1-\\alpha/2}-\\lambda)+\\Phi(-z_{1-\\alpha/2}-\\lambda),\\qquad n=\\left(\\frac{(z_{1-\\alpha/2}+z_{1-\\beta})\\sigma}{\\delta}\\right)^{2}",
+        "code": "from math import exp, sqrt\n\n# The guided runtime has no erf, so the normal CDF uses the Abramowitz and\n# Stegun 26.2.17 approximation, whose published error bound is 7.5e-8.\ndef phi(x):\n    sign = 1.0\n    z = x\n    if z < 0:\n        sign = -1.0\n        z = -z\n    t = 1.0 / (1.0 + 0.2316419 * z)\n    poly = t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))))\n    tail = 0.3989422804014327 * exp(-0.5 * z * z) * poly\n    return 0.5 + sign * (0.5 - tail)\n\ncritical = 1.959963985\neffect = 0.40\nsd = 2.00\nn = 60\nse = sd / sqrt(n)\nprint(\"Standard error:\", round(se, 4))\nshift = effect / se\nprint(\"Effect in standard errors:\", round(shift, 3))\npower = 1 - phi(critical - shift) + phi(-critical - shift)\nprint(\"Power percent:\", round(power * 100, 1))\nprint(\"Type II error percent:\", round((1 - power) * 100, 1))\n\ntarget = 2.801592\nprint(\"Observations for 80 percent power:\", round((target * sd / effect) ** 2, 0))\nprint(\"Minimum detectable effect at n=60:\", round(target * se, 3))\n\n# This worksheet computes the case above. The price sandbox stays in cash.\n# Its equity curve is not evidence for the valuation or statistical claim.\ndef strategy(data):\n    return data[\"close\"] < 0\n",
+        "assignment": {
+          "prompt": "Compute the power of the two-sided test described above, the sample size that would reach 80% power, and the minimum effect the 60-observation sample can detect. Then write the sentence you would use to report a non-rejection from this study, and explain why 'the signal does not work' is not that sentence.",
+          "solution": "The standard error is 2.00 / sqrt(60) = 0.2582, so a true effect of 0.40 is 1.549 standard errors and power is 1 − Φ(1.95996 − 1.549) + Φ(−1.95996 − 1.549) = 34.1%. The Type II error rate is 65.9%: the test misses a real effect almost two times in three. Reaching 80% power would need ((1.95996 + 0.84162) × 2.00 / 0.40)² = 196 observations, which is sixteen and a third years of monthly data rather than five. The minimum detectable effect at n = 60 is 2.80159 × 0.2582 = 0.723 points a month, about 8.7 points a year. An honest report of a non-rejection therefore reads: 'we did not reject at 5%; with 60 observations the study had 34% power against an effect of 0.40 points a month and could only reliably detect 0.72 points, so this is not evidence that the effect is absent.' Saying 'the signal does not work' claims evidence of absence from a test that was never capable of producing it, and the square in the sample-size formula is why: halving the effect you want to detect quadruples the data you need."
+        },
+        "exercise": {
+          "question": "A study with 34% power fails to reject the null. The strongest defensible conclusion is:",
+          "options": [
+            "The effect is absent",
+            "The study could not detect an effect of this size, so it is uninformative about absence",
+            "The effect is present but small"
+          ],
+          "answer": 1,
+          "explanation": "Power is the probability of detecting a real effect. At 34% the test misses a genuine effect about two times in three, so a non-rejection carries almost no information about whether the effect exists."
+        },
+        "exercises": [
+          {
+            "question": "A study with 34% power fails to reject the null. The strongest defensible conclusion is:",
+            "options": [
+              "The effect is absent",
+              "The study could not detect an effect of this size, so it is uninformative about absence",
+              "The effect is present but small"
+            ],
+            "answer": 1,
+            "explanation": "Power is the probability of detecting a real effect. At 34% the test misses a genuine effect about two times in three, so a non-rejection carries almost no information about whether the effect exists."
+          },
+          {
+            "question": "Halving the effect size you wish to detect, holding everything else fixed, changes the required sample size by a factor of:",
+            "options": [
+              "2",
+              "4",
+              "unchanged"
+            ],
+            "answer": 1,
+            "explanation": "The sample size formula divides by the effect and then squares, so n scales with 1/δ². Halving δ multiplies n by four, which is why small edges are so expensive to establish."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Alpha",
+            "definition": "The intercept in a specified return model. A positive estimate can reflect sampling variation or model limitations as well as performance, so it requires context and an uncertainty estimate."
+          },
+          {
+            "term": "Beta",
+            "definition": "A slope measuring sensitivity to an input, often a market return. Its units and interpretation depend on the returns, period, and other terms included in the model."
+          },
+          {
+            "term": "Standard error",
+            "definition": "An estimate of how much a fitted quantity, such as a sample mean or regression coefficient, would vary across samples. It differs from the spread of the individual observations."
+          },
+          {
+            "term": "Signal",
+            "definition": "A value or rule output used to inform a decision. A signal becomes an actual trade only after the system applies timing, position, risk, and execution rules."
+          }
+        ],
+        "references": [
+          {
+            "title": "Fourth edition · publisher contents and reading reference",
+            "url": "https://www.wiley-vch.de/en/areas-interest/finance-economics-law/finance-investments-13fi/investments-securities-13fi3/quantitative-investment-analysis-978-1-119-74362-0"
+          },
+          {
+            "title": "scikit-learn contributors · Probability calibration",
+            "url": "https://scikit-learn.org/stable/modules/calibration.html"
+          }
+        ],
+        "realWorld": {
+          "caseId": "calibration",
+          "connection": "A forecast is judged over many resolved calls because one call carries almost no information. The same arithmetic decides whether a hypothesis test could have answered the question it was asked.",
+          "task": "Before running a test, compute its power against the smallest effect you would act on, and the minimum effect your actual sample can detect at 80% power.",
+          "walkthrough": "Power is 1 − Φ(z − λ) + Φ(−z − λ) with λ the effect in standard errors, and the sample size for a target power is ((z_{1−α/2} + z_{1−β})σ/δ)². The square is the part that matters: halving the effect you want to detect quadruples the data required. For 60 monthly observations at σ = 2.00, an effect of 0.40 is found only 34% of the time and the minimum detectable effect is 0.72 a month. Report a non-rejection with those two figures beside it, because without them it is not evidence of absence."
+        }
+      },
+      {
         "id": "2.5",
         "part": "7",
         "title": "Linear regression & correlation",
@@ -17342,6 +17945,89 @@
           "connection": "Inventory planning needs uncertainty about the next observation, not only about average demand.",
           "task": "A shop's predicted weekly demand is 100 units. Explain why an interval for mean demand is insufficient for deciding whether 105 units will cover next week's orders.",
           "walkthrough": "A prediction interval includes uncertainty from a new week's variation as well as estimated parameters, so it is generally wider. Match the horizon and service objective, inspect forecast errors, and state the stockout and overstock costs before choosing inventory."
+        }
+      },
+      {
+        "id": "2.31",
+        "part": "7",
+        "title": "Regression to the mean and the persistence of performance",
+        "subtitle": "Predict next period from this one using the cross-sectional correlation, and separate genuine persistence from the arithmetic of an extreme draw.",
+        "objective": "Predict next period from this one using the cross-sectional correlation, and separate genuine persistence from the arithmetic of an extreme draw.",
+        "reading": "CFA Institute, Quantitative Investment Analysis, fourth edition · Chapter 7. Pair the book reading with this original application; course lesson numbers are independent of book chapter numbers.",
+        "minutes": 15,
+        "kind": "book-study",
+        "content": "## The analytical question\n\nRank anything measured with noise, take the top of the ranking, and measure it again: it will usually be closer to the average. This is not a market phenomenon, a behavioural bias or evidence that success breeds complacency. It is arithmetic, and Galton named it regression towards mediocrity in his 1886 paper on hereditary stature; the modern phrase is regression to the mean.\n\nThe mechanism is that any observed value is a mixture of a persistent component and a transient one:\n\n$$\nx_{i,1} = \\theta_i + \\varepsilon_{i,1}\n$$\n\nSelecting the largest $x_{i,1}$ selects for a large $\\theta_i$ **and** for a large $\\varepsilon_{i,1}$. The skill persists into the next period; the noise does not, and is replaced by a fresh draw averaging zero. The standard linear prediction of the second period given the first is:\n\n$$\n\\mathbb{E}[x_{i,2} \\mid x_{i,1}] = \\bar{x} + \\rho\\,(x_{i,1} - \\bar{x})\n$$\n\nwhere $\\rho$ is the correlation between the two periods across the cross-section. The whole content of the result is in that coefficient. The expected gap above average shrinks by a factor of $\\rho$ every period, so:\n- $\\rho = 1$: perfect persistence; the ranking is pure skill and repeats exactly.\n- $\\rho = 0$: no persistence; the best expectation for every manager next period is the average, whatever they did last period.\n- $0 < \\rho < 1$: the usual case. Some of the lead is real and some of it was luck, and the coefficient says how much of each.\n\nTwo traps follow, and both are common in investment writing.\n\n**Attributing the shrinkage to a cause.** When last year's best fund underperforms, the explanations write themselves: the manager grew complacent, the fund grew too large, the style went out of favour. All may be true, and none is needed. A $\\rho$ below one predicts the decline before any of them is considered, so a causal story is only worth telling once the arithmetic has been accounted for.\n\n**Measuring an intervention against the extreme.** Select the worst performers, apply a remedy, and measure again: they improve. They would have improved without the remedy. This is why a comparison needs a control group drawn the same way rather than a before-and-after on a selected tail.\n\nRegression to the mean is also not a prediction that anyone will *reach* the mean. The prediction is a shrinkage of the expected gap, and a manager with genuine skill keeps the persistent part of their lead indefinitely.\n\n## A worked example\n\nFive funds report first-period excess returns of 14, 11, 9, 7 and 4 percentage points. The cross-sectional mean is 9.0. Historical data put the correlation between consecutive periods at $\\rho = 0.30$.\n\nApply $\\bar{x} + \\rho(x - \\bar{x})$ to each:\n\n| Fund | Period 1 | Gap to mean | Expected period 2 |\n| --- | --- | --- | --- |\n| A | 14.0 | +5.0 | 9.0 + 0.30 × 5.0 = **10.5** |\n| B | 11.0 | +2.0 | **9.6** |\n| C | 9.0 | 0.0 | **9.0** |\n| D | 7.0 | −2.0 | **8.4** |\n| E | 4.0 | −5.0 | **7.5** |\n\nThe top fund led the mean by 5.0 points and is expected to lead by 1.5 next period: **30% of the lead persists**, which is exactly $\\rho$. The bottom fund is expected to recover 3.5 of its 5.0-point deficit, for the same reason and with no change in its behaviour.\n\nNotice what the table does not say. It does not say Fund A has no skill: its expected return is still above average, and over many periods the persistent part accumulates. It does not say Fund E is about to improve as a matter of fact; it says the *expectation* has risen because the unusually bad draw is not repeated in expectation.\n\nThe practical reading: a one-period ranking tells you $\\rho$ as much as it tells you about the funds. If $\\rho$ is 0.30, roughly 70% of the dispersion you are looking at will not be there next period, and any selection rule that acts on the full 100% of it is paying for noise.",
+        "formula": "\\mathbb{E}[x_2\\mid x_1]=\\bar{x}+\\rho\\,(x_1-\\bar{x}),\\qquad \\text{expected lead}=\\rho\\times\\text{observed lead}",
+        "code": "first = [14.0, 11.0, 9.0, 7.0, 4.0]\nmean = sum(first) / len(first)\nrho = 0.30\nprint(\"Cross-sectional mean percent:\", round(mean, 2))\nprint(\"Correlation between periods:\", rho)\nfor value in first:\n    print(\"First period:\", value, \"expected next:\", round(mean + rho * (value - mean), 2))\n\ntop = first[0]\nbottom = first[len(first) - 1]\nprint(\"Top performer lead over mean:\", round(top - mean, 2))\nprint(\"Expected lead next period:\", round(rho * (top - mean), 2))\nprint(\"Share of the lead that persists percent:\", round(rho * 100, 0))\nprint(\"Bottom performer deficit:\", round(mean - bottom, 2))\nprint(\"Expected deficit next period:\", round(rho * (mean - bottom), 2))\nprint(\"Expected recovery with no change in behaviour:\", round((1 - rho) * (mean - bottom), 2))\n\n# This worksheet computes the case above. The price sandbox stays in cash.\n# Its equity curve is not evidence for the valuation or statistical claim.\ndef strategy(data):\n    return data[\"close\"] < 0\n",
+        "assignment": {
+          "prompt": "Compute the expected second-period return for each of the five funds, the share of the top fund's lead that persists, and the recovery the bottom fund is expected to show without changing anything. Then explain why attributing the top fund's decline to complacency requires evidence beyond the decline itself.",
+          "solution": "The cross-sectional mean is 9.0, so applying 9.0 + 0.30 × (x − 9.0) gives expected second-period returns of 10.5, 9.6, 9.0, 8.4 and 7.5. The top fund's 5.0-point lead is expected to shrink to 1.5, meaning 30% of it persists, which is exactly the correlation; the bottom fund's 5.0-point deficit is expected to shrink to 1.5 as well, a recovery of 3.5 points with no change whatever in how it is run. Attributing the top fund's decline to complacency requires evidence beyond the decline because a correlation below one predicts that decline before any behavioural explanation is considered: the observed lead mixed a persistent component with a transient one, and only the persistent part is expected to repeat. A causal story is worth telling only for the part of the move the arithmetic does not already account for, and establishing that needs a comparison group selected the same way rather than a before-and-after on the selected tail."
+        },
+        "exercise": {
+          "question": "Five funds average 9.0 and the correlation between periods is 0.30. A fund that returned 14.0 has an expected next-period return of:",
+          "options": [
+            "14.0",
+            "10.5",
+            "9.0"
+          ],
+          "answer": 1,
+          "explanation": "The prediction is 9.0 + 0.30 × (14.0 − 9.0) = 10.5. The expected return stays above average because part of the lead is persistent; it shrinks because the rest was a transient draw."
+        },
+        "exercises": [
+          {
+            "question": "Five funds average 9.0 and the correlation between periods is 0.30. A fund that returned 14.0 has an expected next-period return of:",
+            "options": [
+              "14.0",
+              "10.5",
+              "9.0"
+            ],
+            "answer": 1,
+            "explanation": "The prediction is 9.0 + 0.30 × (14.0 − 9.0) = 10.5. The expected return stays above average because part of the lead is persistent; it shrinks because the rest was a transient draw."
+          },
+          {
+            "question": "Last year's worst performers improve this year with no change in process. The most economical explanation is:",
+            "options": [
+              "Regression to the mean: an unusually bad transient draw is not repeated in expectation",
+              "The remedy applied to them worked",
+              "Mean reversion in the underlying asset prices"
+            ],
+            "answer": 0,
+            "explanation": "Selecting an extreme selects for an extreme noise term as well as the persistent component, and the noise is redrawn. Measuring an intervention against a selected tail will credit it with an improvement that would have occurred anyway, which is why a control group drawn the same way is required."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Regression",
+            "definition": "A model that relates an outcome to one or more inputs. The fitted coefficients describe the relationship under the model; they need separate checks before being used for prediction or causal explanation."
+          },
+          {
+            "term": "Correlation",
+            "definition": "A standardized measure of a linear relationship between two quantities. It describes association and does not, by itself, show that one quantity causes the other."
+          },
+          {
+            "term": "Factor",
+            "definition": "A measured influence used to describe returns or risk across investments, such as a market return or a defined style portfolio. Its meaning depends on how it is constructed."
+          },
+          {
+            "term": "Shrinkage",
+            "definition": "Deliberately pulling an estimate toward a simpler target to reduce sensitivity to sample noise. It trades some bias for potentially more stable estimates."
+          }
+        ],
+        "references": [
+          {
+            "title": "Fourth edition · publisher contents and reading reference",
+            "url": "https://www.wiley-vch.de/en/areas-interest/finance-economics-law/finance-investments-13fi/investments-securities-13fi3/quantitative-investment-analysis-978-1-119-74362-0"
+          },
+          {
+            "title": "statsmodels contributors · Forecasting with state-space models",
+            "url": "https://www.statsmodels.org/stable/examples/notebooks/generated/statespace_forecasting.html"
+          }
+        ],
+        "realWorld": {
+          "caseId": "forecasting",
+          "connection": "A forecast maintained over many periods reveals what a single period cannot: how much of an observed lead was persistent and how much was a draw that will not repeat.",
+          "task": "Compute the cross-sectional correlation between consecutive periods for a set of funds or signals, then predict each one's next period as the mean plus that correlation times its gap to the mean.",
+          "walkthrough": "The prediction is x̄ + ρ(x − x̄), so the expected gap shrinks by a factor of ρ each period. At ρ = 0.30 a fund leading by 5.0 points is expected to lead by 1.5, and the fund trailing by 5.0 recovers 3.5 with no change in how it is run. Before attributing either move to complacency or to a remedy, subtract what the arithmetic already predicts; establishing the remainder needs a comparison group selected the same way, not a before-and-after on the tail you picked."
         }
       },
       {
@@ -18005,6 +18691,89 @@
         }
       },
       {
+        "id": "2.32",
+        "part": "11",
+        "title": "Missing data and the choices that look like no choice",
+        "subtitle": "Name the mechanism behind a gap in the data, and compute what the common fixes do to the mean and the variance.",
+        "objective": "Name the mechanism behind a gap in the data, and compute what the common fixes do to the mean and the variance.",
+        "reading": "CFA Institute, Quantitative Investment Analysis, fourth edition · Chapter 11. Pair the book reading with this original application; course lesson numbers are independent of book chapter numbers.",
+        "minutes": 15,
+        "kind": "book-study",
+        "content": "## The analytical question\n\nLesson 2.21 insisted that a research pipeline record when a figure became available. This lesson is about the figures that never arrive at all, and about a decision every pipeline makes whether or not anyone notices making it. Dropping the row, filling the blank with zero, and filling it with the column mean are three different estimators, and none of them is \"doing nothing\".\n\nStart with the mechanism, because it decides whether any fix is safe. Rubin's taxonomy gives three cases:\n- **Missing completely at random (MCAR).** The gap is unrelated to anything, observed or unobserved. A feed dropped a packet. Dropping those rows loses precision but does not bias the estimate.\n- **Missing at random (MAR).** The gap depends on something you *did* observe. Small companies file late, so the missing rows are the small ones — and you have the size column. Conditioning on what you observed can repair this.\n- **Missing not at random (MNAR).** The gap depends on the unobserved value itself. A fund stops reporting *because* the quarter was bad. Nothing in the observed data can repair this, and the estimate is biased however carefully you fill.\n\nThe third case is the common one in finance, and it is the reason survivorship bias is a missing-data problem rather than a separate topic.\n\nNow the arithmetic of the fixes.\n\n**Reading a blank as zero** is the most damaging and the easiest to do by accident, because a CSV parser will do it silently. It is a claim that the missing value *was* zero, which for a return, a margin or a ratio is almost never true. It biases the mean toward zero by a factor equal to the share of rows that are present.\n\n**Filling with the column mean** leaves the mean untouched, which is why it feels harmless, and destroys the variance. Each filled row contributes exactly zero to the sum of squared deviations while still counting in the denominator:\n\n$$\ns^2_{\\text{filled}} = \\frac{\\sum_{\\text{observed}} (x_i - \\bar{x})^2}{n_{\\text{all}} - 1} = s^2_{\\text{observed}} \\times \\frac{n_{\\text{obs}} - 1}{n_{\\text{all}} - 1}\n$$\n\nEvery downstream standard error, confidence interval and $t$-statistic built on that variance is then too small, and the study looks more precise than the data support.\n\n**Dropping the rows** is honest under MCAR and defensible under MAR if you say so. What it must never be is invisible: the count of rows dropped belongs in the output beside the estimate, because a mean computed from 5 of 7 rows is a different claim from one computed from 7.\n\n## A worked example\n\nA column holds seven observations, of which five carry a value — 12.0, 15.0, 9.0, 18.0 and 11.0 — and two are blank.\n\n**Dropping the blanks.** The mean of the five is $65.0 / 5 = 13.0$, and the sample variance is $50.0 / 4 = 12.5$. Both are computed from five rows, and the report must say five.\n\n**Reading blanks as zero.** The sum is unchanged at 65.0 but the denominator becomes seven: $65.0 / 7 = 9.286$. The mean is understated by 3.714 points, or **28.6%**, which is exactly the share of rows that were blank ($2/7 = 28.6\\%$). The relationship is not a coincidence: zero-filling multiplies the mean by $n_{\\text{obs}} / n_{\\text{all}}$.\n\n**Filling with the mean.** The mean stays at 13.0, as advertised. The sum of squared deviations also stays at 50.0, because each filled row sits exactly on the mean and contributes nothing — but the denominator rises from 4 to 6. The variance becomes $50.0 / 6 = 8.333$, understated by **33.3%**. The standard deviation, being its square root, is understated by $1 - \\sqrt{8.333/12.5} = 18.4\\%$ — and the standard error of the mean by considerably more, because mean-filling raises $n$ as well: $\\sqrt{8.333/7} = 1.091$ against the honest $\\sqrt{12.5/5} = 1.581$, an understatement of **31.0%**.\n\nSo the three \"fixes\" give means of 13.0, 9.29 and 13.0, and variances of 12.5, something larger still, and 8.33. The one that leaves the mean alone is the one that quietly breaks every inference built on top of it.\n\nThe reporting rule that follows is short: state the mechanism you believe, the number of rows affected, and the treatment you applied. A result whose missing-data treatment is unstated is not reproducible, because the reader cannot tell which of these three numbers they are looking at.",
+        "formula": "s^2_{\\text{filled}} = s^2_{\\text{obs}}\\times\\frac{n_{\\text{obs}}-1}{n_{\\text{all}}-1},\\qquad \\bar{x}_{\\text{zero}} = \\bar{x}_{\\text{obs}}\\times\\frac{n_{\\text{obs}}}{n_{\\text{all}}}",
+        "code": "values = [12.0, 15.0, 0.0, 9.0, 18.0, 0.0, 11.0]\nobserved = [1, 1, 0, 1, 1, 0, 1]\n\nrows = len(values)\nhave = sum(observed)\ntotal = 0.0\nfor i in range(rows):\n    if observed[i] == 1:\n        total = total + values[i]\nprint(\"Rows in all:\", rows)\nprint(\"Rows carrying a value:\", have)\nprint(\"Rows missing:\", rows - have)\n\nmean_present = total / have\nprint(\"Mean of the rows that have one:\", round(mean_present, 3))\nprint(\"Mean if a blank is read as zero:\", round(sum(values) / rows, 3))\nprint(\"Understated by:\", round(mean_present - sum(values) / rows, 3))\nprint(\"Understated by percent:\", round((1 - (sum(values) / rows) / mean_present) * 100, 1))\n\nspread = 0.0\nfor i in range(rows):\n    if observed[i] == 1:\n        spread = spread + (values[i] - mean_present) ** 2\nvar_present = spread / (have - 1)\nvar_filled = spread / (rows - 1)\nprint(\"Variance over the rows that have a value:\", round(var_present, 3))\nprint(\"Variance after filling blanks with the mean:\", round(var_filled, 3))\nprint(\"Variance understated by percent:\", round((1 - var_filled / var_present) * 100, 1))\nprint(\"Standard deviation understated by percent:\", round((1 - (var_filled / var_present) ** 0.5) * 100, 1))\nse_present = (var_present / have) ** 0.5\nse_filled = (var_filled / rows) ** 0.5\nprint(\"Standard error of the mean, rows with a value:\", round(se_present, 4))\nprint(\"Standard error after mean filling:\", round(se_filled, 4))\nprint(\"Standard error understated by percent:\", round((1 - se_filled / se_present) * 100, 1))\n\n# This worksheet computes the case above. The price sandbox stays in cash.\n# Its equity curve is not evidence for the valuation or statistical claim.\ndef strategy(data):\n    return data[\"close\"] < 0\n",
+        "assignment": {
+          "prompt": "Compute the mean and variance for the seven-row column under all three treatments: dropping the blanks, reading them as zero, and filling them with the column mean. Then classify a fund that stops reporting after a bad quarter under Rubin's taxonomy, and say which of the three treatments repairs it.",
+          "solution": "Dropping the blanks gives a mean of 65.0 / 5 = 13.0 and a sample variance of 50.0 / 4 = 12.5, both computed from five rows. Reading the blanks as zero leaves the sum at 65.0 but raises the denominator to seven, giving 9.286 — understated by 3.714, or 28.6%, which is exactly the share of rows that were blank, because zero-filling multiplies the mean by the ratio of observed rows to all rows. Filling with the column mean leaves the mean at 13.0 but leaves the sum of squared deviations at 50.0 while raising its denominator from 4 to 6, giving a variance of 8.333, understated by 33.3%; the standard deviation is then understated by 18.4% and the standard error of the mean by 31.0%, since filling shrinks the spread and inflates the row count at once. A fund that stops reporting because the quarter was bad is missing not at random: the probability of the gap depends on the unobserved value itself. None of the three treatments repairs it, because nothing in the observed data carries the information needed, and this is why survivorship bias is a missing-data problem rather than a separate one. The only honest response is to state the mechanism, the number of rows affected and the treatment applied, so a reader can tell which of the three numbers they are being shown."
+        },
+        "exercise": {
+          "question": "A fund stops reporting returns after a poor quarter. Under Rubin's taxonomy this is:",
+          "options": [
+            "Missing not at random, because the gap depends on the unobserved value",
+            "Missing completely at random, because reporting is voluntary",
+            "Missing at random, because fund size is observed"
+          ],
+          "answer": 0,
+          "explanation": "The probability of the value being absent depends on the value itself. No conditioning on observed columns repairs it, which is exactly why survivorship bias cannot be fixed by better imputation."
+        },
+        "exercises": [
+          {
+            "question": "A fund stops reporting returns after a poor quarter. Under Rubin's taxonomy this is:",
+            "options": [
+              "Missing not at random, because the gap depends on the unobserved value",
+              "Missing completely at random, because reporting is voluntary",
+              "Missing at random, because fund size is observed"
+            ],
+            "answer": 0,
+            "explanation": "The probability of the value being absent depends on the value itself. No conditioning on observed columns repairs it, which is exactly why survivorship bias cannot be fixed by better imputation."
+          },
+          {
+            "question": "Filling blanks with the column mean leaves the mean unchanged. What does it do to the variance?",
+            "options": [
+              "Understates it, because filled rows add nothing to the sum of squares but still count in the denominator",
+              "Leaves it unchanged, since the mean is unchanged",
+              "Overstates it, because more rows add more dispersion"
+            ],
+            "answer": 0,
+            "explanation": "Each filled row sits exactly on the mean and contributes zero squared deviation while raising n. In the worked case the variance falls from 12.5 to 8.333, so every standard error built on it is too small and the study looks more precise than the data support."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Variance",
+            "definition": "A measure of how widely values differ from their mean, based on squared deviations. Its units are squared; taking the square root gives the standard deviation in the original units."
+          },
+          {
+            "term": "Standard error",
+            "definition": "An estimate of how much a fitted quantity, such as a sample mean or regression coefficient, would vary across samples. It differs from the spread of the individual observations."
+          },
+          {
+            "term": "Confidence interval",
+            "definition": "An interval produced by a method intended to cover the fixed target a stated fraction of the time over repeated samples, under its assumptions. It describes sampling uncertainty, not a guaranteed range for a future outcome."
+          },
+          {
+            "term": "Inference",
+            "definition": "In statistical analysis, drawing conclusions from data under stated assumptions. In machine learning deployment, the same word can mean running a fitted model on new inputs; check which meaning the lesson uses."
+          }
+        ],
+        "references": [
+          {
+            "title": "Fourth edition · publisher contents and reading reference",
+            "url": "https://www.wiley-vch.de/en/areas-interest/finance-economics-law/finance-investments-13fi/investments-securities-13fi3/quantitative-investment-analysis-978-1-119-74362-0"
+          },
+          {
+            "title": "U.S. SEC · EDGAR application programming interfaces",
+            "url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
+          }
+        ],
+        "realWorld": {
+          "caseId": "edgar",
+          "connection": "Filings arrive late, get amended, or never arrive. Every one of those is a gap in a column, and a pipeline that reads the gap as a zero has made a claim about the company rather than about the data.",
+          "task": "For one column in your own dataset, classify the mechanism behind its gaps, then compute the mean and variance under all three treatments: dropping, zero-filling, and mean-filling.",
+          "walkthrough": "Zero-filling multiplies the mean by the share of rows present, so two blanks in seven understate it by 28.6%. Mean-filling leaves the mean alone and understates the variance by the ratio of degrees of freedom, 33.3% in the same case; the standard deviation is understated by 18.4% and the standard error of the mean by 31.0%, since filling shrinks the spread and inflates the row count at once. Dropping is honest under MCAR provided the dropped count is reported. A fund that stops reporting after a bad quarter is missing not at random and none of the three repairs it, which is why survivorship bias is a missing-data problem rather than a separate one."
+        }
+      },
+      {
         "id": "2.23",
         "part": "12",
         "title": "Multifactor return models and attribution",
@@ -18512,7 +19281,7 @@
       "Build point-in-time research pipelines free from look-ahead leakage, process text sentiment features, and prevent backtest overfitting.",
       "Decompose portfolio returns with multifactor models, calculate active risk and Information Ratios, estimate VaR and Expected Shortfall, and formulate stress tests."
     ],
-    "readingGuide": "Investment research often uses numbers to answer questions that remain uncertain. How much is a future payment worth today? How much can a return vary? Does a pattern in a sample give us a good reason to expect it again? This course develops the tools for answering those questions one step at a time.\n\nBefore using an equation, identify the question and write what each input measures. Follow the small worked example, check its units, and explain the result in a sentence. Later units build on those habits when you fit models and evaluate strategies. If a result looks precise, ask which assumptions produced that precision. The optional worksheets let you change one input and see why the answer changes.\n\nThe textbook Quantitative Investment Analysis (CFA Institute Investment Series, 4th Edition) is structurally organized into two major halves: Part I (Chapters 1–7) covers classical foundational statistics (time value of money, probability distributions, sampling, hypothesis tests, simple regression), while Part II (Chapters 8–14) covers advanced quantitative applications (multiple regression, time series, machine learning, big data engineering, multifactor models, risk measures, and backtesting). The platform unifies both parts into a single 28-module learning path across 14 parts to deliver a continuous, unbroken progression from basic principles to institutional-grade quantitative research.\n\nEach unit maps directly to the corresponding textbook chapter.",
+    "readingGuide": "Investment research often uses numbers to answer questions that remain uncertain. How much is a future payment worth today? How much can a return vary? Does a pattern in a sample give us a good reason to expect it again? This course develops the tools for answering those questions one step at a time.\n\nBefore using an equation, identify the question and write what each input measures. Follow the small worked example, check its units, and explain the result in a sentence. Later units build on those habits when you fit models and evaluate strategies. If a result looks precise, ask which assumptions produced that precision. The optional worksheets let you change one input and see why the answer changes.\n\nThe textbook Quantitative Investment Analysis (CFA Institute Investment Series, 4th Edition) is structurally organized into two major halves: Part I (Chapters 1–7) covers classical foundational statistics (time value of money, probability distributions, sampling, hypothesis tests, simple regression), while Part II (Chapters 8–14) covers advanced quantitative applications (multiple regression, time series, machine learning, big data engineering, multifactor models, risk measures, and backtesting). The platform unifies both parts into a single 32-module learning path across 14 parts to deliver a continuous, unbroken progression from basic principles to institutional-grade quantitative research.\n\nEach unit maps directly to the corresponding textbook chapter.",
     "references": [
       {
         "title": "Fourth edition · publisher contents and reading reference",
@@ -18529,6 +19298,10 @@
       {
         "title": "BCA · Saham BBCA segera diperdagangkan dengan harga baru",
         "url": "https://www.bca.co.id/id/tentang-bca/media-riset/pressroom/siaran-pers/2021/10/07/09/52/saham-bbca-segera-diperdagangkan-dengan-harga-baru"
+      },
+      {
+        "title": "CFA Institute · GIPS standards for firms",
+        "url": "https://www.gipsstandards.org/standards/gips-standards-for-firms/"
       },
       {
         "title": "scikit-learn contributors · Probability calibration",
@@ -18573,10 +19346,6 @@
       {
         "title": "Federal Reserve · SVB review: key takeaways",
         "url": "https://www.federalreserve.gov/publications/2023-April-SVB-Key-Takeaways.htm"
-      },
-      {
-        "title": "CFA Institute · GIPS standards for firms",
-        "url": "https://www.gipsstandards.org/standards/gips-standards-for-firms/"
       }
     ],
     "parts": [
@@ -18916,15 +19685,16 @@
         "id": "statistical-foundations-final",
         "title": "Quantitative Investment Analysis final exam",
         "kind": "final",
-        "version": 2,
+        "version": 3,
         "description": "Open-book, untimed assessment with new cases from every module. Budget about three minutes per question. Answers and explanations appear after submission. Pass at 80%; retries remain available. The written capstone is self-assessed separately.",
-        "minutes": 84,
+        "minutes": 96,
         "passingScore": 80,
         "moduleIds": [
           "2.1",
           "2.6",
           "2.7",
           "2.8",
+          "2.30",
           "2.9",
           "2.10",
           "2.2",
@@ -18933,8 +19703,10 @@
           "2.12",
           "2.4",
           "2.13",
+          "2.29",
           "2.5",
           "2.14",
+          "2.31",
           "2.15",
           "2.16",
           "2.17",
@@ -18943,6 +19715,7 @@
           "2.20",
           "2.21",
           "2.22",
+          "2.32",
           "2.23",
           "2.24",
           "2.25",
@@ -18998,6 +19771,18 @@
             ],
             "answer": 1,
             "explanation": "Chebyshev's inequality states P(|X − μ| < kσ) ≥ 1 − 1/k^2. For k = 2, 1 − 1/4 = 75%."
+          },
+          {
+            "id": "statistical-foundations-final-2.30",
+            "lessonId": "2.30",
+            "question": "Why are illiquid or appraisal-priced strategies the most affected?",
+            "options": [
+              "Stale and smoothed marks induce positive autocorrelation, which is exactly the case the square-root rule breaks in",
+              "They have higher true volatility than liquid strategies",
+              "Their returns are measured over longer periods"
+            ],
+            "answer": 0,
+            "explanation": "Carrying a stale price forward makes consecutive returns move together. The resulting positive autocorrelation understates annualised volatility and flatters the Sharpe ratio, so comparing such a figure with a daily-liquid one compares two different measurements."
           },
           {
             "id": "statistical-foundations-final-2.9",
@@ -19096,6 +19881,18 @@
             "explanation": "Testing many variations inflates the chance of finding a lucky result; concealing unsuccessful trials invalidates reported p-values."
           },
           {
+            "id": "statistical-foundations-final-2.29",
+            "lessonId": "2.29",
+            "question": "With σ = 2.00 and n = 60, the minimum effect detectable at 80% power and 5% significance is closest to:",
+            "options": [
+              "0.26",
+              "0.72",
+              "2.80"
+            ],
+            "answer": 1,
+            "explanation": "δ_min = (1.95996 + 0.84162) × 2.00 / sqrt(60) = 2.80159 × 0.2582 = 0.723. The figure 0.2582 is the standard error alone and 2.80159 is the sum of the two critical values."
+          },
+          {
             "id": "statistical-foundations-final-2.5",
             "lessonId": "2.5",
             "question": "What is a mathematical property guaranteed to hold for ordinary least squares (OLS) residuals when an intercept is included?",
@@ -19118,6 +19915,18 @@
             ],
             "answer": 1,
             "explanation": "The term (X0 − X̄)^2 increases as X0 diverges from the sample mean, expanding estimation uncertainty."
+          },
+          {
+            "id": "statistical-foundations-final-2.31",
+            "lessonId": "2.31",
+            "question": "What does a cross-sectional correlation of 0.30 between consecutive periods imply about a one-period ranking?",
+            "options": [
+              "About 70% of the dispersion you are looking at is not expected to persist",
+              "About 30% of the funds are skilled",
+              "The ranking will reverse entirely next period"
+            ],
+            "answer": 0,
+            "explanation": "ρ is the fraction of the gap to the mean expected to carry forward, so the complement is the part that does not. It is a statement about the dispersion, not about which individual funds are skilled or about the ordering reversing."
           },
           {
             "id": "statistical-foundations-final-2.15",
@@ -19214,6 +20023,18 @@
             ],
             "answer": 1,
             "explanation": "Score = (5 − 3) / (5 + 3) = 2 / 8 = 0.250."
+          },
+          {
+            "id": "statistical-foundations-final-2.32",
+            "lessonId": "2.32",
+            "question": "Which missing-data treatment is defensible without further justification?",
+            "options": [
+              "Dropping the rows, if the mechanism is missing completely at random and the dropped count is reported",
+              "Reading blanks as zero, because it preserves every row",
+              "Mean-filling, because it leaves the mean unbiased"
+            ],
+            "answer": 0,
+            "explanation": "Under MCAR dropping rows loses precision but not accuracy. It only stays defensible if the count is reported, because a mean from five rows is a different claim from one over seven; zero-filling asserts a value that is almost never true, and mean-filling trades an unbiased mean for broken inference."
           },
           {
             "id": "statistical-foundations-final-2.23",
@@ -19338,6 +20159,22 @@
           }
         ],
         "boundary": "The historical context is sourced. Exercises and worked explanations are original; sample numbers and records are illustrative unless the task explicitly asks you to use the cited release."
+      },
+      {
+        "id": "reporting",
+        "title": "Hand a strategy report to someone who did not build the strategy",
+        "kind": "implementation",
+        "setting": "Global · investment reporting",
+        "period": "GIPS reporting principles as a reference",
+        "context": "The GIPS standards emphasize fair representation and full disclosure of investment performance. A course report can borrow that discipline by naming its benchmark, cash-flow treatment, costs, sample, and limitations. Completing this exercise does not establish GIPS compliance or verification.",
+        "references": [
+          {
+            "title": "CFA Institute · GIPS standards for firms",
+            "url": "https://www.gipsstandards.org/standards/gips-standards-for-firms/",
+            "scope": "Performance-presentation and disclosure principles, not certification of the learner's report."
+          }
+        ],
+        "boundary": "This is an original implementation exercise based on the cited documentation. The sample system, data, and results are illustrative; no claim is made that the named organization runs this exact system."
       },
       {
         "id": "calibration",
@@ -19514,22 +20351,6 @@
           }
         ],
         "boundary": "The historical context is sourced. Exercises and worked explanations are original; sample numbers and records are illustrative unless the task explicitly asks you to use the cited release."
-      },
-      {
-        "id": "reporting",
-        "title": "Hand a strategy report to someone who did not build the strategy",
-        "kind": "implementation",
-        "setting": "Global · investment reporting",
-        "period": "GIPS reporting principles as a reference",
-        "context": "The GIPS standards emphasize fair representation and full disclosure of investment performance. A course report can borrow that discipline by naming its benchmark, cash-flow treatment, costs, sample, and limitations. Completing this exercise does not establish GIPS compliance or verification.",
-        "references": [
-          {
-            "title": "CFA Institute · GIPS standards for firms",
-            "url": "https://www.gipsstandards.org/standards/gips-standards-for-firms/",
-            "scope": "Performance-presentation and disclosure principles, not certification of the learner's report."
-          }
-        ],
-        "boundary": "This is an original implementation exercise based on the cited documentation. The sample system, data, and results are illustrative; no claim is made that the named organization runs this exact system."
       }
     ]
   },

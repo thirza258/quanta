@@ -7,9 +7,12 @@ From this directory:
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
+make -C engine
 .venv/bin/python -m uvicorn quanta.main:app --reload --reload-dir quanta --reload-dir ../content/catalog --reload-include '*.json' --host 127.0.0.1 --port 8000
 .venv/bin/python -m pytest tests -q
 ```
+
+The trading simulator's computation (generated market, execution engine, per-bar analytics) is the C++17 library in `engine/`, loaded through `quanta/engine`. Build it with `make -C engine` before starting the API or running tests, and again after changing its sources; `make -C engine test`, `make -C engine sanitize` and `make -C engine bench` run its own tests, the AddressSanitizer/UndefinedBehaviorSanitizer build and the paired benchmark. `tests/test_engine_parity.py` holds it to the Python implementations it replaced, kept in `tests/reference/`. See the [engine guide](engine/README.md).
 
 Root `npm run setup` installs both applications. Root `npm run dev` connects the frontend proxy and API origin automatically. API docs are at `/docs` on the direct API port; the public web proxy exposes `/api/v1/`.
 

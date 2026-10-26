@@ -22,6 +22,7 @@ from quanta.domain.simulator import (
     dec,
     money,
     retire_orphans,
+    trailing_start,
     validate_bracket,
     validate_order,
 )
@@ -42,6 +43,7 @@ from quanta.services import simulator_tools as tools
 from quanta.services.simulator_fundamentals import quarter_label, structure, valuation
 from quanta.services.simulator_market import (
     SESSION_BARS,
+    legacy_buckets,
     markets,
     newsroom,
     session_open,
@@ -289,28 +291,9 @@ def market(
         # every observation behind them into a dictionary first.
         rows = series.aggregate(start, cursor + 1, per_bucket)
     elif coarser:
-        rows = series[start : cursor + 1]
-        grouped = {}
-        size = {"5m": 300, "15m": 900, "1h": 3600, "1D": 86400}[interval]
-        for bar in rows:
-            session_start = datetime.fromtimestamp(
-                bar["time"], ZoneInfo("America/New_York")
-            ).replace(hour=9, minute=30, second=0)
-            anchor = int(session_start.timestamp())
-            timestamp = (
-                anchor if interval == "1D" else anchor + (bar["time"] - anchor) // size * size
-            )
-            if timestamp not in grouped:
-                grouped[timestamp] = {**bar, "time": timestamp}
-            else:
-                item = grouped[timestamp]
-                item.update(
-                    high=max(item["high"], bar["high"]),
-                    low=min(item["low"], bar["low"]),
-                    close=bar["close"],
-                    volume=item["volume"] + bar["volume"],
-                )
-        rows = list(grouped.values())
+        # The original six-path runs hold their bars as rows; the engine buckets
+        # them from its columnar copy, stamped on each bucket's own boundary.
+        rows = legacy_buckets(data, symbol, start, cursor + 1, per_bucket)
     else:
         rows = series[start : cursor + 1]
     # Overlays are computed here, from the same observed bars that are returned,
@@ -393,9 +376,8 @@ def order_create(run_id: str, payload: OrderCreate, account: str, db: Session):
         if order["kind"] == "trailing_stop":
             # The trail starts from where the market is now, not from a high it
             # reached before the order existed.
-            order["trail_anchor"] = money(bar["close"])
-            order["stop_price"] = money(
-                dec(bar["close"]) * (1 - dec(payload.trail_percent) / 100)
+            order["trail_anchor"], order["stop_price"] = trailing_start(
+                bar["close"], payload.trail_percent
             )
         state["orders"].append(order)
         if not bracket:

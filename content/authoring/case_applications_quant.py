@@ -95,4 +95,32 @@ APPLICATIONS = [
     ("4.30", "reporting", "Uncertainty around the selected strategy should disclose how many alternatives competed for selection.", "A fictional report highlights the best of 60 parameter combinations. Add a trial-count disclosure, a dependence-aware uncertainty estimate, and a comparison across nearby parameters.", "Show whether the winner is isolated or part of a stable neighborhood, and preserve every trial in the ledger. Account for selection when making inferential claims. A narrow interval conditional on the chosen strategy can understate uncertainty introduced by the search."),
     ("4.31", "knight", "Implementation readiness requires surviving faulty events as well as ordinary market paths.", "Design three fictional release fixtures: a duplicate acknowledgement, a stale quote during a rebalance, and a mismatched code version on one worker. Specify a pass/fail action for each.", "Duplicates must not duplicate economic effects, stale inputs must trigger the declared gate, and inconsistent release identity must block activation. Preserve incident evidence and reconcile account state before resuming. A favorable backtest does not establish these operational properties."),
     ("4.32", "reporting", "A strategy defense must let a skeptical reviewer trace the result and challenge its practical assumptions.", "Prepare a dossier with the hypothesis, all trials, point-in-time data, baseline, frozen evaluation, accounting reconciliation, cost stress, and a conditional go/no-go conclusion for paper use.", "Every headline number should resolve to a dated artifact. Present failed tests and capacity limits alongside favorable evidence, and distinguish exploratory research from a release candidate. State the next observable condition that would overturn the conclusion rather than promising future returns."),
+    (
+        "2.29",
+        "calibration",
+        "A forecast is judged over many resolved calls because one call carries almost no information. The same arithmetic decides whether a hypothesis test could have answered the question it was asked.",
+        "Before running a test, compute its power against the smallest effect you would act on, and the minimum effect your actual sample can detect at 80% power.",
+        "Power is 1 − Φ(z − λ) + Φ(−z − λ) with λ the effect in standard errors, and the sample size for a target power is ((z_{1−α/2} + z_{1−β})σ/δ)². The square is the part that matters: halving the effect you want to detect quadruples the data required. For 60 monthly observations at σ = 2.00, an effect of 0.40 is found only 34% of the time and the minimum detectable effect is 0.72 a month. Report a non-rejection with those two figures beside it, because without them it is not evidence of absence.",
+    ),
+    (
+        "2.30",
+        "reporting",
+        "The GIPS standards ask for the method behind a performance figure, not only the figure. An annualised Sharpe ratio carries a hidden method: the square-root-of-time rule, which assumes something about the data that is rarely checked.",
+        "Measure the first-order autocorrelation of your return series, compute the variance inflation factor, and report the adjusted annualised volatility and Sharpe ratio beside the conventional ones.",
+        "The variance of a sum of T returns is Tσ² plus twice every covariance between them, so σ√T is exact only under independence. At ρ = 0.20 over 252 periods the variance inflation is 1.4975 and the volatility factor its square root, 1.2237: a reported Sharpe of 0.635 is really 0.519, an overstatement of 22.4%. Check it against the long-run limit (1+ρ)/(1−ρ) = 1.5; keeping only the lag-one term gives 1.4 and understates the correction. Stale and smoothed marks produce exactly this, so the strategies whose ratios look best are the ones where the assumption fails hardest. Quote the autocorrelation with the ratio or the ratio is incomplete.",
+    ),
+    (
+        "2.31",
+        "forecasting",
+        "A forecast maintained over many periods reveals what a single period cannot: how much of an observed lead was persistent and how much was a draw that will not repeat.",
+        "Compute the cross-sectional correlation between consecutive periods for a set of funds or signals, then predict each one's next period as the mean plus that correlation times its gap to the mean.",
+        "The prediction is x̄ + ρ(x − x̄), so the expected gap shrinks by a factor of ρ each period. At ρ = 0.30 a fund leading by 5.0 points is expected to lead by 1.5, and the fund trailing by 5.0 recovers 3.5 with no change in how it is run. Before attributing either move to complacency or to a remedy, subtract what the arithmetic already predicts; establishing the remainder needs a comparison group selected the same way, not a before-and-after on the tail you picked.",
+    ),
+    (
+        "2.32",
+        "edgar",
+        "Filings arrive late, get amended, or never arrive. Every one of those is a gap in a column, and a pipeline that reads the gap as a zero has made a claim about the company rather than about the data.",
+        "For one column in your own dataset, classify the mechanism behind its gaps, then compute the mean and variance under all three treatments: dropping, zero-filling, and mean-filling.",
+        "Zero-filling multiplies the mean by the share of rows present, so two blanks in seven understate it by 28.6%. Mean-filling leaves the mean alone and understates the variance by the ratio of degrees of freedom, 33.3% in the same case; the standard deviation is understated by 18.4% and the standard error of the mean by 31.0%, since filling shrinks the spread and inflates the row count at once. Dropping is honest under MCAR provided the dropped count is reported. A fund that stops reporting after a bad quarter is missing not at random and none of the three repairs it, which is why survivorship bias is a missing-data problem rather than a separate one.",
+    ),
 ]

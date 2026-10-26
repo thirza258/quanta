@@ -16,6 +16,7 @@ artifacts/
 
 backend/storage/
 backend/data/
+backend/engine/build/
 *.tsbuildinfo
 content/projects/c-hpc-trading/quanta-bot
 content/projects/c-hpc-trading/quanta-test

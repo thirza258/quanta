@@ -21,12 +21,15 @@ describe("careful-investor and strategy research progression", () => {
     ).toContain("not the full book");
   });
 
+  // The capstone is named rather than taken from the end of the course: the
+  // investor course now carries a unit after it, and a positional lookup would
+  // silently start checking whichever lesson happened to be last.
   it.each([
-    ["strategy-lab", 32, 8, 2],
-    ["intelligent-investor", 16, 4, 1],
+    ["strategy-lab", 32, 8, 2, "4.32"],
+    ["intelligent-investor", 20, 5, 2, "11.16"],
   ] as const)(
     "provides complete %s lessons, references and independent assessments",
-    (slug, count, units, version) => {
+    (slug, count, units, version, capstoneId) => {
       const course = tracks.find((track) => track.id === slug)!;
       expect(course.modules).toHaveLength(count);
       expect(course.parts).toHaveLength(units);
@@ -55,7 +58,9 @@ describe("careful-investor and strategy research progression", () => {
         expect(lessonExercises(lesson)).toHaveLength(2);
       }
       expect(course.resources).toHaveLength(3);
-      expect(course.modules.at(-1)?.title).toContain("Capstone");
+      expect(
+        course.modules.find((lesson) => lesson.id === capstoneId)?.title,
+      ).toContain("Capstone");
     },
   );
 

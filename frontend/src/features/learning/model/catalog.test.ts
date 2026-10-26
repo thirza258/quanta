@@ -89,8 +89,8 @@ describe("curriculum integrity", () => {
   it("resolves unique lessons to their parent tracks", () => {
     expect(tracks).toHaveLength(15);
     expect(tracks[0].id).toBe("trading-fundamentals");
-    expect(lessons).toHaveLength(344);
-    expect(new Set(lessons.map((l) => l.id)).size).toBe(344);
+    expect(lessons).toHaveLength(352);
+    expect(new Set(lessons.map((l) => l.id)).size).toBe(352);
     expect(findLesson("1.1")?.title).toBe("Foundations of Graham & Dodd");
     for (const lesson of lessons) {
       expect(findLesson(lesson.id)).toBe(lesson);
@@ -98,7 +98,7 @@ describe("curriculum integrity", () => {
     }
   });
   it("offers complete, uniquely identified exams and valid practice questions", () => {
-    expect(exams).toHaveLength(91);
+    expect(exams).toHaveLength(92);
     expect(new Set(exams.map((exam) => exam.id)).size).toBe(exams.length);
     for (const track of tracks) {
       expect(track.exams.filter((exam) => exam.kind === "final")).toHaveLength(
@@ -163,9 +163,11 @@ describe("curriculum integrity", () => {
     expect(percent(-0.25)).toBe("-25.0%");
   });
   it("provides a complete reading map and independent assessments for both book courses", () => {
-    for (const [slug, count, parts] of [
-      ["security-analysis", 24, 8],
-      ["statistical-foundations", 28, 14],
+    // The final's version is per course: it is bumped whenever the course grows
+    // and the paper with it, so a draft against the old one is refused.
+    for (const [slug, count, parts, version] of [
+      ["security-analysis", 24, 8, 2],
+      ["statistical-foundations", 32, 14, 3],
     ] as const) {
       const track = tracks.find((item) => item.id === slug)!;
       expect(track.modules).toHaveLength(count);
@@ -177,7 +179,7 @@ describe("curriculum integrity", () => {
         track.exams.filter((exam) => exam.kind === "checkpoint"),
       ).toHaveLength(4);
       const final = track.exams.find((exam) => exam.kind === "final")!;
-      expect(final.version).toBe(2);
+      expect(final.version).toBe(version);
       expect(final.moduleIds).toEqual(track.modules.map((lesson) => lesson.id));
       const allQuestions = track.exams.flatMap((exam) =>
         exam.questions.map((question) => question.question),
