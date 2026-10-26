@@ -2,6 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3592604467898331"
+     crossorigin="anonymous"></script>
+    <meta name="monetag" content="a5692aee6f7c7b3308d722bdad7c1946" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f8faf9" />
@@ -10,35 +13,53 @@
       content="Quanta — a focused workspace for fundamental valuation, quantitative finance, and reproducible investment research."
     />
     <title>Quanta — Investment learning, in practice</title>
-    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+    <link
+      rel="sitemap"
+      type="application/xml"
+      title="Sitemap"
+      href="/sitemap.xml"
+    />
     <script src="/theme.js"></script>
     <script>
       (() => {
         function registerWebMcpTools() {
-          if (!('modelContext' in navigator) || !navigator.modelContext) return;
+          if (!("modelContext" in navigator) || !navigator.modelContext) return;
           try {
             const controller = new AbortController();
-            navigator.modelContext.registerTool({
-              name: 'search_quanta',
-              title: 'Search Quanta',
-              description: 'Search quantitative finance models, valuation tools, and datasets on Quanta.',
-              inputSchema: {
-                type: 'object',
-                properties: {
-                  query: { type: 'string', description: 'Search term for financial models, valuation, or assets' }
+            navigator.modelContext.registerTool(
+              {
+                name: "search_quanta",
+                title: "Search Quanta",
+                description:
+                  "Search quantitative finance models, valuation tools, and datasets on Quanta.",
+                inputSchema: {
+                  type: "object",
+                  properties: {
+                    query: {
+                      type: "string",
+                      description:
+                        "Search term for financial models, valuation, or assets",
+                    },
+                  },
+                  required: ["query"],
                 },
-                required: ['query']
+                execute: async ({ query }) => {
+                  return {
+                    content: [
+                      {
+                        type: "text",
+                        text: `Results for ${query}: Visit https://quant.nevatal.id/catalog`,
+                      },
+                    ],
+                  };
+                },
               },
-              execute: async ({ query }) => {
-                return {
-                  content: [{ type: 'text', text: `Results for ${query}: Visit https://quant.nevatal.id/catalog` }]
-                };
-              }
-            }, { signal: controller.signal });
+              { signal: controller.signal },
+            );
           } catch (e) {}
         }
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', registerWebMcpTools);
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", registerWebMcpTools);
         } else {
           registerWebMcpTools();
         }
@@ -48,5 +69,19 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-  </body>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3592604467898331"
+     crossorigin="anonymous"></script>
+        <script async="async" data-cfasync="false" src="https://bauval.org/21/9179af82b37310b591ce091500da6151"></script>
+    <div id="container-9179af82b37310b591ce091500da6151"></div>
+<!-- Test -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-3592604467898331"
+         data-ad-slot="8935247270"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</body>
 </html>

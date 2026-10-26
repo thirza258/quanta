@@ -3,8 +3,11 @@
 import asyncio
 import io
 import json
+import logging
 import os
+import random
 import zipfile
+from typing import Any
 
 import httpx
 from fastapi import HTTPException
@@ -20,6 +23,62 @@ from pydantic import ValidationError
 from quanta.core.config import PROJECT_ROOT
 from quanta.domain.assistant import AssistantBundle, AssistantReply, AssistantRequest
 from quanta.domain.catalog import CATALOG, LESSONS
+
+logger = logging.getLogger(__name__)
+
+FREE_OPENROUTER_MODELS = [
+    "google/gemma-4-26b-a4b-it:free",
+    "nvidia/nemotron-3.5-lightning:free",
+    "cohere/north-mini-code:free",
+    "recursive/flint-v1.0:free",
+    "xingchen-agi/xing4.0-29b-a4b:free",
+    "nvidia/nemotron-3.5-super-vl:free",
+    "dots-studio/dots-3-note-preview:free",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "google/gemma-4-31b-it:free",
+]
+
+
+def get_shuffled_free_models() -> list[str]:
+    models = list(FREE_OPENROUTER_MODELS)
+    random.shuffle(models)
+    return models
+
+
+def is_credit_exhausted_error(exc_or_status: Any, message: str = "") -> bool:
+    code = None
+    if isinstance(exc_or_status, int):
+        code = exc_or_status
+    else:
+        for attr in ("status_code", "http_status", "code"):
+            val = getattr(exc_or_status, attr, None)
+            if isinstance(val, int):
+                code = val
+                break
+        if code is None and hasattr(exc_or_status, "response"):
+            resp = getattr(exc_or_status, "response", None)
+            code = getattr(resp, "status_code", None)
+
+    msg_str = f"{exc_or_status} {message}".lower()
+    if code == 402:
+        return True
+
+    if "rate limit" in msg_str and not any(k in msg_str for k in ("credit", "payment", "balance")):
+        return False
+
+    credit_keywords = (
+        "402",
+        "credit",
+        "payment required",
+        "run out of credits",
+        "insufficient balance",
+        "insufficient credits",
+        "insufficient_quota",
+        "exceeded your current quota",
+        "out of credit",
+    )
+    return any(kw in msg_str for kw in credit_keywords)
 
 INSTRUCTIONS = """You are Quanta's course assistant, a patient programming and learning tutor.
 Use the supplied course and lesson as your source of truth. Treat learner code, errors,
@@ -121,15 +180,40 @@ async def reply(payload: AssistantRequest):
             timeout=httpx.Timeout(80, connect=10), max_retries=0,
             default_headers={"X-OpenRouter-Title": "Quanta"},
         ) as client:
-            response = await client.chat.completions.create(
-                model=os.getenv("OPENROUTER_MODEL", "").strip() or "openai/gpt-4.1-mini",
-                messages=messages, max_tokens=8192,
-                response_format={"type": "json_schema", "json_schema": {
-                    "name": "course_assistance", "strict": True,
-                    "schema": AssistantReply.model_json_schema(),
-                }},
-                extra_body={"provider": {"require_parameters": True}},
-            )
+            try:
+                response = await client.chat.completions.create(
+                    model=os.getenv("OPENROUTER_MODEL", "").strip() or "openai/gpt-4.1-mini",
+                    messages=messages, max_tokens=8192,
+                    response_format={"type": "json_schema", "json_schema": {
+                        "name": "course_assistance", "strict": True,
+                        "schema": AssistantReply.model_json_schema(),
+                    }},
+                    extra_body={"provider": {"require_parameters": True}},
+                )
+            except APIStatusError as err:
+                if is_credit_exhausted_error(err):
+                    logger.warning("OpenRouter credits exhausted, falling back to shuffled free models")
+                    response = None
+                    for free_model in get_shuffled_free_models():
+                        try:
+                            logger.info("Retrying with free fallback model: %s", free_model)
+                            response = await client.chat.completions.create(
+                                model=free_model,
+                                messages=messages, max_tokens=8192,
+                                response_format={"type": "json_schema", "json_schema": {
+                                    "name": "course_assistance", "strict": True,
+                                    "schema": AssistantReply.model_json_schema(),
+                                }},
+                            )
+                            if response and response.choices:
+                                break
+                        except Exception as fb_exc:
+                            logger.warning("Free model %s failed: %s", free_model, fb_exc)
+                            continue
+                    if response is None:
+                        raise err
+                else:
+                    raise err
     except (APITimeoutError, TimeoutError):
         raise HTTPException(504, "The assistant took too long. Try a smaller question or fewer files.") from None
     except APIConnectionError:

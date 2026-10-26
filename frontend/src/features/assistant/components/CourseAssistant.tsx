@@ -1,7 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import MarkdownRenderer from "@/shared/components/MarkdownRenderer";
 import {
   ArrowUp,
   BookOpen,
@@ -345,19 +344,12 @@ function Assistant({
                   ) : (
                     <>
                       <div className="assistant-markdown">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
+                        <MarkdownRenderer
+                          content={message.content}
                           components={{
                             img: () => null,
-                            a: ({ children, href }) => (
-                              <a href={href} target="_blank" rel="noreferrer">
-                                {children}
-                              </a>
-                            ),
                           }}
-                        >
-                          {message.content}
-                        </ReactMarkdown>
+                        />
                       </div>
                       {message.files.length ? (
                         <AssistantFiles

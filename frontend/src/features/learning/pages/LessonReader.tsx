@@ -34,24 +34,8 @@ import {
   Play,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
+import MarkdownRenderer from "@/shared/components/MarkdownRenderer";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import rehypeKatex from "rehype-katex";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-// Course prose uses $ for money and $$ for equations.
-const markdownComponents = {
-  table: ({ children }: { children?: React.ReactNode }) => (
-    <div
-      className="prose-table"
-      role="region"
-      aria-label="Lesson table"
-      tabIndex={0}
-    >
-      <table>{children}</table>
-    </div>
-  ),
-};
 const Sandbox = lazy(() => import("@/features/research/components/Sandbox"));
 const LocalCodeLab = lazy(
   () => import("@/features/learning/components/LocalCodeLab"),
@@ -196,7 +180,9 @@ function Reader({ lesson }: { lesson: Lesson }) {
           </div>
           <h1>{lesson.title}</h1>
           {lesson.subtitle !== lesson.objective ? (
-            <p className="lesson-subtitle">{lesson.subtitle}</p>
+            <p className="lesson-subtitle">
+              <MarkdownRenderer content={lesson.subtitle} inline />
+            </p>
           ) : null}
           <div className="lesson-meta">
             <span>
@@ -232,7 +218,9 @@ function Reader({ lesson }: { lesson: Lesson }) {
                     ? "COURSE CONNECTION"
                     : "BOOK CONNECTION"}
                 </span>
-                <p>{lesson.reading}</p>
+                <p>
+                  <MarkdownRenderer content={lesson.reading} inline />
+                </p>
                 <Link className="text-link" to={`/curriculum/${track.id}`}>
                   {track.studyType === "applied"
                     ? "View the course plan"
@@ -245,21 +233,17 @@ function Reader({ lesson }: { lesson: Lesson }) {
           <div className="lesson-objective">
             <span className="eyebrow">WHAT YOU WILL LEARN</span>
             <p>
-              {lesson.objective ??
-                "Explain the principle, reproduce the worked example, and identify an assumption that could change the result."}
+              <MarkdownRenderer
+                content={
+                  lesson.objective ??
+                  "Explain the principle, reproduce the worked example, and identify an assumption that could change the result."
+                }
+                inline
+              />
             </p>
           </div>
           <div className="prose">
-            <ReactMarkdown
-              remarkPlugins={[
-                [remarkMath, { singleDollarTextMath: false }],
-                remarkGfm,
-              ]}
-              rehypePlugins={[rehypeKatex]}
-              components={markdownComponents}
-            >
-              {lesson.content}
-            </ReactMarkdown>
+            <MarkdownRenderer content={lesson.content} />
           </div>
           {caseStudy ? (
             <RealWorldCase
@@ -282,7 +266,9 @@ function Reader({ lesson }: { lesson: Lesson }) {
             >
               <span className="eyebrow">APPLY THE METHOD</span>
               <h2 id="assignment-title">Research assignment</h2>
-              <p>{lesson.assignment.prompt}</p>
+              <p>
+                <MarkdownRenderer content={lesson.assignment.prompt} inline />
+              </p>
               <button
                 className="button secondary small"
                 onClick={() => {
@@ -296,7 +282,12 @@ function Reader({ lesson }: { lesson: Lesson }) {
               </button>
               <details>
                 <summary>Review the worked solution</summary>
-                <p>{lesson.assignment.solution}</p>
+                <p>
+                  <MarkdownRenderer
+                    content={lesson.assignment.solution}
+                    inline
+                  />
+                </p>
               </details>
             </section>
           ) : null}
@@ -331,7 +322,9 @@ function Reader({ lesson }: { lesson: Lesson }) {
                 {lesson.terms.map(({ term, definition }) => (
                   <div key={term}>
                     <dt>{term}</dt>
-                    <dd>{definition}</dd>
+                    <dd>
+                      <MarkdownRenderer content={definition} inline />
+                    </dd>
                   </div>
                 ))}
               </dl>

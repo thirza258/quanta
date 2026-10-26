@@ -5,6 +5,7 @@ import {
 import type { Exercise, Lesson } from "@/features/learning/model/types";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { post } from "@/shared/api/client";
+import MarkdownRenderer from "@/shared/components/MarkdownRenderer";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -83,7 +84,9 @@ function PracticeQuestion({
           ? `PRACTICE ${index + 1} OF ${total}`
           : "CHECK YOUR UNDERSTANDING"}
       </div>
-      <h3 id={`prompt-${key}`}>{exercise.question}</h3>
+      <h3 id={`prompt-${key}`}>
+        <MarkdownRenderer content={exercise.question} inline />
+      </h3>
       <fieldset disabled={submitting} aria-labelledby={`prompt-${key}`}>
         <legend className="sr-only">Choose your answer</legend>
         {exercise.options.map((option, i) => (
@@ -101,7 +104,7 @@ function PracticeQuestion({
               }}
             />
             <span className="answer-letter">{String.fromCharCode(65 + i)}</span>
-            {option}
+            <MarkdownRenderer content={option} inline />
           </label>
         ))}
       </fieldset>
@@ -121,7 +124,7 @@ function PracticeQuestion({
           <strong>
             {feedback.correct ? "That’s right." : "Take another look."}
           </strong>{" "}
-          {exercise.explanation}
+          <MarkdownRenderer content={exercise.explanation} inline />
         </div>
       ) : null}
       {error ? (
