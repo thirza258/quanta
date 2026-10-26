@@ -2,6 +2,7 @@ node_modules
 backend/.venv
 backend/storage
 backend/data
+backend/engine/build
 .git
 .env
 .DS_Store

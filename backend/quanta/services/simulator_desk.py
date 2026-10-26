@@ -10,6 +10,7 @@ import math
 
 import numpy as np
 
+from quanta import engine
 from quanta.domain.analytics import summarize
 from quanta.domain.simulator import dec
 from quanta.services.simulator_fundamentals import quarter_label
@@ -54,69 +55,29 @@ def _prior_close(rows, cursor):
     return prior_session_close(rows, cursor, rows[cursor])
 
 
+def _listed(values):
+    """An engine series as the API returns it: warm-up positions are None."""
+    return [None if math.isnan(value) else value for value in values.tolist()]
+
+
 def sma_series(values, period):
     """Rolling mean, with no value until the window is full."""
-    out, total = [], 0.0
-    for index, value in enumerate(values):
-        total += float(value)
-        if index >= period:
-            total -= float(values[index - period])
-        out.append(total / period if index >= period - 1 else None)
-    return out
+    return _listed(engine.sma(values, period))
 
 
 def ema_series(values, period):
     """Seeded with the first full simple average, then exponentially smoothed."""
-    out, total, previous = [], 0.0, None
-    alpha = 2 / (period + 1)
-    for index, value in enumerate(values):
-        total += float(value)
-        if index < period - 1:
-            out.append(None)
-            continue
-        previous = (
-            total / period if previous is None else alpha * float(value) + (1 - alpha) * previous
-        )
-        out.append(previous)
-    return out
+    return _listed(engine.ema(values, period))
 
 
 def rsi_series(values, period=14):
     """Wilder smoothing, matching the definition the courses teach."""
-    out, gain, loss = [], 0.0, 0.0
-    for index, value in enumerate(values):
-        if index == 0:
-            out.append(None)
-            continue
-        change = float(value) - float(values[index - 1])
-        if index <= period:
-            gain += max(change, 0.0) / period
-            loss += max(-change, 0.0) / period
-        else:
-            gain = (gain * (period - 1) + max(change, 0.0)) / period
-            loss = (loss * (period - 1) + max(-change, 0.0)) / period
-        if index < period:
-            out.append(None)
-        elif loss == 0:
-            out.append(100.0 if gain else 50.0)
-        else:
-            out.append(100 - 100 / (1 + gain / loss))
-    return out
+    return _listed(engine.rsi(values, period))
 
 
 def macd_series(values, fast=12, slow=26, signal=9):
-    quick, slack = ema_series(values, fast), ema_series(values, slow)
-    line = [None if a is None or b is None else a - b for a, b in zip(quick, slack, strict=True)]
-    present = [value for value in line if value is not None]
-    offset = len(line) - len(present)
-    smoothed = [None] * offset + ema_series(present, signal)
-    return {
-        "line": line,
-        "signal": smoothed,
-        "histogram": [
-            None if a is None or b is None else a - b for a, b in zip(line, smoothed, strict=True)
-        ],
-    }
+    line, smoothed, histogram = engine.macd(values, fast, slow, signal)
+    return {"line": _listed(line), "signal": _listed(smoothed), "histogram": _listed(histogram)}
 
 
 def _last(series):
@@ -359,18 +320,6 @@ def start_cursor(state, data):
     return mission.cursor if mission else 499
 
 
-def index_level(data, cursor, start=0):
-    """Equal-weighted level of every listed company, normalized to `start`.
-
-    This is the QX-200 the newsroom refers to: an index a learner can be measured
-    against, so a result separates into the market's move and their own. It is
-    rebased to the bar the account opened on, because the market's drift before
-    anyone was trading is neither alpha nor beta — it simply was not theirs.
-    """
-    prices = np.vstack([_closes(series, cursor)[start:] for series in data.values()])
-    return (prices / prices[:, :1]).mean(axis=0)
-
-
 def benchmark_name(state):
     """Generated runs are measured against the generated index, by its own name.
 
@@ -400,10 +349,48 @@ def _session_ends(series, cursor, start=0):
     return np.append(changes, len(sessions) - 1)
 
 
+def _window(series, start, cursor):
+    """Closes over [start, cursor], as _closes(series, cursor)[start:] reads them."""
+    if hasattr(series, "cents"):
+        return series.cents[3][start : cursor + 1] / 100.0
+    return _closes(series, cursor)[start:]
+
+
 def _times(series, cursor):
     if hasattr(series, "time"):
         return np.asarray(series.time[: cursor + 1], dtype=np.int64)
     return np.array([row["time"] for row in series[: cursor + 1]], dtype=np.int64)
+
+
+def marked(state, data, start, cursor):
+    """The account and the market valued on every bar of [start, cursor].
+
+    The mark-to-market runs in the engine: the cash balance in force on each bar,
+    every fill's position valued at that bar's close in fill order, and gross
+    exposure. It also returns the equal-weighted level of every listed company,
+    rebased to `start`, the bar the account opened on. That is the QX-200 the
+    newsroom refers to: an index a learner can be measured against, so a result
+    separates into the market's move and their own. The market's drift before
+    anyone was trading is neither alpha nor beta; it simply was not theirs.
+    """
+    first = next(iter(data.values()))
+    times = _times(first, cursor)[start:]
+    opening = float(state["ledger"][0]["cash"]) if state["ledger"] else 100000.0
+    cash_events = [entry for entry in state["ledger"] if entry["time"] is not None]
+    fills = [fill for fill in state["fills"] if fill["symbol"] in data]
+    columns = {symbol: position for position, symbol in enumerate(data)}
+    closes = [_window(series, start, cursor) for series in data.values()]
+    equity, gross, level = engine.mark_to_market(
+        times,
+        opening,
+        [entry["time"] for entry in cash_events],
+        [float(entry["cash"]) for entry in cash_events],
+        [columns[fill["symbol"]] for fill in fills],
+        [fill["quantity"] * (1 if fill["side"] == "buy" else -1) for fill in fills],
+        [fill["time"] for fill in fills],
+        closes,
+    )
+    return times, opening, equity, gross, level, closes, columns, fills
 
 
 def performance(state, data, points=180):
@@ -414,48 +401,27 @@ def performance(state, data, points=180):
     # trading is not the learner's result, and averaging exposure over bars where
     # nothing could be held would understate every position they did take.
     start = min(start_cursor(state, data), cursor)
-    times = _times(first, cursor)[start:]
-    opening = float(state["ledger"][0]["cash"]) if state["ledger"] else 100000.0
+    times, opening, equity, gross, level, closes, columns, fills = marked(
+        state, data, start, cursor
+    )
 
-    cash = np.full(len(times), opening)
-    for entry in state["ledger"]:
-        if entry["time"] is None:
-            continue
-        at = int(np.searchsorted(times, entry["time"]))
-        if at < len(cash):
-            cash[at:] = float(entry["cash"])
-
-    holdings = np.zeros(len(times))
-    by_symbol = {}
     attribution = {}
-    marks = {}
-    for fill in state["fills"]:
-        symbol = fill["symbol"]
-        if symbol not in data:
-            continue
-        if symbol not in marks:
-            marks[symbol] = _closes(data[symbol], cursor)[start:]
-        at = int(np.searchsorted(times, fill["time"]))
+    landed = np.searchsorted(times, np.array([fill["time"] for fill in fills], dtype=np.int64))
+    for fill, at in zip(fills, landed.tolist(), strict=True):
         if at >= len(times):
             continue
-        quantity = fill["quantity"] * (1 if fill["side"] == "buy" else -1)
-        leg = quantity * np.concatenate((np.zeros(at), marks[symbol][at:]))
-        holdings += leg
-        by_symbol[symbol] = by_symbol.get(symbol, np.zeros(len(times))) + leg
         book = attribution.setdefault(
-            symbol, {"symbol": symbol, "realized": 0.0, "fills": 0, "quantity": 0}
+            fill["symbol"], {"symbol": fill["symbol"], "realized": 0.0, "fills": 0, "quantity": 0}
         )
         book["realized"] += float(fill["realized"])
         book["fills"] += 1
-        book["quantity"] += quantity
+        book["quantity"] += fill["quantity"] * (1 if fill["side"] == "buy" else -1)
 
-    equity = cash + holdings
-    gross = sum((np.abs(values) for values in by_symbol.values()), np.zeros(len(times)))
     peak = np.maximum.accumulate(equity)
     drawdown = equity / peak - 1
     step = max(1, len(equity) // points)
     for symbol, book in attribution.items():
-        mark = float(marks[symbol][-1])
+        mark = float(closes[columns[symbol]][-1])
         position = state["positions"].get(symbol, {})
         book["short"] = position.get("quantity", 0) < 0
         book["unrealized"] = round(
@@ -476,7 +442,6 @@ def performance(state, data, points=180):
 
     # Against the market, not just against zero. The account and the index are
     # sampled at session closes so the annualized figures mean what they say.
-    level = index_level(data, cursor, start)
     benchmark = opening * level
     ends = _session_ends(first, cursor, start)
     sessions = len(ends)

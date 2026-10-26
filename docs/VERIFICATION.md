@@ -1,3 +1,23 @@
+# C++ simulator engine — October 26, 2026
+
+The trading simulator's market generator, execution engine and per-bar analytics now run in a C++17 library, [`backend/engine`](../backend/engine/README.md), loaded by the API in-process. The engine was held to the Python and numpy implementations it replaced, which are kept verbatim in `backend/tests/reference/`, and to the C/HPC course's engineering bar: checked bounds, deterministic output, hand-calculated fixtures, invalid-input refusals, a sanitizer target, serial/parallel equality and paired measurements.
+
+| Check | Result |
+| --- | --- |
+| Engine tests (`make test`) | 170 checks passed: hand-calculated ledger fixtures (PRD SIM-AC-03, short round trips, a sale crossing zero, a $9.92 borrow fee, trailing-stop ratchet, FIFO volume sharing), decimal rounding and signed zeros, stream values, DST transitions, malformed and out-of-range input, serial/parallel equality for 1–32 workers |
+| Sanitizers | `make sanitize` passed. 6,980 engine calls recorded from the parity, simulator and mission tests replayed under AddressSanitizer and UndefinedBehaviorSanitizer with byte-identical responses and no reports |
+| Market parity | Every cent and volume of 8 seeds × 3 blocks × 32 companies, 30,000 calendar sessions and 4 seeds of the six-path generator equal the original generators; the test suite re-checks 5 seeds × 2 blocks, the clock, the six paths and chart bucketing on every run |
+| Decimal parity | 400,000 random operations matched Python `decimal` during development; 40,000 run with every test pass, including signed zeros, ties and quantize errors |
+| Engine parity | 28 randomized trading scenarios (generated and hand-built markets, cash and margin accounts, every order type, brackets, amendments, cancellations, DAY expiry, gaps, borrow fees, buy-ins, event stops) plus three rejection cases: byte-identical run state, reservations and account figures after every action. Changing one rounding rule in the engine failed 26 tests |
+| Stored runs | All 574 runs in the local development database (543 generated, 31 six-path) replayed read-only: every bar up to each cursor plus a week equals the numpy generator, snapshot figures and reservations match, and advancing 1, 390 and 1,950 bars leaves byte-identical state (320 new fills) |
+| Compilers | Apple Clang 21 and GCC 16 build the library and tests with `-Wall -Wextra -Werror -pedantic`; the parity suite passes against both builds |
+| Existing tests | Simulator and mission tests (77) pass unchanged. Full backend suite: 830 passed, 1 failed: `test_assistant.py::test_provider_failures_are_redacted_and_not_retried[402-503]`, which fails identically on `feat/courses` without this change (it follows the OpenRouter fallback merged from main) |
+| Speed | Advancing a modeled week with 200 working orders: 1,253.9 ms → 15.4 ms through the API's Python adapter (medians of five); 50 orders: 302.9 → 5.0 ms. Five generated blocks with their newsroom: 467 → 210 ms. `make bench` medians: block generation 34.1 → 13.5 ms with eight workers (2.5×, bounded by the sequential random draws), mark-to-market of 200,000 bars × 2,000 fills 303.4 → 53.6 ms (5.7×) |
+
+Reference machine: Apple M2 Pro, 10 cores, Darwin 25.6.0, Apple Clang 21. Measurements are samples from one machine, not a portable guarantee. Every equality above was measured on macOS arm64. The Docker image build, which compiles and tests the engine in its own stage, was not run because no Docker daemon was available, so parity on the Linux image (where Docker-created runs were generated) is expected but unmeasured; the [engine guide](../backend/engine/README.md#the-contract-identical-results) gives the check. The frontend is unchanged and its tests were not re-run.
+
+---
+
 # Course readability and shared typography — September 15, 2026
 
 The course reader now uses a consistent 16px reading size, with a shared type scale for headings, controls, metadata, and course cards. Lists retain their markers, lesson tables have padded cells and keyboard-accessible horizontal scrolling, and dollar amounts remain ordinary text instead of being parsed as equations. Mobile learners can switch modules directly from the lesson toolbar. Course pages have a direct link to their outline; curriculum search includes lesson text and offers a clear reset action.

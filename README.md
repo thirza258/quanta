@@ -37,7 +37,7 @@ For a public deployment, set a strong alphanumeric `POSTGRES_PASSWORD` **before 
 
 ## Run locally
 
-Node 22+ and Python 3.14 are the tested runtimes. Course verification and the downloadable C/HPC lab also require a local C17 compiler (`cc`) and make; see the [C course build guide](content/projects/c-hpc-trading/README.md).
+Node 22+ and Python 3.14 are the tested runtimes. The trading simulator's engine is C++17, so the API also needs a C++ compiler (`c++`: Clang or GCC) and make; `npm run setup` builds it, and the [engine guide](backend/engine/README.md) covers its tests and benchmarks. Course verification and the downloadable C/HPC lab also require a local C17 compiler (`cc`) and make; see the [C course build guide](content/projects/c-hpc-trading/README.md).
 
 ```sh
 npm run setup
@@ -79,7 +79,7 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 - Guest persistence and email/password accounts with Argon2 hashing, HttpOnly JWT session cookies, revocation, version-checked workspace sync, and recovery of unsynced drafts.
 - Research notes, search, experiment snapshots, JSON/Markdown exports, responsive navigation, and persistent dark/light themes.
 - Seeded GBM, Merton jump-diffusion, Heston variance, and Markov regime-switching paths; crash, stagflation, liquidity-crisis, random-walk, and flash-crash scenarios.
-- A standalone [TradingView-style stock simulator](docs/SIMULATOR.md) at `/simulator`: persistent $100,000 paper accounts and 32 fictional companies across 12 sectors, whose one-minute prices are generated endlessly by a factor model driven by the run’s own simulated newsroom, where every headline carries a score of one basis point per point, with generated quarterly statements and consensus, imported historical replay, interactive charts/drawings/indicators, server-computed screening, risk and portfolio analytics, four order types, partial fills, portfolio accounting, trade journals, exports, and mobile trading. Each new run draws a different market unless a seed is supplied. Imported historical prices never receive generated news or statements.
+- A standalone [TradingView-style stock simulator](docs/SIMULATOR.md) at `/simulator`: persistent $100,000 paper accounts and 32 fictional companies across 12 sectors, whose one-minute prices are generated endlessly by a factor model driven by the run’s own simulated newsroom, where every headline carries a score of one basis point per point, with generated quarterly statements and consensus, imported historical replay, interactive charts/drawings/indicators, server-computed screening, risk and portfolio analytics computed by a C++17 engine that reproduces the original Python engine to the cent, four order types, partial fills, portfolio accounting, trade journals, exports, and mobile trading. Each new run draws a different market unless a seed is supplied. Imported historical prices never receive generated news or statements.
 - Long/cash backtesting using previous-close signals and next-open fills, commissions, slippage, same-asset buy-and-hold comparison, equity/candlestick/drawdown charts, monthly returns, and trade logs.
 - CAGR, Sharpe, Sortino, drawdown, win rate, profit factor, alpha, beta, VaR, CVaR, and Calmar analytics. Undefined ratios are explicitly represented by `null`.
 - NCAV, asset-recovery haircuts, Graham valuation, full-range and concentrated-liquidity AMM analysis, and simulated order fills with liquidity/stale-data/spread/drawdown guards.
@@ -205,6 +205,7 @@ Factor input can include `rows`, with asset excess return in the first column an
 ```sh
 npm run build
 npm test
+npm run test:engine
 npm run test:api
 # With the app running, use the URL printed by npm run dev:
 TEST_URL=http://127.0.0.1:5173 npm run test:e2e
@@ -220,7 +221,7 @@ See [verification results](docs/VERIFICATION.md) for the checks performed during
 
 ```text
 frontend/  React app, feature modules, browser tests, assets, Vite, and web image
-backend/   API routes, services, domain rules, database, execution, and API tests
+backend/   API routes, services, domain rules, database, execution, C++ simulator engine, tests
 content/   Original course builders, canonical catalog, and project sources
 scripts/   Root development launcher
 docs/      Architecture, course scope, and verification evidence

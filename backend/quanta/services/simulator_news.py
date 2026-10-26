@@ -257,7 +257,6 @@ CLOSE_WRAP = "Closing bell: {index} ends the session {dir}"
 # the bar the item is dated, the rest drifting over the bars that follow. Nothing
 # is inferred by a model at request time; the score is drawn here and the price
 # engine simply applies it.
-POINT = 0.0001
 
 # category -> (probability weight, points low, points high, drift bars)
 COMPANY_EVENTS = {
@@ -299,75 +298,48 @@ EARNINGS_TEMPLATES = (
 PREVIEW = "{b} previews {t} {qa} results; consensus EPS {consensus}"
 
 
+# Shock scopes, as the price engine reads them.
+MARKET, SECTOR, COMPANY = 0, 1, 2
+SECTOR_INDEX = {name: position for position, name in enumerate(SECTORS)}
+COMPANY_INDEX = {company.symbol: position for position, company in enumerate(COMPANIES)}
+
+
 @dataclass
 class Newsroom:
     events: list = field(default_factory=list)
     books: dict = field(default_factory=dict)
     calendar: dict = field(default_factory=dict)
-    market: np.ndarray = None
-    sector: dict = field(default_factory=dict)
-    company: dict = field(default_factory=dict)
-    volatility: dict = field(default_factory=dict)
-    volume: dict = field(default_factory=dict)
+    # (scope, target, bar, points, sign, span) per scored item, in schedule order.
+    shocks: list = field(default_factory=list)
+    bars: int = 0
 
     def release(self):
-        """Drop the price-shock arrays once the bars are built.
+        """Drop the scheduled shocks once the bars are built.
 
         They are scaffolding: the feed, the reporting calendar and the statements
-        are what a run keeps, and they are a fraction of the size.
+        are what a run keeps.
         """
-        self.market = None
-        self.sector = {}
-        self.company = {}
-        self.volatility = {}
-        self.volume = {}
+        self.shocks = []
         return self
 
 
-def _drift(target, start, span, amount):
-    """Spread `amount` over an exponentially decaying window from `start`.
-
-    Only the affected slice is touched. Building a full-length array per event
-    dominated both generation time and peak memory when this ran per headline.
-    """
-    end = min(len(target), start + span)
-    if end <= start:
-        return
-    weights = np.exp(-np.arange(end - start) / max(span / 3.0, 1.0))
-    total = weights.sum()
-    if total:
-        target[start:end] += amount * (weights / total)
-
-
-SECTOR_MEMBERS = {sector: [c.symbol for c in COMPANIES if c.sector == sector] for sector in SECTORS}
-
-
-def _excite(room, index, magnitude, span, symbols, scale=1.0):
-    """Raise modeled volatility and traded volume around a shock, then decay."""
-    for symbol in symbols:
-        series = room.volatility[symbol]
-        window = slice(index, min(len(series), index + span))
-        steps = np.arange(window.stop - window.start)
-        weight = scale * magnitude / 0.02
-        series[window] += min(3.0, weight) * np.exp(-steps / max(span / 4.0, 1))
-        room.volume[symbol][window] += min(6.0, 2.2 * weight) * np.exp(-steps / max(span / 5.0, 1))
-
-
 def _apply(room, index, points, sign, span, market=False, sector=None, symbol=None):
-    """Split a scored shock into an immediate move and a decaying follow-through."""
-    magnitude = abs(points) * POINT
-    target = room.market if market else room.sector[sector] if sector else room.company[symbol]
-    length = len(target)
-    if index >= length:
+    """Schedule a scored shock for the price engine.
+
+    The engine splits it into an immediate move and a decaying follow-through:
+    58% of the score on the dated bar, the rest drifting over `span` bars, with
+    volatility and volume raised around it (backend/engine/src/market.cpp). A
+    company item moves one company, a sector item its members through their
+    sector loading, a macro item every company through its beta.
+    """
+    if index >= room.bars:
         return
-    target[index] += 0.58 * magnitude * sign
-    _drift(target, index + 1, span, 0.42 * magnitude * sign)
-    if symbol:
-        _excite(room, index, magnitude, span, [symbol])
+    if market:
+        room.shocks.append((MARKET, 0, index, points, sign, span))
     elif sector:
-        _excite(room, index, magnitude, span, SECTOR_MEMBERS[sector], 0.7)
+        room.shocks.append((SECTOR, SECTOR_INDEX[sector], index, points, sign, span))
     else:
-        _excite(room, index, magnitude, min(span, 200), list(room.volume), 0.9)
+        room.shocks.append((COMPANY, COMPANY_INDEX[symbol], index, points, sign, span))
 
 
 def _pick(rng, values):
@@ -477,13 +449,7 @@ def schedule(
     total = sessions * session_bars
     offset = first_session * session_bars
     rng = np.random.default_rng([seed, first_session])
-    room = Newsroom(
-        market=np.zeros(total),
-        sector={name: np.zeros(total) for name in SECTORS},
-        company={c.symbol: np.zeros(total) for c in COMPANIES},
-        volatility={c.symbol: np.zeros(total) for c in COMPANIES},
-        volume={c.symbol: np.zeros(total) for c in COMPANIES},
-    )
+    room = Newsroom(bars=total)
     events = []
     categories = list(COMPANY_EVENTS)
     weights = np.array([COMPANY_EVENTS[c][0] for c in categories])

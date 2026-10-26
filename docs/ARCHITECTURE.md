@@ -32,7 +32,12 @@ quanta/
 │   │   ├── domain/                 # Calculations, grading, execution rules, models
 │   │   ├── db/                     # SQLModel tables, engine, session lifecycle
 │   │   ├── core/                   # Configuration, auth, limits, request guards
+│   │   ├── engine/                 # ctypes binding to the C++ simulator engine
 │   │   └── execution/              # Isolated runner and guided/native workers
+│   ├── engine/                     # C++17 simulator engine: market, execution, analytics
+│   │   ├── src/ include/           # Library sources and its C interface
+│   │   ├── tests/ bench/           # Golden fixtures, sanitizer target, paired timing
+│   │   └── Makefile                # make, make test, make sanitize, make bench
 │   ├── scripts/                    # Historical import and native-runtime check
 │   ├── tests/                      # API, numerical, execution, content invariants
 │   ├── Dockerfile
@@ -65,7 +70,7 @@ Course code carries an optional language field. Existing lessons default to Pyth
 
 `main.py` registers routers, lifecycle initialization, middleware, and domain-error translation. Routers declare HTTP paths, input models, identity/session dependencies, and rate limits. Services orchestrate use cases and version-checked transactions. Database models and session creation are separate from those operations.
 
-Domain modules perform deterministic analytics, exam grading, and paper-account execution. Their rule errors are independent of FastAPI and translated to the existing HTTP response contract. The simulator separates its Decimal-based ledger engine from market generation/loading, snapshot queries, and persistent mutations. Isolated workers stay self-contained because they execute with Python's `-I` flag.
+Domain modules perform deterministic analytics, exam grading, and paper-account execution. Their rule errors are independent of FastAPI and translated to the existing HTTP response contract. The trading simulator's computation runs in a C++17 engine, `backend/engine`, which the API loads in-process through `quanta.engine` (ctypes, no extra Python dependency): the generated market and the original six-path generator, the execution rules and their exact decimal ledger arithmetic, and the per-bar analytics (indicator series, chart bucketing, the account marked to market). `domain/simulator.py` keeps the interface the services always called and writes the engine's changes back into the stored run state; routes, persistence, idempotency, the newsroom's text, fundamentals and missions stay in Python. The engine reproduces the Python implementations it replaced to the cent and the character, and `backend/tests/reference/` keeps those implementations as the oracle its differential tests compare against. See the [engine guide](../backend/engine/README.md). Isolated workers stay self-contained because they execute with Python's `-I` flag.
 
 The backend reads `content/catalog/curriculum.json` directly. It does not load frontend source or require Node at runtime. Path defaults derive from the module's repository location rather than the process working directory. SQLite, the JWT secret, and historical datasets remain under `backend/storage/` and `backend/data/`; environment overrides and Compose volumes retain their existing meanings.
 
@@ -85,11 +90,11 @@ Algorithm evaluation/reporting closes the catalog with new `10.x` IDs. Its Pytho
 
 ## Commands and deployment
 
-From the root, `npm run setup`, `npm run dev`, `npm run build`, `npm test`, `npm run test:api`, and `npm run test:e2e` remain available. Frontend commands forward to the npm workspace. Dependencies are installed from the single root lock; do not introduce a second frontend lockfile.
+From the root, `npm run setup`, `npm run dev`, `npm run build`, `npm test`, `npm run test:api`, and `npm run test:e2e` remain available; `npm run build:engine` and `npm run test:engine` build and test the C++ engine, and `setup`, `dev`, `test:api` and `check` build it when it is out of date. Frontend commands forward to the npm workspace. Dependencies are installed from the single root lock; do not introduce a second frontend lockfile.
 
-The development launcher resolves paths from its own location, waits for API health, assigns the API proxy and allowed origin, and watches backend code plus the generated catalog. See the application-specific [frontend guide](../frontend/README.md) and [backend guide](../backend/README.md).
+The development launcher resolves paths from its own location, builds the engine, waits for API health, assigns the API proxy and allowed origin, and watches backend code, the generated catalog and the built engine library, so `make -C backend/engine` after a C++ change restarts the API. See the application-specific [frontend guide](../frontend/README.md) and [backend guide](../backend/README.md).
 
-Compose uses the root build context with `frontend/Dockerfile` and `backend/Dockerfile`. The web image includes only the built static application at runtime; the API image includes Python code and the canonical catalog. The optional sandbox image copies `backend/quanta/execution/native_worker.py`. Rebuild without removing volumes:
+Compose uses the root build context with `frontend/Dockerfile` and `backend/Dockerfile`. The web image includes only the built static application at runtime; the API image includes Python code, the canonical catalog and the engine library, which a separate build stage compiles and tests on the same Debian base before only the `.so` is copied across. The optional sandbox image copies `backend/quanta/execution/native_worker.py`. Rebuild without removing volumes:
 
 ```sh
 docker compose up -d --build web api
