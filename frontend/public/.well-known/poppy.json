@@ -1,0 +1,46 @@
+{
+  "protocol_version": "0.1",
+  "organization": {
+    "name": "Nevatal",
+    "domain": "quant.nevatal.id"
+  },
+  "auth": {
+    "issuer": "https://quant.nevatal.id",
+    "direct": {
+      "scopes": [
+        "poppy:read",
+        "poppy:write"
+      ]
+    },
+    "device": {
+      "scopes": [
+        "poppy:read",
+        "poppy:write"
+      ]
+    }
+  },
+  "agent": {
+    "protocols": [
+      {
+        "type": "poppy",
+        "endpoint": "https://quant.nevatal.id/api"
+      }
+    ]
+  },
+  "apis": [
+    {
+      "type": "openapi",
+      "url": "https://quant.nevatal.id/api/openapi.json",
+      "description": "Quanta API"
+    },
+    {
+      "type": "mcp",
+      "url": "https://quant.nevatal.id/mcp",
+      "description": "Quanta MCP server"
+    }
+  ],
+  "web": {
+    "browser_session_endpoint": "https://quant.nevatal.id/"
+  },
+  "extensions": {}
+}

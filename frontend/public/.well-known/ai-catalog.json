@@ -1,0 +1,42 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Quanta",
+    "identifier": "did:web:quant.nevatal.id"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:quant.nevatal.id:server:mcp",
+      "displayName": "Quanta MCP Server",
+      "type": "application/mcp-server-card+json",
+      "url": "https://quant.nevatal.id/.well-known/mcp/server-card.json",
+      "representativeQueries": [
+        "explore Quanta",
+        "discover Quanta capabilities",
+        "use quantitative analysis"
+      ]
+    },
+    {
+      "identifier": "urn:air:quant.nevatal.id:agent:a2a",
+      "displayName": "Quanta A2A Agent",
+      "type": "application/json",
+      "url": "https://quant.nevatal.id/.well-known/agent-card.json",
+      "representativeQueries": [
+        "explore Quanta",
+        "discover Quanta capabilities",
+        "use quantitative analysis"
+      ]
+    },
+    {
+      "identifier": "urn:air:quant.nevatal.id:api:v1",
+      "displayName": "Quanta API",
+      "type": "application/json",
+      "url": "https://quant.nevatal.id/api",
+      "representativeQueries": [
+        "explore Quanta",
+        "discover Quanta capabilities",
+        "use quantitative analysis"
+      ]
+    }
+  ]
+}

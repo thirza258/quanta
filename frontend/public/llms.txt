@@ -1,0 +1,9 @@
+# Quanta Agent
+
+> Interactive quantitative finance and algorithmic trading platform.
+
+- Site: https://quant.nevatal.id/
+- Agent card: https://quant.nevatal.id/.well-known/agent-card.json
+- MCP server card: https://quant.nevatal.id/.well-known/mcp/server-card.json
+- API catalog: https://quant.nevatal.id/.well-known/api-catalog
+- API docs: https://quant.nevatal.id/api/docs
