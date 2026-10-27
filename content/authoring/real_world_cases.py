@@ -137,10 +137,13 @@ def attach_real_world_cases(catalog):
     from case_applications_investing import APPLICATIONS as investing
     from case_applications_quant import APPLICATIONS as quant
     from case_applications_systems import APPLICATIONS as systems
+    from econometrics_advanced import APPLICATIONS as econometrics_advanced
     from lab_workshop import APPLICATIONS as lab
+    from quantitative_advanced import APPLICATIONS as quantitative_advanced
     from simulator_workshop import APPLICATIONS as simulator
 
     rows = investing + quant + systems + evaluation + ethics + simulator + lab
+    rows += econometrics_advanced + quantitative_advanced
     applications = {}
     for lesson_id, case_id, connection, task, walkthrough in rows:
         if lesson_id in applications:

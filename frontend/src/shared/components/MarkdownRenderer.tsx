@@ -17,6 +17,22 @@ import "katex/dist/katex.min.css";
 export function normalizeMarkdownMath(text: string): string {
   if (!text) return text;
 
+  // A display equation written alone on one line ($$R = ...$$) is meant as display
+  // math, but remark-math renders it inline unless the fences sit on their own lines.
+  // Code fences are left exactly as written.
+  text = text
+    .split(/(```[\s\S]*?```)/)
+    .map((part, i) =>
+      i % 2
+        ? part
+        : part.replace(
+            /^([ \t]*)\$\$([^\n$][^\n]*?)\$\$[ \t]*$/gm,
+            (_m, indent: string, body: string) =>
+              `${indent}$$\n${indent}${body}\n${indent}$$`,
+          ),
+    )
+    .join("");
+
   // Protect code blocks (```...```), inline code (`...`), and display math ($$...$$)
   const segments: { isProtected: boolean; text: string }[] = [];
   let lastIndex = 0;
@@ -89,7 +105,8 @@ export function normalizeMarkdownMath(text: string): string {
 
           // Check content between here and the closing $
           const between = lineRest.slice(0, firstNextDollarIdx);
-          const hasMathCommand = /\\[a-zA-Z]+/.test(between);
+          // Escaped symbols such as \% in $2.4\%$ are LaTeX too, not prose.
+          const hasMathCommand = /\\(?:[a-zA-Z]+|[%,;:!{}])/.test(between);
           const hasMathSymbol = /[=<>^_+\-]/.test(between);
           const hasEnglishWords = /[a-zA-Z]{3,}/.test(
             between.replace(/\\[a-zA-Z]+/g, ""),
@@ -104,6 +121,18 @@ export function normalizeMarkdownMath(text: string): string {
 
           return fullMatch;
         },
+      );
+
+      // 3. An escaped dollar inside inline math ($\$15.00$, $-\$15.00$) would end the
+      // span early: the math tokenizer does not honour backslash escapes, so KaTeX
+      // receives a lone "\". \text{\textdollar} prints the same sign with no "$".
+      // This runs after step 2 so plain-text prices before the math are escaped first.
+      processed = processed.replace(
+        /(?<![\\$])\$(?!\$)((?:\\\$|[^$\n])+?)(?<!\\)\$/g,
+        (whole, mathContent: string) =>
+          mathContent.includes("\\$")
+            ? "$" + mathContent.replace(/\\\$/g, "\\text{\\textdollar}") + "$"
+            : whole,
       );
 
       return processed;

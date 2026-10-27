@@ -1,6 +1,7 @@
 """Part 1 of Quantitative Analysis authoring expansion: Header, Chapters 1-4 (Modules 2.1, 2.6, 2.7, 2.8, 2.9, 2.10, 2.2, 2.11)."""
 
 from book_courses import finish, lesson, q
+from quantitative_advanced import ADVANCED_LESSONS
 
 BOOK = "https://www.wiley-vch.de/en/areas-interest/finance-economics-law/finance-investments-13fi/investments-securities-13fi3/quantitative-investment-analysis-978-1-119-74362-0"
 
@@ -3320,6 +3321,12 @@ An institutional-grade quantitative research packet must include:
         ],
     )
 
+    # Advanced lessons 2.33-2.40 join their book chapter directly after the lesson
+    # they build on: module order is display order, and each part is one chapter.
+    for anchor, args in ADVANCED_LESSONS:
+        add(*args)
+        modules.insert([m["id"] for m in modules].index(anchor) + 1, modules.pop())
+
     # -------------------------------------------------------------------------
     # CHECKPOINTS AND FINISH
     # -------------------------------------------------------------------------
@@ -3502,7 +3509,7 @@ An institutional-grade quantitative research packet must include:
     part_titles = [
         (
             "Cash flows and investment decisions",
-            "Discounting, compounding, annuities, and project value",
+            "Discounting, compounding, annuities, project value, and the term structure",
         ),
         (
             "Measure and describe the evidence",
@@ -3511,20 +3518,23 @@ An institutional-grade quantitative research packet must include:
         ("Reason with probability", "Conditional events, covariance, and portfolio uncertainty"),
         (
             "Choose and challenge distributions",
-            "Continuous models, discrete counts, and simulation assumptions",
+            "Continuous models, discrete counts, simulation assumptions, and variance reduction",
         ),
         (
             "Estimate from samples",
-            "Confidence intervals, dependence, resampling, and selection bias",
+            "Confidence intervals, dependence, resampling, selection bias, and shrinkage",
         ),
-        ("Test research claims", "Error rates, power, paired comparisons, and multiple testing"),
+        (
+            "Test research claims",
+            "Error rates, power, paired comparisons, multiple testing, and permutation tests",
+        ),
         (
             "Fit a single relationship",
             "Linear regression, coefficient interpretation, and prediction uncertainty",
         ),
         (
             "Explain several influences",
-            "Multiple regression, categorical variables, and diagnostics",
+            "Multiple regression, categorical variables, diagnostics, and logistic regression",
         ),
         (
             "Respect time and changing risk",
@@ -3540,11 +3550,11 @@ An institutional-grade quantitative research packet must include:
         ),
         (
             "Understand common return drivers",
-            "Factor attribution, residuals, portfolio exposures, and active risk",
+            "Factor attribution, active risk, the fundamental law, and Black–Litterman views",
         ),
         (
             "Measure and challenge market risk",
-            "Loss quantiles, expected shortfall, stresses, and liquidity",
+            "Loss quantiles, expected shortfall, stresses, liquidity, and VaR backtests",
         ),
         (
             "Evaluate an investment process",
@@ -3557,7 +3567,7 @@ An institutional-grade quantitative research packet must include:
             "id": "statistical-foundations",
             "number": 2,
             "title": "Quantitative Investment Analysis",
-            "description": "A comprehensive institutional quantitative curriculum covering both foundational statistical inference (Part I: Chapters 1–7) and advanced econometrics, machine learning, factor risk modeling, and backtesting (Part II: Chapters 8–14).",
+            "description": "A comprehensive institutional quantitative curriculum covering both foundational statistical inference (Part I: Chapters 1–7) and advanced econometrics, machine learning, factor risk modeling, and backtesting (Part II: Chapters 8–14), with advanced extensions: term-structure bootstrapping, Monte Carlo variance reduction, Bayesian and James–Stein shrinkage, permutation and rank tests, logistic regression, the fundamental law of active management, Black–Litterman, and VaR backtesting.",
             "source": "CFA Institute · Quantitative Investment Analysis · Fourth edition",
             "level": "Foundational → advanced",
             "icon": "distribution",
@@ -3570,8 +3580,10 @@ An institutional-grade quantitative research packet must include:
                 "Model time series using stationary autoregressive processes, evaluate out-of-sample forecasts, and update conditional volatility dynamically.",
                 "Build point-in-time research pipelines free from look-ahead leakage, process text sentiment features, and prevent backtest overfitting.",
                 "Decompose portfolio returns with multifactor models, calculate active risk and Information Ratios, estimate VaR and Expected Shortfall, and formulate stress tests.",
+                "Bootstrap a term structure, measure and reduce Monte Carlo error, shrink noisy estimates, and test claims with permutation and rank methods when distributions misbehave.",
+                "Model qualitative outcomes with logistic regression, size active risk with the fundamental law, blend views with Black–Litterman, and backtest VaR with Kupiec and Christoffersen tests.",
             ],
-            "readingGuide": "The textbook Quantitative Investment Analysis (CFA Institute Investment Series, 4th Edition) is structurally organized into two major halves: Part I (Chapters 1–7) covers classical foundational statistics (time value of money, probability distributions, sampling, hypothesis tests, simple regression), while Part II (Chapters 8–14) covers advanced quantitative applications (multiple regression, time series, machine learning, big data engineering, multifactor models, risk measures, and backtesting). The platform unifies both parts into a single 32-module learning path across 14 parts to deliver a continuous, unbroken progression from basic principles to institutional-grade quantitative research. Each unit maps directly to the corresponding textbook chapter.",
+            "readingGuide": "The textbook Quantitative Investment Analysis (CFA Institute Investment Series, 4th Edition) is structurally organized into two major halves: Part I (Chapters 1–7) covers classical foundational statistics (time value of money, probability distributions, sampling, hypothesis tests, simple regression), while Part II (Chapters 8–14) covers advanced quantitative applications (multiple regression, time series, machine learning, big data engineering, multifactor models, risk measures, and backtesting). The platform unifies both parts into a single 40-module learning path across 14 parts, including eight advanced lessons placed in the chapters they extend, to deliver a continuous, unbroken progression from basic principles to institutional-grade quantitative research. Each unit maps directly to the corresponding textbook chapter.",
             "references": [
                 {"title": "Fourth edition · publisher contents and reading reference", "url": BOOK}
             ],
@@ -3582,8 +3594,8 @@ An institutional-grade quantitative research packet must include:
         },
         checkpoints,
     )
-    # Bumped where the course grew from 28 lessons to 32 and the final with it,
-    # so a draft against the old paper is told the exam changed rather than
-    # failing validation for the four answers it could not have had.
-    track["exams"][-1]["version"] = 3
+    # Bumped whenever the course grows and the final with it: 28 to 32 lessons
+    # made it version 3, 32 to 40 version 4. A draft against an old paper is
+    # told the exam changed rather than failing on answers it could not have had.
+    track["exams"][-1]["version"] = 4
     return track

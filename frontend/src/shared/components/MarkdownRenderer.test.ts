@@ -41,13 +41,21 @@ describe("normalizeMarkdownMath", () => {
     const math3 = "Value of $0.05$ or $100$ shares";
 
     expect(normalizeMarkdownMath(math1)).toBe(math1);
-    expect(normalizeMarkdownMath(math2)).toBe(math2);
+    // The leading $101 stays math; only the inner \$, which would close the span,
+    // becomes \text{\textdollar}.
+    expect(normalizeMarkdownMath(math2)).toBe(
+      "total cash outlay per share is $101.0303 \\times 1.0005 \\approx \\text{\\textdollar}101.0808$.",
+    );
     expect(normalizeMarkdownMath(math3)).toBe(math3);
   });
 
   it("preserves display math and code blocks without escaping inside them", () => {
-    const code = "```python\nprice = 100\n```\n$$P = \\frac{1}{2}$$";
-    expect(normalizeMarkdownMath(code)).toBe(code);
+    const code = "```python\nprice = 100\n$$x$$\n```\n$$P = \\frac{1}{2}$$";
+    // Nothing inside the code fence changes; the one-line equation only gets its
+    // fences on their own lines, which is what makes it render as display math.
+    expect(normalizeMarkdownMath(code)).toBe(
+      "```python\nprice = 100\n$$x$$\n```\n$$\nP = \\frac{1}{2}\n$$",
+    );
   });
 });
 
@@ -70,6 +78,38 @@ describe("MarkdownRenderer", () => {
     // Text content should contain literal $1 and $100,000
     expect(html).toContain("($1 by default)");
     expect(html).toContain("$100,000 account");
+  });
+
+  it("renders escaped dollars and escaped percent signs inside inline math", () => {
+    // Lesson text writes prices as $\$15.00$ and percentages as $2.4\%$. The first
+    // used to close the math span at the inner "$"; the second had its opening "$"
+    // mistaken for a price. Both left a KaTeX parse error on the page.
+    const text =
+      "A long position of $\\$15.00$ and a short of $-\\$18.00$ in $y$. Store $0.024$ for $2.4\\%$, not $2.4$.";
+
+    const html = ReactDOMServer.renderToStaticMarkup(
+      React.createElement(MarkdownRenderer, { content: text }),
+    );
+
+    expect(html).not.toContain("katex-error");
+    expect(html).toContain(
+      'encoding="application/x-tex">\\text{\\textdollar}15.00</annotation>',
+    );
+    expect(html).toContain(
+      'encoding="application/x-tex">-\\text{\\textdollar}18.00</annotation>',
+    );
+    expect(html).toContain('encoding="application/x-tex">2.4\\%</annotation>');
+    expect(html).toContain('encoding="application/x-tex">0.024</annotation>');
+  });
+
+  it("renders a one-line $$...$$ equation as display math", () => {
+    const text =
+      "A return.\n\n$$R = \\frac{\\text{end} - \\text{start}}{\\text{start}}$$\n\nInline $x$ stays inline.";
+    const html = ReactDOMServer.renderToStaticMarkup(
+      React.createElement(MarkdownRenderer, { content: text }),
+    );
+    expect(html.match(/class="katex-display"/g)).toHaveLength(1);
+    expect(html).not.toContain("katex-error");
   });
 
   it("supports inline mode without wrapping in <p>", () => {

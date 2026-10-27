@@ -2,6 +2,7 @@
 
 from applied_courses import checkpoints_for, study
 from book_courses import finish
+from econometrics_advanced import ADVANCED_LESSONS
 
 REG = (
     "statsmodels contributors · Linear regression",
@@ -2473,12 +2474,20 @@ The majority of quantitative trading strategies that look spectacular in backtes
     )
 
     # -------------------------------------------------------------------------
-    # UNIT 8: REPLICATION PROJECTS AND CAPSTONE
+    # UNITS 8-9: LIKELIHOOD, MOMENTS AND ASSET-PRICING TESTS; TIME-VARYING
+    # PARAMETERS AND TAIL RISK (econometrics_advanced.py, lessons 3.33-3.40)
+    # -------------------------------------------------------------------------
+
+    for args in ADVANCED_LESSONS:
+        add(*args)
+
+    # -------------------------------------------------------------------------
+    # UNIT 10: REPLICATION PROJECTS AND CAPSTONE
     # -------------------------------------------------------------------------
 
     add(
         "3.29",
-        8,
+        10,
         "Project: replicate a factor regression with HAC",
         "Run an actual regression pipeline and reconcile point estimates, covariance conventions, and held-out prediction errors.",
         r"""In institutional quantitative research, mathematical theory must be implemented through verified, reproducible computational pipelines. The first replication project tasks the researcher with downloading and executing the quantitative research lab suite ([`quant_research_lab.py`](/course-assets/research/quant_research_lab.py)), verifying OLS parameter estimation, contrasting conventional vs. Newey-West HAC covariance matrices, and measuring out-of-sample prediction loss.
@@ -2557,7 +2566,7 @@ $$\mathbf{x} = [-1.0, 0.0, 1.0], \quad \mathbf{y} = [-1.0, 1.0, 3.0]$$
 
     add(
         "3.30",
-        8,
+        10,
         "Project: diagnose a synthetic long-run relation",
         "Fit and test a generated cointegrating relation while preserving integration assumptions and distinguishing known construction from estimated evidence.",
         r"""The second replication project tasks the researcher with diagnosing long-run equilibrium relationships in multivariate time series using the Engle-Granger cointegration engine. The local research lab generates a non-stationary random-walk driver $x_t \sim I(1)$ and a cointegrated series $y_t = 1.5 x_t + s_t$, where $s_t$ follows a stationary autoregressive mean-reverting process.
@@ -2640,7 +2649,7 @@ $$y_t = 0.50 + 1.40 x_t + s_t$$
 
     add(
         "3.31",
-        8,
+        10,
         "Project: risk model and allocation review",
         "Compare portfolio risk estimates and volatility recursions with clear model boundaries and adverse-case checks.",
         r"""The third replication project evaluates portfolio risk modeling and dynamic capital allocation. An institutional investment committee must review an allocation strategy under multiple competing risk estimation models: sample covariance, Ledoit-Wolf shrinkage, dynamic GARCH volatility recursions, and correlation stress tests.
@@ -2725,7 +2734,7 @@ A rigorous risk model audit evaluates three core dimensions:
 
     add(
         "3.32",
-        8,
+        10,
         "Capstone: the Cedar econometric research dossier",
         "Deliver a reproducible study that connects an estimand, identification assumptions, statistical inference, and an investment decision boundary.",
         r"""The capstone of applied financial econometrics is synthesizing data engineering, econometric modeling, robust statistical inference, risk analysis, and execution economics into a comprehensive, decision-ready **Research Dossier**.
@@ -2842,19 +2851,27 @@ Regardless of total rubric points, a research proposal faces **mandatory rejecti
             "Tail conventions, dependent bootstrap, multiple testing, and executable evaluation.",
         ),
         (
+            "Likelihood, moments, and asset-pricing tests",
+            "Maximum likelihood and its three tests, GMM and Hansen's J, GRS and Fama–MacBeth with the Shanken correction, and persistent predictors.",
+        ),
+        (
+            "Time-varying parameters and tail risk",
+            "Structural breaks and Markov regimes, Kalman-filtered betas, quantile regression for conditional VaR, and extreme value theory.",
+        ),
+        (
             "Replication projects and capstone",
             "Fit regressions, diagnose time series, review risk models, and defend a research dossier.",
         ),
     ]
 
 
-    checkpoints = checkpoints_for(modules, parts, 7)
-    return finish(
+    checkpoints = checkpoints_for(modules, parts, 9)
+    track = finish(
         {
             "id": "econometrics",
             "number": 3,
             "title": "Financial econometrics & factor models",
-            "description": "A comprehensive, mathematically rigorous, and practitioner-focused curriculum in empirical financial econometrics. Master OLS and Gauss-Markov mechanics, HAC robust inference, multivariate dynamic systems, cointegration and ECMs, GARCH conditional volatility, factor modeling and shrinkage, panel data with fixed effects, instrumental variables, difference-in-differences, extreme value theory, dependent block bootstraps, and false discovery rate control. Designed with research integrity and out-of-sample discipline at every step.",
+            "description": "A comprehensive, mathematically rigorous, and practitioner-focused curriculum in empirical financial econometrics. Master OLS and Gauss-Markov mechanics, HAC robust inference, multivariate dynamic systems, cointegration and ECMs, GARCH conditional volatility, factor modeling and shrinkage, panel data with fixed effects, instrumental variables, difference-in-differences, extreme value theory, dependent block bootstraps, and false discovery rate control, then on to maximum likelihood and GMM, asset-pricing tests (GRS, Fama–MacBeth, Shanken), persistent-predictor bias, structural breaks and Markov regimes, Kalman-filtered time-varying betas, and quantile regression. Designed with research integrity and out-of-sample discipline at every step.",
             "source": "Original Quanta course · primary statistical documentation and factor research",
             "level": "Intermediate → advanced",
             "icon": "factors",
@@ -2869,9 +2886,11 @@ Regardless of total rubric points, a research proposal faces **mandatory rejecti
                 "Model conditional volatility with ARCH, GARCH(1,1), and GJR-GARCH asymmetric leverage specifications under fat-tailed distributions.",
                 "Estimate CAPM and Fama–French multi-factor models, isolate genuine alpha, and implement covariance shrinkage and PCA decomposition.",
                 "Control for unobserved entity heterogeneity with panel fixed effects and identify causal effects using instrumental variables and difference-in-differences.",
+                "Estimate models by maximum likelihood and GMM, compare Wald, likelihood-ratio and score tests, and test factor models with GRS, Fama–MacBeth and Shanken-corrected inference.",
+                "Detect structural breaks and regimes, track time-varying betas with the Kalman filter, and model tail risk with quantile regression and extreme value theory.",
                 "Apply extreme value theory, stationary block bootstraps, and false discovery rate control to assemble and defend an audited institutional research dossier.",
             ],
-            "readingGuide": "Eight units and 32 original lessons, each with two practice items, a worked calculation, references, and a notebook assignment. Seven checkpoints lead to a 32-question final. The downloadable project fits actual OLS/HAC and time-series models on synthetic data, while the written capstone is self-assessed separately.",
+            "readingGuide": "Ten units and 40 original lessons, each with two practice items, a worked calculation, references, and a notebook assignment. Nine checkpoints lead to a 40-question final. Units 8 and 9 go past the core toolkit into likelihood and moment estimation, asset-pricing tests, regime and state-space models, quantile regression, and extreme value theory. The downloadable project fits actual OLS/HAC and time-series models on synthetic data, while the written capstone is self-assessed separately.",
             "parts": [
                 {"id": str(i), "title": title, "description": description}
                 for i, (title, description) in enumerate(parts, 1)
@@ -2897,3 +2916,7 @@ Regardless of total rubric points, a research proposal faces **mandatory rejecti
         },
         checkpoints,
     )
+    # Bumped where the course grew from 32 lessons to 40 and the final with it,
+    # so a draft against the old paper is told the exam changed.
+    track["exams"][-1]["version"] = 3
+    return track

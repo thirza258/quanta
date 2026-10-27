@@ -1,6 +1,6 @@
 # Real-world applications throughout the curriculum
 
-Every one of the 352 lessons has an original application connected to a practical case. The 15 courses use 35 shared case anchors: 11 documented events, 21 implementations based on primary documentation, and 3 explicitly fictional everyday scenarios. All 94 named units link to the cases their lessons use; the introductory course has lesson applications without a separate unit structure.
+Every one of the 368 lessons has an original application connected to a practical case. The 15 courses use 35 shared case anchors: 11 documented events, 21 implementations based on primary documentation, and 3 explicitly fictional everyday scenarios. All 96 named units link to the cases their lessons use; the introductory course has lesson applications without a separate unit structure.
 
 Learners can select **Explore the real-world case** at the top of a lesson, read the source context, attempt **Your task**, and expand **Compare your reasoning**. **Work through this case** opens a notebook prompt containing the task, source links, source scope, and assumptions. Saved work follows the existing notebook persistence flow. Case practice is optional additional work and does not change the listed lesson durations or assessment requirements.
 

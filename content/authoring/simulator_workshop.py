@@ -752,7 +752,7 @@ print("Tone:", round(signed / total_weight, 2))
         • Limit Order: Sets an absolute ceiling on the price you will pay (or floor on what you will accept). A buy limit fills at the Open if the Open is already at or below your limit. Otherwise, it fills only if the market trades strictly through your limit price ($Low < Limit$). A mere price touch ($Low = Limit$) will not fill because the simulator does not assume your order was first in the queue.
         """,
         r"""
-        Suppose the last closed bar printed at $148.50, and you preview a market buy for 10 shares under default cost settings ($c = $1.00, $f = 0.0003$).
+        Suppose the last closed bar printed at $148.50, and you preview a market buy for 10 shares under default cost settings ($c = \$1.00$, $f = 0.0003$).
 
         1. Cash Reservation Calculation:
            The ticket estimates the maximum debit using the last close plus friction, rounded up to the cent:
@@ -883,7 +883,7 @@ print("Bar opens below the limit:", limit_buy_fill(148.10, 148.00, limit, fricti
         The $1.00 broker commission is charged only once—on the order's initial partial fill. Subsequent fills for the same order carry zero additional commission, ensuring that liquidity fragmentation does not unfairly penalize execution.
         """,
         r"""
-        Suppose you place a 600-share market buy order for NVRA with default cost settings ($c = $1.00, $f = 0.0003, \pi = 0.01$). Over the next three minutes, market bars print with the following opens and volumes:
+        Suppose you place a 600-share market buy order for NVRA with default cost settings ($c = \$1.00$, $f = 0.0003$, $\pi = 0.01$). Over the next three minutes, market bars print with the following opens and volumes:
         • Bar 1: Open = $148.50, Volume = 26,000 shares.
         • Bar 2: Open = $148.60, Volume = 18,000 shares.
         • Bar 3: Open = $148.55, Volume = 22,000 shares.
@@ -1537,9 +1537,9 @@ print("Excess return vs QX-200:", round(0.6 - 0.9, 1), "points")
         """,
         r"""
         Let us calculate the maximum allowable position size under the 5% charter cap:
-        Opening equity is $E_0 = $100,000.
+        Opening equity is $E_0 = \$100{,}000$.
         $$\text{Position Cap} = 0.05 \times \$100{,}000 = \$5{,}000.00$$
-        This $5,000 cap is an all-inclusive limit encompassing share purchase cost and broker commissions ($c = $1.00).
+        This $5,000 cap is an all-inclusive limit encompassing share purchase cost and broker commissions ($c = \$1.00$).
 
         Suppose Meridian Power (MRDN) opens at $52.30 per share ($f = 0.0003$):
         1. Projected Fill Price:

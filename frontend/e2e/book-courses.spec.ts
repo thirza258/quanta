@@ -157,7 +157,8 @@ for (const course of courses) {
     expect(result).toMatchObject({
       score: 100,
       passed: true,
-      version: 2,
+      // Each final's version is bumped when its course grows, so read it per exam.
+      version: exam.version,
       grading: "server",
     });
     await expect(page.locator(".exam-score")).toContainText("100%");

@@ -21,7 +21,7 @@ The report preserves unsuccessful models, mean/prior baselines, undefined metric
 
 ## Econometrics and advanced algorithms
 
-Econometrics expands the original five identities into 32 ordered lessons covering estimands, dated financial data, OLS, sampling uncertainty, heteroskedasticity, HAC, specification, stationarity, ARIMA, VAR, cointegration, error correction, GARCH/asymmetry, factor models, portfolio estimation, shrinkage/PCA, panel fixed effects, IV/2SLS, DiD, binary outcomes, tails, bootstrap, and selection.
+Econometrics expands the original five identities into 40 ordered lessons in ten units covering estimands, dated financial data, OLS, sampling uncertainty, heteroskedasticity, HAC, specification, stationarity, ARIMA, VAR, cointegration, error correction, GARCH/asymmetry, factor models, portfolio estimation, shrinkage/PCA, panel fixed effects, IV/2SLS, DiD, binary outcomes, tails, bootstrap, and selection, then an advanced pair of units: maximum likelihood and the Wald/LR/score trinity, GMM and Hansen's J, GRS/Fama–MacBeth/Shanken asset-pricing tests, persistent-predictor (Stambaugh) bias, structural breaks and Markov switching, the Kalman filter for time-varying beta, quantile regression for conditional VaR, and extreme value theory.
 
 The [research project guide](../public/course-assets/research/README.md) distinguishes actual OLS/HAC and cointegration estimation from fixed-parameter GARCH and stipulated covariance scenarios. It also supports the bot expansion's universe ranking, queue matching, strict interval purging, fractional long-only next-open accounting, and evidence-set evaluation. Conditional factor explanation with realized future factors is explicitly not an ex-ante forecast.
 
