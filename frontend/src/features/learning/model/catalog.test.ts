@@ -10,7 +10,7 @@ import { percent } from "@/shared/lib/format";
 import { describe, expect, it } from "vitest";
 describe("curriculum integrity", () => {
   it.each([
-    ["econometrics", 32, 8, 2],
+    ["econometrics", 40, 10, 3],
     ["web3", 24, 6, 2],
     ["stock-machine-learning", 24, 6, 1],
   ])(
@@ -89,8 +89,8 @@ describe("curriculum integrity", () => {
   it("resolves unique lessons to their parent tracks", () => {
     expect(tracks).toHaveLength(15);
     expect(tracks[0].id).toBe("trading-fundamentals");
-    expect(lessons).toHaveLength(352);
-    expect(new Set(lessons.map((l) => l.id)).size).toBe(352);
+    expect(lessons).toHaveLength(368);
+    expect(new Set(lessons.map((l) => l.id)).size).toBe(368);
     expect(findLesson("1.1")?.title).toBe("Foundations of Graham & Dodd");
     for (const lesson of lessons) {
       expect(findLesson(lesson.id)).toBe(lesson);
@@ -98,7 +98,7 @@ describe("curriculum integrity", () => {
     }
   });
   it("offers complete, uniquely identified exams and valid practice questions", () => {
-    expect(exams).toHaveLength(92);
+    expect(exams).toHaveLength(94);
     expect(new Set(exams.map((exam) => exam.id)).size).toBe(exams.length);
     for (const track of tracks) {
       expect(track.exams.filter((exam) => exam.kind === "final")).toHaveLength(
@@ -167,7 +167,7 @@ describe("curriculum integrity", () => {
     // and the paper with it, so a draft against the old one is refused.
     for (const [slug, count, parts, version] of [
       ["security-analysis", 24, 8, 2],
-      ["statistical-foundations", 32, 14, 3],
+      ["statistical-foundations", 40, 14, 4],
     ] as const) {
       const track = tracks.find((item) => item.id === slug)!;
       expect(track.modules).toHaveLength(count);
