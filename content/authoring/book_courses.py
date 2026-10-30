@@ -106,14 +106,14 @@ def lesson(id, part, title, objective, reading, content, formula, code, task, so
     }
 
 
-def finish(track, checkpoints):
+def finish(track, checkpoints, version=2):
     modules = track["modules"]
     final_id = f"{track['id']}-final"
     final = {
         "id": final_id,
         "title": f"{track['title']} final exam",
         "kind": "final",
-        "version": 2,
+        "version": version,
         "description": "Open-book, untimed assessment with new cases from every module. Budget about three minutes per question. Answers and explanations appear after submission. Pass at 80%; retries remain available. The written capstone is self-assessed separately.",
         "minutes": len(modules) * 3,
         "passingScore": 80,

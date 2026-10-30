@@ -4,25 +4,33 @@ import json
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+from bank_analysis_course import build_bank_analysis
 from c_hpc_course import build_c_hpc_trading
 from course_references import attach_references
+from credit_distress_course import build_credit_distress
+from cyclical_industrials_course import build_cyclical_industrials
 from econometrics_course import build_econometrics
 from evaluation_course import build_algorithm_evaluation
+from forensic_accounting_course import build_forensic_accounting
 from foundations import build_foundations
 from intelligent_investor import build_intelligent_investor
 from lab_workshop import build_lab_workshop
 from learning_guidance import attach_learning_guidance
 from news_to_markets import build_news_to_markets
+from quality_moats_course import build_quality_moats
 from quantitative_analysis import build_quantitative_analysis
 from real_world_cases import attach_real_world_cases
 from research_depth import attach_research_depth
 from security_analysis import build_security_analysis
+from security_casebook_course import build_security_casebook
 from simulator_workshop import build_simulator_workshop
 from stock_bots import build_stock_bots
 from stock_ml_course import build_stock_ml
 from strategy_course import build_strategy_lab
+from tech_intangibles_course import build_tech_intangibles
 from track_exams import attach_exams
 from trading_ethics import build_trading_ethics
+from valuation_uncertainty_course import build_valuation_uncertainty
 from web3_course import build_web3
 
 tracks = [
@@ -627,6 +635,19 @@ catalog.insert(
     next(i for i, track in enumerate(catalog) if track["id"] == "stock-bots") + 1,
     build_c_hpc_trading(),
 )
+# Advanced security-analysis tracks follow the foundational, quantitative, and bot
+# courses; the report-writing course remains the final track.
+for builder in (
+    build_forensic_accounting,
+    build_credit_distress,
+    build_quality_moats,
+    build_bank_analysis,
+    build_valuation_uncertainty,
+    build_cyclical_industrials,
+    build_tech_intangibles,
+    build_security_casebook,
+):
+    catalog.append(builder())
 catalog.append(build_algorithm_evaluation())
 attach_learning_guidance(catalog)
 # Research sections run before references so their cited links reach each lesson's sources.

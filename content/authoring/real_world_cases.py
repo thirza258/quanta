@@ -128,6 +128,30 @@ CASES = {item["id"]: item for item in [
     case("reporting", "Hand a strategy report to someone who did not build the strategy", "implementation", "Global · investment reporting", "GIPS reporting principles as a reference",
          "The GIPS standards emphasize fair representation and full disclosure of investment performance. A course report can borrow that discipline by naming its benchmark, cash-flow treatment, costs, sample, and limitations. Completing this exercise does not establish GIPS compliance or verification.",
          "CFA Institute · GIPS standards for firms", "https://www.gipsstandards.org/standards/gips-standards-for-firms/", "Performance-presentation and disclosure principles, not certification of the learner's report."),
+    case("enron", "Enron: affiliated entities and the limits of reported gains", "documented", "United States · energy trading and structured finance", "2001 bankruptcy; SEC enforcement record",
+         "Enron filed for bankruptcy in December 2001 after disclosures about special-purpose entities and accounting. The SEC's Enron spotlight collects enforcement actions and historical materials. The case is used to study affiliated structures, fair-value estimates, and disclosure quality; the lesson does not reproduce Enron's financial statements or assert figures beyond the cited source.",
+         "U.S. SEC · Spotlight on Enron", "https://www.sec.gov/spotlight/enron.htm", "The SEC's collection of enforcement actions and historical context; exercise figures are illustrative."),
+    case("csc", "Computer Sciences Corporation: accounting fraud and reported results", "documented", "United States · IT services", "5 June 2015",
+         "The SEC charged Computer Sciences Corporation and former executives with accounting fraud in 2015. The company agreed to pay a $190 million penalty, and the release describes improper accounting that affected reported results. The case is used to study capitalization, profit timing, and restatement risk; the lesson's figures are illustrative.",
+         "U.S. SEC · SEC charges CSC and former executives with accounting fraud", "https://www.sec.gov/news/pressrelease/2015-111.html", "The SEC's account of the charges, the penalty, and the affected accounting areas."),
+    case("luckin", "Luckin Coffee: fabricated transactions and reported growth", "documented", "China · consumer retail", "16 December 2020",
+         "The SEC charged Luckin Coffee with fabricating transactions and materially inflating reported revenue and costs. Luckin agreed to pay a $180 million penalty to settle the charges, without admitting or denying the allegations, according to the SEC's release. The case is used to study revenue reconciliation, related-party sales, and independent evidence.",
+         "U.S. SEC · Luckin Coffee agrees to pay $180 million penalty", "https://www.sec.gov/newsroom/press-releases/2020-319", "The SEC's description of the alleged fabricated transactions and the settlement terms."),
+    case("theranos", "Theranos: private-company claims and the evidence gap", "documented", "United States · private health technology", "14 March 2018",
+         "The SEC charged Theranos, Elizabeth Holmes, and Ramesh Balwani with misleading investors about the company's technology and financial prospects. Theranos and Holmes settled with the SEC without admitting or denying the allegations, according to the release. The case is used to study private valuations, technical evidence, and governance; the lesson's figures are illustrative.",
+         "U.S. SEC · Theranos, CEO Holmes, and former President Balwani charged with massive fraud", "https://www.sec.gov/newsroom/press-releases/2018-41", "The SEC's account of the alleged misleading claims and the settlement terms."),
+    case("nikola", "Nikola: partnerships, backlog, and promotional claims", "documented", "United States · zero-emission vehicles", "21 December 2021",
+         "The SEC charged Nikola with misleading statements about its technology, partnerships, and business prospects. Nikola agreed to pay $125 million to resolve the charges, without admitting or denying the findings, according to the release. The case is used to study backlog quality, contract evidence, and related-party validation.",
+         "U.S. SEC · Nikola Corporation to pay $125 million to resolve fraud charges", "https://www.sec.gov/newsroom/press-releases/2021-267", "The SEC's description of the alleged misleading statements and the settlement terms."),
+    case("ftx", "FTX: customer funds and related-party exposure", "documented", "Global · crypto asset trading platform", "13 December 2022",
+         "The SEC charged Samuel Bankman-Fried with defrauding investors and diverting customer funds at FTX. The case is used to study related-party balance sheets, customer-asset segregation, and governance. Allegations are attributed to the SEC; the lesson's figures are illustrative and are not a reconstruction of FTX's actual accounts.",
+         "U.S. SEC · SEC charges Samuel Bankman-Fried with defrauding investors", "https://www.sec.gov/newsroom/press-releases/2022-219", "The SEC's account of the alleged diversion of customer funds and related-party arrangements."),
+    case("supermicro", "Super Micro: accounting violations and disclosure quality", "documented", "United States · technology hardware", "25 August 2020",
+         "The SEC charged Super Micro and its former CFO in connection with widespread accounting violations. The release describes the allegations and the resolution. The case is used to study revenue recognition, inventory and reserve risk, and the cost of weak disclosure; the lesson's figures are illustrative.",
+         "U.S. SEC · SEC charges Super Micro and former CFO", "https://www.sec.gov/newsroom/press-releases/2020-190", "The SEC's description of the accounting violations and the resolution."),
+    case("lehman", "Lehman Brothers: leverage, liquidity, and the 2008 failure", "documented", "United States · investment banking", "September 2008; FCIC report 2011",
+         "The Financial Crisis Inquiry Commission's report describes Lehman Brothers' 2008 bankruptcy, its leverage and repo financing, and the broader crisis. The report is the source for the historical context; the lesson's balance-sheet figures are illustrative and should not be read as Lehman's reported amounts.",
+         "Financial Crisis Inquiry Commission · Final report", "https://www.govinfo.gov/content/pkg/GPO-FCIC/pdf/GPO-FCIC.pdf", "The commission's account of Lehman's failure, leverage, and liquidity pressures; exercise figures are illustrative."),
 ]}
 
 
@@ -136,6 +160,7 @@ def attach_real_world_cases(catalog):
     from case_applications_evaluation import APPLICATIONS as evaluation
     from case_applications_investing import APPLICATIONS as investing
     from case_applications_quant import APPLICATIONS as quant
+    from case_applications_security import APPLICATIONS as security
     from case_applications_systems import APPLICATIONS as systems
     from econometrics_advanced import APPLICATIONS as econometrics_advanced
     from lab_workshop import APPLICATIONS as lab
@@ -143,7 +168,7 @@ def attach_real_world_cases(catalog):
     from simulator_workshop import APPLICATIONS as simulator
 
     rows = investing + quant + systems + evaluation + ethics + simulator + lab
-    rows += econometrics_advanced + quantitative_advanced
+    rows += econometrics_advanced + quantitative_advanced + security
     applications = {}
     for lesson_id, case_id, connection, task, walkthrough in rows:
         if lesson_id in applications:

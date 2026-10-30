@@ -39,13 +39,14 @@ def test_every_lesson_and_unit_has_a_sourced_specific_application(course):
 
 def test_applications_are_individual_and_mix_local_context_with_global_methods():
     applications = [lesson["realWorld"] for lesson in LESSONS.values()]
-    assert len(applications) == 368
+    assert len(applications) == 425
     for key in ("connection", "task", "walkthrough"):
         assert len({application[key] for application in applications}) == len(applications)
     cases = {item["id"]: item for course in CATALOG for item in course["caseStudies"]}
-    assert len(cases) == 35
+    assert len(cases) == 43
     assert {"bca_split", "bi_rate", "bps_growth", "ojk_scam", "warung", "household"} <= cases.keys()
     assert {"knight", "svb", "bitcoin", "ml_pipeline", "gpu", "reporting"} <= cases.keys()
+    assert {"enron", "csc", "luckin", "theranos", "nikola", "ftx", "lehman"} <= cases.keys()
     assert "5 February 2025" in cases["bps_growth"]["period"]
     assert "not today's" in cases["bi_rate"]["context"]
     assert "not establish GIPS compliance" in cases["reporting"]["context"]

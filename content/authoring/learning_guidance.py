@@ -64,6 +64,38 @@ COURSE_GUIDES = {
         "Evaluate a completed trading algorithm and write a clear report covering returns, costs, risk, benchmarks, uncertainty, and computing performance.",
         "A result is useful only when a reader can understand how it was produced and what it supports. This final course helps you turn a completed algorithm project into a report that another person can check. Begin with the question, the data period, the comparison, and the rules you promised to use.\n\nNext, reconcile the exported cash and portfolio values before calculating performance. Work through returns, drawdowns, costs, and uncertainty, then choose tables and charts that make those findings clear. Finish by explaining the strongest evidence, the main weaknesses, and what further work is needed. Treat the report as an argument supported by records, rather than a collection of attractive numbers.",
     ),
+    "forensic-accounting": (
+        "Read reported profit like an investigator: reconcile accruals, test revenue and capitalization, trace related parties, and score earnings quality.",
+        "A financial statement is a set of claims, not a verdict. This course teaches you to test those claims against cash, against the notes, and against independent evidence. Begin with the accrual-to-cash bridge, then examine revenue recognition, capitalized costs, inventory and reserves, and affiliated structures.\n\nEach lesson pairs a compact method with a filing-reading protocol. Use a real annual report as your laboratory. The goal is not to find fraud everywhere, but to know which accounts can move profit, which disclosures can reveal the movement, and when the evidence is strong enough to change a valuation or a decision.",
+    ),
+    "credit-distress": (
+        "Follow a credit from coverage and covenants to recovery waterfalls, expected loss, and a distressed catalyst process.",
+        "A lender is paid from cash, and a distressed investor is paid from a legal waterfall. This course connects the two. Start with coverage through the cycle, then build a recovery waterfall and identify the fulcrum security. Next, translate covenants, cash burn, and maturities into a liquidity runway.\n\nThe later lessons value a distressed business on going-concern and liquidation bases, relate spreads to expected loss, and organize a catalyst-driven process. Read the credit agreement and the maturity schedule beside each lesson. The worked figures are teaching numbers; the discipline is to connect every conclusion to a document and a cash flow.",
+    ),
+    "quality-moats": (
+        "Decide whether a business earns more than its cost of capital, why, for how long, and whether management allocates the cash well.",
+        "A high return is only valuable if it persists. This course separates the level of returns from their durability. You will calculate ROIC and economic profit, score the sources of a moat, and test whether growth earns more than the capital it consumes.\n\nThe second half examines capital allocation and governance: buybacks at the right or wrong price, acquisitions, incentives, and related-party risk. The final scorecard makes the judgment auditable and pairs it with disconfirming evidence. A high-quality business can still be a poor investment at the wrong price; this course keeps quality and valuation distinct.",
+    ),
+    "bank-analysis": (
+        "Read bank margins, loan quality, capital, liquidity, and insurance economics, then value a financial institution from sustainable ROE.",
+        "Banks and financial institutions fail differently from industrial companies. A bank can be solvent on a reported basis and still run out of cash, or liquid and still be undercapitalized. This course reads the balance sheet as a spread business, then examines asset quality, capital ratios, liquidity and deposit concentration.\n\nThe later lessons cover insurance economics and value a bank from ROE, cost of equity, and sustainable growth. Every lesson connects an accounting ratio to a risk: a wide margin may signal riskier lending, and a high capital ratio may hide a duration mismatch. Read the regulatory disclosures beside the bank's accounts; the two tell different parts of the same story.",
+    ),
+    "valuation-uncertainty": (
+        "Build scenario DCFs, rank the assumptions that matter, value real options, reverse-engineer market expectations, and enforce a price ceiling.",
+        "A valuation is a range, not a point. This course builds the range explicitly. You will construct bear, base, and bull DCFs, rank the inputs with a tornado analysis, and find the break-even assumption that would change the decision.\n\nThe later lessons value the option to wait, reverse-engineer the growth and margin implied by a market price, adjust for distress, and translate a conservative value into a maximum purchase price. The aim is not to predict the future precisely; it is to know which assumptions matter, what the price already implies, and what price protects you if the bear case occurs.",
+    ),
+    "cyclical-industrials": (
+        "Normalize through-cycle earnings, model commodity and operating leverage, and stress the balance sheet before a downturn.",
+        "Cyclical businesses punish analysts who capitalize the current year. This course starts with mid-cycle normalization, then models commodity prices and hedges, operating leverage, and working-capital cycles. Each method is tied to a specific line in the accounts.\n\nThe final lessons separate maintenance from growth capex and stress liquidity, covenants, and capital spending in a downturn. A cyclical company can look cheap at the top and expensive at the bottom; the analyst's job is to value the business through the cycle and to know whether the balance sheet can survive the trough.",
+    ),
+    "tech-intangibles": (
+        "Adjust R&D and software, test platform unit economics and cohorts, compare intangible-heavy peers, and value growth with discipline.",
+        "Technology companies often expense the investments that create their value. This course reconstructs profit and capital for R&D-heavy businesses, then tests the unit economics of platforms: CAC, LTV, payback, churn, and cohort retention.\n\nThe later lessons compare intangible-heavy peers on consistent multiples, score the evidence behind a growth narrative, and value growth with an explicit path and reverse DCF. A high multiple is a claim about the future; this course teaches you to state that claim, test it, and decide what price you are willing to pay for it.",
+    ),
+    "real-world-casebook": (
+        "Work through documented accounting failures, private-company evidence gaps, platform governance, and solvency events using primary sources.",
+        "The best way to learn security analysis is to study cases where the evidence mattered. This casebook begins with Enron, CSC and WorldCom, Luckin Coffee, and Theranos, then moves to Nikola, FTX, SVB and Lehman, and GE. Each case is paired with a primary source and a transparent method.\n\nThe lessons distinguish allegations from findings and teaching figures from source figures. You will reconstruct affiliated structures, capitalized costs, revenue and backlog claims, related-party balance sheets, and solvency-liquidity spirals. The goal is not to memorize outcomes; it is to build a repeatable process for testing a story against evidence before capital is committed.",
+    ),
 }
 
 # The first lesson in each unit supplies the conceptual bridge to its new topic.

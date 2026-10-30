@@ -4,10 +4,10 @@ The expanded courses are available at `/curriculum/security-analysis` and `/curr
 
 | Course | Lessons | Reading units | Practice questions | Checkpoints | Final questions |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Security Analysis | 24 | 7 book parts + 1 extension | 48 | 4 × 4 questions | 24 |
+| Security Analysis | 31 | 7 book parts + 2 extensions | 62 | 4 × 4 questions | 31 |
 | Quantitative Investment Analysis | 28 | 14 book chapters | 56 | 4 × 4 questions | 28 |
 
-Both courses contain original explanations and fictional cases. Each lesson supplies an objective, reading connection, worked example, equation, runnable Python worksheet, two practice items, and a written task with a collapsible worked solution. Notebook assignments are prefilled with the task and space for evidence, assumptions, and a decision. The overall catalog now contains 216 lessons, 436 practice questions, and 400 exam questions across 52 assessments.
+Both courses contain original explanations and fictional cases. Each lesson supplies an objective, reading connection, worked example, equation, runnable Python worksheet, two practice items, and a written task with a collapsible worked solution. Notebook assignments are prefilled with the task and space for evidence, assumptions, and a decision. The overall catalog now contains 425 lessons, 858 practice questions, and 789 exam questions across 111 assessments.
 
 ## Reading references
 
@@ -17,7 +17,7 @@ Quantitative Investment Analysis follows the [fourth-edition publisher contents]
 
 ## Course coverage
 
-Security Analysis progresses through evidence and value ranges; bond coverage, claims, covenants, and yields; cumulative preferred shares and conversion; dividends, retention, and repurchases; normalized earnings, depreciation, inventory, and cash conversion; NCAV, recoveries, hidden claims, cash burn, and intangible assets; peer comparison, event outcomes, and monitored decisions. Unit VIII separately critiques the later Graham growth worksheet and introduces contemporary operating cash-flow valuation before the Alder committee capstone.
+Security Analysis progresses through evidence and value ranges; bond coverage, claims, covenants, and yields; cumulative preferred shares and conversion; dividends, retention, and repurchases; normalized earnings, depreciation, inventory, and cash conversion; NCAV, recoveries, hidden claims, cash burn, and intangible assets; peer comparison, event outcomes, and monitored decisions. Unit VIII separately critiques the later Graham growth worksheet and introduces contemporary operating cash-flow valuation before the Alder committee capstone. Unit IX adds accrual forensics, manipulation screening, hidden liabilities, segment concentration, cyclical normalization, dilution and contingent claims, and an advanced red-team capstone. Eight further case-driven courses extend the subject after the core curriculum: forensic accounting, credit and distress, quality and capital allocation, banks, valuation under uncertainty, cyclicals and commodities, technology and intangibles, and a documented real-world casebook.
 
 Quantitative Investment Analysis progresses through discounting and project value; return measurement and dispersion; Bayesian updates and covariance; normal/lognormal and binomial models; confidence intervals and block resampling; hypothesis tests and multiple comparisons; simple and multiple regression with diagnostics; stationarity, forecasting, and volatility; regularization, classification, and unsupervised methods; point-in-time joins and text data; factor attribution and active risk; VaR, expected shortfall, stress and liquidity; chronological backtests and a research-report capstone. Advanced extensions sit in their chapters: spot and forward rates (chapter 1), Monte Carlo variance reduction (4), Bayesian and James–Stein shrinkage (5), permutation and rank tests (6), logistic regression (8), the fundamental law of active management and Black–Litterman (12), and Kupiec/Christoffersen VaR backtests (13).
 
@@ -25,7 +25,7 @@ The quantitative examples use small inspectable calculations. They teach model i
 
 ## Assessment and persistence
 
-Checkpoints sample the preceding units and pass at 75%. Their continuation links lead to the next module after the checkpoint boundary. The final exams cover every lesson, use questions distinct from practice and checkpoints, and pass at 80%: 20/24 for Security Analysis and 23/28 for Quantitative Investment Analysis. Both finals retain their existing IDs and now have version 2. Old attempts remain in workspace history but do not count as a pass for the new version.
+Checkpoints sample the preceding units and pass at 75%. Their continuation links lead to the next module after the checkpoint boundary. The final exams cover every lesson, use questions distinct from practice and checkpoints, and pass at 80%: 25/31 for Security Analysis and 23/28 for Quantitative Investment Analysis. Security Analysis retains its existing final ID and is now version 3; Quantitative Investment Analysis remains version 2. Old attempts remain in workspace history but do not count as a pass for the new version.
 
 Legacy lesson completions, notes, saved code, and first-question submissions remain intact. New practice uses the existing `:q2` key convention. A newly completed lesson requires both practice answers; an old completion is not silently erased. Undoing an old completion requires finishing the expanded practice before marking it complete again.
 

@@ -29,7 +29,7 @@ Conduct is taught through arithmetic rather than exhortation, because a number i
 
 Every firm, person, price and amount in the scenarios is invented, including the rupiah figures. The references are primary sources cited for the principle being described, not claims that any case in this course occurred: the CFA Institute Code of Ethics and Standards of Professional Conduct, SEC Regulation Best Interest and its insider-trading investor publication, FINRA Rules 2010, 2020, 3110, 5210 and 5310 and its advertising-regulation guidance, the SEC market-access rule and whistleblower programme, ESMA's market-integrity pages, the GIPS standards, and Investor.gov fraud and fee material.
 
-Each lesson also carries an original application built on one of the curriculum's 35 shared case anchors, which supply the documented context with their own sourced references and boundary statements. The 16 lessons use 16 distinct anchors.
+Each lesson also carries an original application built on one of the curriculum's 43 shared case anchors, which supply the documented context with their own sourced references and boundary statements. The 16 lessons use 16 distinct anchors.
 
 The course is education, not legal, compliance or investment advice. Obligations differ by jurisdiction, licence and role, and the course says so in the prerequisites, the reading guide and every lesson's reading note. Learners are told to check their own regulator's rules before acting.
 

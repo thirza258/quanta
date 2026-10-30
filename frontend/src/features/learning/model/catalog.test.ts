@@ -87,10 +87,10 @@ describe("curriculum integrity", () => {
     }
   });
   it("resolves unique lessons to their parent tracks", () => {
-    expect(tracks).toHaveLength(15);
+    expect(tracks).toHaveLength(23);
     expect(tracks[0].id).toBe("trading-fundamentals");
-    expect(lessons).toHaveLength(368);
-    expect(new Set(lessons.map((l) => l.id)).size).toBe(368);
+    expect(lessons).toHaveLength(425);
+    expect(new Set(lessons.map((l) => l.id)).size).toBe(425);
     expect(findLesson("1.1")?.title).toBe("Foundations of Graham & Dodd");
     for (const lesson of lessons) {
       expect(findLesson(lesson.id)).toBe(lesson);
@@ -98,7 +98,7 @@ describe("curriculum integrity", () => {
     }
   });
   it("offers complete, uniquely identified exams and valid practice questions", () => {
-    expect(exams).toHaveLength(94);
+    expect(exams).toHaveLength(111);
     expect(new Set(exams.map((exam) => exam.id)).size).toBe(exams.length);
     for (const track of tracks) {
       expect(track.exams.filter((exam) => exam.kind === "final")).toHaveLength(
@@ -166,7 +166,7 @@ describe("curriculum integrity", () => {
     // The final's version is per course: it is bumped whenever the course grows
     // and the paper with it, so a draft against the old one is refused.
     for (const [slug, count, parts, version] of [
-      ["security-analysis", 24, 8, 2],
+      ["security-analysis", 31, 9, 3],
       ["statistical-foundations", 40, 14, 4],
     ] as const) {
       const track = tracks.find((item) => item.id === slug)!;

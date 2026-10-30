@@ -1,6 +1,6 @@
 # Real-world applications throughout the curriculum
 
-Every one of the 368 lessons has an original application connected to a practical case. The 15 courses use 35 shared case anchors: 11 documented events, 21 implementations based on primary documentation, and 3 explicitly fictional everyday scenarios. All 96 named units link to the cases their lessons use; the introductory course has lesson applications without a separate unit structure.
+Every one of the 425 lessons has an original application connected to a practical case. The 23 courses use 43 shared case anchors: 19 documented events, 21 implementations based on primary documentation, and 3 explicitly fictional everyday scenarios. All 117 named units link to the cases their lessons use; the introductory course has lesson applications without a separate unit structure.
 
 Learners can select **Explore the real-world case** at the top of a lesson, read the source context, attempt **Your task**, and expand **Compare your reasoning**. **Work through this case** opens a notebook prompt containing the task, source links, source scope, and assumptions. Saved work follows the existing notebook persistence flow. Case practice is optional additional work and does not change the listed lesson durations or assessment requirements.
 
@@ -12,7 +12,7 @@ The course overview lists its cases, and each unit links directly to a relevant 
 | --- | ---: | ---: | ---: |
 | Trading & market fundamentals | 8 | — | 6 |
 | The intelligent & careful investor | 16 | 4 | 7 |
-| Security Analysis | 24 | 8 | 6 |
+| Security Analysis | 31 | 9 | 12 |
 | Financial news to company & stock analysis | 24 | 6 | 12 |
 | Quantitative Investment Analysis | 28 | 14 | 15 |
 | Financial econometrics | 32 | 8 | 13 |
@@ -22,6 +22,14 @@ The course overview lists its cases, and each unit links directly to a relevant 
 | Web3, cryptography & coin creation | 24 | 6 | 7 |
 | Machine learning for stocks | 24 | 6 | 9 |
 | Algorithm evaluation & results reporting | 16 | 4 | 8 |
+| Forensic accounting & earnings quality | 6 | 2 | 5 |
+| Credit analysis & distressed securities | 6 | 2 | 4 |
+| Business quality, moats & capital allocation | 6 | 2 | 5 |
+| Analyzing banks & financial institutions | 6 | 2 | 3 |
+| Valuation under uncertainty | 6 | 2 | 6 |
+| Cyclicals, commodities & industrials | 6 | 2 | 6 |
+| Technology, platforms & intangibles | 6 | 2 | 5 |
+| Real-world security analysis casebook | 8 | 2 | 8 |
 
 Cases recur across lessons with different, individually authored tasks. For example, BCA's split connects share ownership, per-share earnings, historical return adjustment, bot account transitions, and ML data repair. Reusing the source event does not substitute one generic task for those distinct applications.
 

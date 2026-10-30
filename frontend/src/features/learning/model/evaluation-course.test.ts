@@ -6,7 +6,9 @@ const course = tracks.find((track) => track.id === "algorithm-evaluation")!;
 describe("final algorithm evaluation track", () => {
   it("closes the learning sequence after the algorithm and ML courses", () => {
     expect(tracks.at(-1)).toBe(course);
-    expect(tracks.at(-2)?.id).toBe("stock-machine-learning");
+    const ml = tracks.findIndex((track) => track.id === "stock-machine-learning");
+    expect(ml).toBeGreaterThan(-1);
+    expect(ml).toBeLessThan(tracks.indexOf(course));
     expect(course.modules[0].id).toBe("10.1");
     expect(course.modules.at(-1)?.id).toBe("10.16");
   });

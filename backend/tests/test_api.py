@@ -20,9 +20,9 @@ def signup(client):
 def test_health_content_and_validation(client):
     assert client.get("/api/v1/health").json()["status"] == "ok"
     catalog = client.get("/api/v1/courses").json()
-    assert len(catalog) == 15
+    assert len(catalog) == 23
     assert catalog[0]["id"] == "trading-fundamentals"
-    assert sum(len(c["modules"]) for c in catalog) == 368
+    assert sum(len(c["modules"]) for c in catalog) == 425
     news = next(course for course in catalog if course["id"] == "news-to-markets")
     lesson = client.get("/api/v1/courses/lessons/8.3").json()
     case = next(item for item in news["caseStudies"] if item["id"] == lesson["realWorld"]["caseId"])

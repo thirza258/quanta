@@ -13,7 +13,7 @@ def build_security_analysis():
 
     def add(id, part, title, objective, content, formula, code, task, solution, questions):
         reading = f"Graham & Dodd, Security Analysis, 1940 edition · Part {part}. Read the relevant discussion in your own copy, then apply it to this original case."
-        if part == "VIII":
+        if part in ("VIII", "IX"):
             reading = "Course extension · modern valuation and synthesis. These tools and the growth heuristic are not presented as methods from the 1940 text."
         modules.append(
             lesson(
@@ -2559,6 +2559,511 @@ To deliver your Capstone Investment Committee brief:
     )
 
     # -------------------------------------------------------------------------
+    # PART IX: ADVANCED FORENSIC AND VALUATION SYNTHESIS
+    # -------------------------------------------------------------------------
+
+    add(
+        "1.25",
+        "IX",
+        "Accrual forensics and cash conversion",
+        "Quantify the gap between reported profit and operating cash, and separate sustainable earnings from accrual-driven accounting results.",
+        r"""
+## The analytical question
+
+Accrual accounting records revenue when it is earned and expenses when they are incurred, not when cash changes hands. That convention can describe a business well, but it also gives management discretion over timing. When profit rises while operating cash flow lags, the analyst must ask whether the business is genuinely more profitable or merely booking more estimates.
+
+The basic diagnostic is **accruals**, the portion of reported profit not represented by operating cash flow:
+
+$$\text{Accruals} = \text{Net income} - \text{Operating cash flow}$$
+
+Scale accruals by average total assets so that companies of different sizes can be compared:
+
+$$\text{Accrual ratio} = \frac{\text{Net income} - \text{Operating cash flow}}{\text{Average total assets}}$$
+
+A second view is **cash conversion**, the share of each profit dollar that arrived as operating cash:
+
+$$\text{Cash conversion} = \frac{\text{Operating cash flow}}{\text{Net income}}$$
+
+A high accrual ratio and a cash conversion ratio materially below one are not proof of manipulation. They are reasons to inspect receivables, inventory, contract assets, payables, and nonrecurring items. The same tests should be repeated across several years; a single year can be distorted by seasonality or a large contract.
+
+## A worked example
+
+A distributor reports net income of $120 million, operating cash flow of $70 million, and average total assets of $1,000 million. Its accrual ratio is:
+
+$$\frac{120-70}{1{,}000}=5.0\%$$
+
+Cash conversion is $70 / 120 = 58.3\%$, meaning only about 58 cents of operating cash arrived for each dollar of reported profit. The remaining $50 million sits in accruals.
+
+The analyst then decomposes the balance-sheet change. Suppose receivables rose $30 million faster than revenue, inventory rose $15 million, and payables contributed $5 million. Those items explain the direction of the gap but not yet whether it is benign. A distributor extending terms to win a large new customer might show the same pattern temporarily. A distributor stuffing inventory into a weakening channel, or recognizing revenue on shipments its customers may return, would show it persistently.
+
+The evidence file should therefore record three things separately: the reported accrual ratio, the specific balance-sheet accounts that moved, and the assumption about whether those balances will convert into cash. If the company's five-year accrual ratio is consistently above its industry and cash conversion keeps falling, the analyst lowers the sustainable earnings estimate rather than capitalizing the reported profit.
+
+## Research discipline
+
+1. **Reconcile the cash-flow statement to the income statement** before computing a ratio. Reclassifications and discontinued operations can otherwise create a false gap.
+2. **Use average assets, not year-end assets**, when the balance sheet changed materially during the year.
+3. **Inspect the composition of accruals.** Receivable growth, inventory build, and capitalized costs carry different risks. A single ratio cannot distinguish them.
+4. **Test persistence.** One year is an observation; a multi-year pattern is evidence. Compare the company with its own history and with a relevant peer group.
+""",
+        r"\text{Accrual ratio}=\frac{\text{NI}-\text{CFO}}{\text{Avg assets}};\quad \text{Cash conversion}=\frac{\text{CFO}}{\text{NI}}",
+        'net_income = 120\ncfo = 70\nassets = 1000\naccruals = net_income - cfo\nprint("Accruals:", accruals)\nprint("Accrual ratio (%):", round(accruals / assets * 100, 1))\nprint("Cash conversion (%):", round(cfo / net_income * 100, 1))',
+        "A company reports net income of $90 million, operating cash flow of $45 million, and average total assets of $900 million. Calculate accruals, the accrual ratio, and cash conversion. State one account you would inspect first and why.",
+        "Accruals are $90M − $45M = $45M. The accrual ratio is 45 / 900 = 5.0%. Cash conversion is 45 / 90 = 50.0%. Inspect receivables or contract assets first if revenue grew, because they show whether profit was recognized before cash collection. Inventory is the next candidate when sales are slowing.",
+        [
+            q(
+                "Net income is 80 and operating cash flow is 60. Accruals are:",
+                ["20", "60", "140"],
+                0,
+                "Accruals equal net income minus operating cash flow: 80 − 60 = 20.",
+            ),
+            q(
+                "Which pattern most clearly calls for deeper forensic work?",
+                [
+                    "Rising profit with falling cash conversion across several years",
+                    "Stable profit and stable cash conversion",
+                    "A one-year cash outflow from a known inventory build",
+                ],
+                0,
+                "A persistent divergence between profit and cash is stronger evidence than a single explained outflow.",
+            ),
+            q(
+                "A company has net income of 150, operating cash flow of 90, and average assets of 1,200. Its accrual ratio is:",
+                ["2.5%", "5.0%", "60.0%"],
+                1,
+                "Accruals are 150 − 90 = 60; 60 / 1,200 = 5.0%. Cash conversion is a separate 60% measure.",
+            ),
+        ],
+    )
+
+    add(
+        "1.26",
+        "IX",
+        "Manipulation screens and model risk",
+        "Use the Beneish M-score as a screening aid, understand its inputs, and state the limits of a statistical manipulation model.",
+        r"""
+## The analytical question
+
+A manipulation screen combines several accounting signals into one score. Messod Beneish's eight-variable model is one of the best-known examples. It compares a company's current accounting ratios with its own prior-year ratios and produces an M-score; lower values are generally less suggestive of earnings manipulation.
+
+$$M=-4.84+0.92\,\text{DSRI}+0.528\,\text{GMI}+0.404\,\text{AQI}+0.892\,\text{SGI}+0.115\,\text{DEPI}-0.172\,\text{SGAI}+4.679\,\text{TATA}-0.327\,\text{LGVI}$$
+
+The inputs capture different pressures:
+
+| Variable | What it compares | Why it matters |
+| :--- | :--- | :--- |
+| DSRI | Days sales in receivables, current vs prior | Revenue recognized faster than cash collection |
+| GMI | Gross margin, prior vs current | Margin deterioration can create pressure to manage earnings |
+| AQI | Asset quality, current vs prior | More soft or non-current assets can signal capitalization |
+| SGI | Sales growth, current vs prior | High growth raises both opportunity and pressure |
+| DEPI | Depreciation rate, prior vs current | Slower depreciation raises reported profit |
+| SGAI | SG&A intensity, current vs prior | Falling overhead may reflect cuts that impair future growth |
+| TATA | Total accruals to total assets | The accrual diagnostic from the previous lesson |
+| LVGI | Leverage, current vs prior | Rising debt can create covenant pressure |
+
+A common screening threshold is an M-score above **−1.78**. The threshold is a prompt for investigation, not a verdict.
+
+## A worked example
+
+Suppose a company has DSRI = 1.10, GMI = 1.05, AQI = 1.02, SGI = 1.15, DEPI = 1.00, SGAI = 1.00, TATA = 0.04, and LVGI = 1.00. Substituting:
+
+$$M=-4.84+0.92(1.10)+0.528(1.05)+0.404(1.02)+0.892(1.15)+0.115(1.00)-0.172(1.00)+4.679(0.04)-0.327(1.00)$$
+
+The sum is approximately **−2.03**, below the threshold, so the screen does not flag the company. If TATA rises to 0.10 while the other inputs stay unchanged, the score rises to approximately **−1.75**, above the threshold. The entire change came from accruals, which is exactly the kind of lead an analyst should investigate.
+
+The model's weaknesses matter. It was estimated on a particular historical sample and industry mix. It produces false positives for fast-growing firms with legitimate working-capital needs, and false negatives for manipulators whose ratios remain inside the model's range. It uses reported data, so a fraud that also falsifies the underlying accounts can pass.
+
+## Research discipline
+
+1. **Compute the inputs yourself** from filings rather than relying on a data vendor's score. Record the period and units.
+2. **Treat the score as a triage tool.** A flag means read the footnotes, reconcile receivables, and inspect accruals; it does not establish fraud.
+3. **Compare within an industry and a size band.** A retailer's working-capital pattern should not be judged against a software company's.
+4. **Document the threshold and the model version** in the research file so another analyst can reproduce the screen.
+""",
+        r"M=-4.84+0.92D+0.528G+0.404A+0.892S+0.115P-0.172E+4.679T-0.327L",
+        'dsri = 1.10\ngmi = 1.05\naqi = 1.02\nsgi = 1.15\ndepi = 1.00\nsgai = 1.00\ntata = 0.10\nlvgi = 1.00\nm = -4.84 + 0.92*dsri + 0.528*gmi + 0.404*aqi + 0.892*sgi + 0.115*depi - 0.172*sgai + 4.679*tata - 0.327*lvgi\nprint("M-score:", round(m, 2))\nprint("Above threshold:", m > -1.78)',
+        "Using DSRI 1.20, GMI 1.00, AQI 1.10, SGI 1.30, DEPI 1.00, SGAI 1.00, TATA 0.06, and LVGI 1.10, calculate the M-score and state the screening conclusion. Then name one reason the result could be a false positive.",
+        "The score is approximately −1.74, just above the −1.78 threshold, so the screen flags the company. A fast-growing firm can legitimately show high sales growth, receivables growth, and accruals while expanding into new customers; that is a common false-positive path. The next step is to reconcile receivables and inspect revenue recognition, not to conclude fraud.",
+        [
+            q(
+                "In the Beneish model, which input directly measures accruals relative to assets?",
+                ["DSRI", "TATA", "LVGI"],
+                1,
+                "TATA is total accruals to total assets; DSRI concerns receivables and LVGI concerns leverage.",
+            ),
+            q(
+                "An M-score above the threshold should be interpreted as:",
+                [
+                    "Proof that management committed fraud",
+                    "A reason to investigate specific accounting accounts",
+                    "A guarantee that future earnings will fall",
+                ],
+                1,
+                "The model is a screening aid with false positives and false negatives; it prompts evidence gathering.",
+            ),
+            q(
+                "A company's M-score is −2.30. Under the −1.78 convention, the screen suggests:",
+                ["A flag requiring investigation", "No flag, though other evidence may still matter", "Guaranteed manipulation"],
+                1,
+                "A score below the threshold does not flag the company under this convention, but the model is not a clean bill of health.",
+            ),
+        ],
+    )
+
+    add(
+        "1.27",
+        "IX",
+        "Hidden liabilities and off-balance-sheet claims",
+        "Adjust reported debt for leases, guarantees, pension deficits, and contingent claims before judging solvency.",
+        r"""
+## The analytical question
+
+A balance sheet reports liabilities that accounting rules recognize, but an analyst cares about obligations the business must actually fund. Operating leases, purchase commitments, guarantees, underfunded pensions, litigation, and special-purpose entities can all consume cash without appearing as conventional debt. Comparing an issuer's reported leverage with a peer's can therefore be misleading.
+
+Build an **adjusted debt** figure:
+
+$$\text{Adjusted debt} = \text{Reported debt} + \text{Lease liabilities} + \text{Guarantees} + \text{Pension deficit} + \text{Other probable claims}$$
+
+Then compare it with a measure of recurring cash earnings:
+
+$$\text{Adjusted leverage} = \frac{\text{Adjusted debt}}{\text{Recurring EBITDA}}$$
+
+The adjustment should be explicit and consistent. A lease is not identical to a bond: it can be renegotiated, and its timing may differ. A guarantee may never be called. The purpose is not to pretend every contingent claim is certain, but to stop the analyst from treating a legally real obligation as if it did not exist.
+
+## A worked example
+
+A manufacturer reports debt of $60 million. Its notes disclose lease liabilities with a present value of $20 million, a guarantee of a supplier's borrowings of $10 million, and a pension deficit of $5 million. Adjusted debt is:
+
+$$60+20+10+5=\$95\text{ million}$$
+
+Recurring EBITDA is $40 million. Reported leverage is $60 / 40 = 1.5×$, while adjusted leverage is $95 / 40 = 2.375×$. The gap is large enough to change the conclusion of a credit screen that treats 2× as a ceiling.
+
+The analyst should then classify the claims. The lease is a contractual payment stream and belongs in the base case. The guarantee is contingent; it belongs in a stress case unless the supplier is already distressed. The pension deficit depends on discount rates and asset returns. A disciplined file shows reported leverage, adjusted base-case leverage, and stressed leverage separately, with each item's source and maturity.
+
+## Research discipline
+
+1. **Read the lease, guarantee, pension, and contingency notes**, not only the face of the balance sheet.
+2. **Trace special-purpose entities** and other structured vehicles. Ask who bears the loss if the vehicle's assets fall short.
+3. **Match the adjustment to the maturity profile.** A pension deficit payable over decades is not the same liquidity burden as a bond maturing next year.
+4. **Apply the same definition across peers** and disclose every adjustment so the comparison is reproducible.
+""",
+        r"\text{Adj. debt}=\text{Debt}+\text{Leases}+\text{Guarantees}+\text{Pension deficit}+\text{Other claims}",
+        'debt = 60\nleases = 20\nguarantees = 10\npension = 5\nebitda = 40\nadjusted = debt + leases + guarantees + pension\nprint("Reported leverage:", debt / ebitda)\nprint("Adjusted debt:", adjusted)\nprint("Adjusted leverage:", adjusted / ebitda)',
+        "A company reports debt of $80 million, leases of $30 million, guarantees of $15 million, an underfunded pension of $5 million, and recurring EBITDA of $50 million. Calculate reported and adjusted leverage. Which claim would you stress separately, and why?",
+        "Adjusted debt is 80 + 30 + 15 + 5 = $130M. Reported leverage is 80 / 50 = 1.6×; adjusted leverage is 130 / 50 = 2.6×. Stress the guarantee separately because it is contingent: it may never be called, but it could become a real claim if the guaranteed party fails. The lease is a contractual stream and normally belongs in the base case.",
+        [
+            q(
+                "Which item is an off-balance-sheet claim that an analyst should consider adding to adjusted debt?",
+                ["A trade payable due next month", "A guarantee of another company's borrowings", "A prepaid insurance premium"],
+                1,
+                "A guarantee is a contingent obligation that may become a claim; trade payables are already recognized and prepaid insurance is an asset.",
+            ),
+            q(
+                "Reported debt is 60, adjusted debt is 90, and EBITDA is 30. Adjusted leverage is:",
+                ["2.0×", "3.0×", "5.0×"],
+                1,
+                "90 / 30 = 3.0×; the unadjusted ratio would be 2.0×.",
+            ),
+            q(
+                "Why should an analyst show reported, adjusted, and stressed leverage separately?",
+                [
+                    "To make every company look equally risky",
+                    "To distinguish contractual, contingent, and downside claims instead of hiding the judgment in one number",
+                    "Because accounting rules require three ratios",
+                ],
+                1,
+                "Separating the cases shows which obligations are certain, which are contingent, and how the conclusion changes under stress.",
+            ),
+        ],
+    )
+
+    add(
+        "1.28",
+        "IX",
+        "Segment, customer, and concentration analysis",
+        "Measure concentration and test whether reported group margins hide a fragile mix of segments, customers, or geographies.",
+        r"""
+## The analytical question
+
+Consolidated revenue and margin can conceal very different businesses. A group may report a healthy average margin while one segment earns most of the profit and another is loss-making. A single customer may account for a third of sales. A currency or a regulator may dominate the cash flows. The analyst's task is to separate the sources of value and the sources of risk.
+
+A simple concentration measure is the **Herfindahl-Hirschman Index** applied to revenue shares:
+
+$$\text{HHI}=\sum_{i=1}^{n}s_i^2$$
+
+where $s_i$ is the share of total revenue from segment or customer $i$. A firm with four equal segments has HHI $=4(0.25^2)=0.25$. A firm with one segment at 70% has HHI at least $0.49$. Higher values mean more concentration, but the measure says nothing about the quality of the concentrated relationship.
+
+The analyst should also compute **segment contribution margin** and **customer concentration** separately. A segment with high revenue but low or negative margin can dilute group profitability; a customer with high revenue but weak bargaining power can compress margins when the contract renews.
+
+## A worked example
+
+A group reports revenue of $100 million across three segments: A $50M, B $30M, and C $20M. The HHI is:
+
+$$0.50^2+0.30^2+0.20^2=0.25+0.09+0.04=0.38$$
+
+The group also discloses that its largest customer represents 35% of revenue. Group operating margin is 12%, but segment A earns 20%, segment B earns 8%, and segment C loses 5%.
+
+The analyst reconstructs segment profit: A contributes $10M, B contributes $2.4M, and C subtracts $1.0M, for $11.4M before unallocated costs. The headline margin is not wrong, but it is not a stable description of the whole group. If customer A, which buys mostly from segment A, renegotiates a 5% price cut, revenue falls $2.5M and, at the segment's incremental margin, profit can fall by much more than the group average suggests.
+
+The file should record the concentration measure, the segment margins, the customer disclosure, and a stressed case in which the largest customer or segment deteriorates. A diversified group is not automatically safer if its diversification is only in low-margin activities.
+
+## Research discipline
+
+1. **Use the segment note**, not a management presentation's adjusted view. Reconcile segment profit to consolidated profit.
+2. **Distinguish revenue concentration from profit concentration.** The segment that matters for value may be smaller by sales.
+3. **Read customer-concentration disclosures** and contract terms. A large customer can be an asset or a source of pricing pressure.
+4. **Stress the concentrated unit.** Ask what happens to group value if the largest segment's margin normalizes or its customer leaves.
+""",
+        r"\text{HHI}=\sum_i s_i^2;\quad \text{Segment margin}=\frac{\text{Segment profit}}{\text{Segment revenue}}",
+        'segment_a = 50\nsegment_b = 30\nsegment_c = 20\ntotal = segment_a + segment_b + segment_c\nhhi = (segment_a/total)**2 + (segment_b/total)**2 + (segment_c/total)**2\nprint("Total revenue:", total)\nprint("HHI:", round(hhi, 2))\nprint("Largest segment share (%):", round(segment_a/total*100, 1))',
+        "A company reports segments of $40M, $30M, $20M, and $10M. Calculate the HHI and the largest-segment share. Then explain why a 10% group operating margin could still hide a segment with a negative margin.",
+        "The shares are 0.40, 0.30, 0.20, and 0.10. The HHI is 0.16 + 0.09 + 0.04 + 0.01 = 0.30. The largest segment is 40% of revenue. A 10% group margin is an average: one segment can lose money while another earns well above 10%. The analyst must reconstruct segment profit to see which part of the group supports the valuation and which part consumes capital.",
+        [
+            q(
+                "Four equal segments produce an HHI of:",
+                ["0.25", "0.40", "1.00"],
+                0,
+                "Each share is 0.25; four squared shares sum to 4 × 0.0625 = 0.25.",
+            ),
+            q(
+                "A group's largest customer is 40% of revenue. The most relevant next question is:",
+                [
+                    "Whether the customer's logo is well known",
+                    "How much profit the customer contributes and what happens at renewal",
+                    "Whether the group has more than one product",
+                ],
+                1,
+                "Concentration matters through profit and bargaining power, not through brand recognition.",
+            ),
+            q(
+                "Segment shares are 0.5, 0.3, and 0.2. The HHI is:",
+                ["0.38", "0.50", "0.62"],
+                0,
+                "0.25 + 0.09 + 0.04 = 0.38.",
+            ),
+        ],
+    )
+
+    add(
+        "1.29",
+        "IX",
+        "Cyclical normalization and mid-cycle earnings",
+        "Normalize earnings across a full cycle so that a peak-year multiple does not masquerade as a cheap valuation.",
+        r"""
+## The analytical question
+
+Cyclical companies earn very different profits at different points in the cycle. Capitalizing peak earnings at a low multiple can make an expensive stock look cheap; capitalizing trough earnings can make a sound company look distressed. The analyst needs a **mid-cycle** estimate that reflects the business's through-cycle economics.
+
+One practical approach is to average margins over a full cycle, then apply the average to a normalized revenue base:
+
+$$\text{Normalized EBIT} = \overline{m}_{\text{cycle}} \times \text{Normalized revenue}$$
+
+$$\overline{m}_{\text{cycle}} = \frac{1}{n}\sum_{t=1}^{n} m_t$$
+
+The cycle should include at least one downturn and one recovery. A five-year window is common for industrials; commodity producers may need a longer period. The normalized revenue base should reflect capacity and market share, not the single best year.
+
+The same logic applies to returns on capital. A company that earns 25% ROIC at the top of the cycle may earn 6% at the bottom. Valuation should use a return that the business can sustain, not the peak print.
+
+## A worked example
+
+An industrial company reports EBIT margins of −2%, 4%, 8%, 10%, and 6% over five years. The average margin is:
+
+$$\frac{-2+4+8+10+6}{5}=5.2\%$$
+
+Normalized revenue, based on recent capacity and a mid-cycle volume assumption, is $500 million. Normalized EBIT is $500M × 5.2% = $26 million.
+
+The current year is a peak year: revenue is $550M and the margin is 10%, producing $55M of EBIT. Valuing the company at 8× current EBIT gives an enterprise value of $440M. Valuing it at 8× normalized EBIT gives $208M. The difference is the cyclical illusion: the market may be capitalizing peak earnings, or the analyst may be using a trough multiple. Either way, the comparison must use a consistent basis.
+
+The analyst should present peak, mid-cycle, and trough values. A margin of safety based only on the peak case is not a margin of safety; it is a bet that the cycle stays at its top.
+
+## Research discipline
+
+1. **Choose the cycle explicitly.** State the years, the demand driver, and why the window includes a downturn.
+2. **Normalize revenue and margin separately.** Mixing peak revenue with trough margin produces a number that never occurred.
+3. **Check capacity and inflation.** A nominal revenue base from ten years ago may need adjustment before it is compared with today's costs.
+4. **Value the same business on peak, mid-cycle, and trough earnings** and explain which case anchors the purchase price.
+""",
+        r"\overline{m}_{\text{cycle}}=\frac{1}{n}\sum_t m_t;\quad \text{Normalized EBIT}=\overline{m}_{\text{cycle}}\times\text{Normalized revenue}",
+        'margins = [-0.02, 0.04, 0.08, 0.10, 0.06]\nnormalized_revenue = 500\navg_margin = sum(margins) / len(margins)\nprint("Average cycle margin (%):", round(avg_margin * 100, 1))\nprint("Normalized EBIT:", round(avg_margin * normalized_revenue, 1))\nprint("Peak EBIT at 10% on 550:", 0.10 * 550)',
+        "A cyclical company reports margins of 2%, 5%, 7%, 9%, and 12% over five years. Normalized revenue is $400 million. Calculate the average cycle margin and normalized EBIT, then explain why valuing the company on the 12% peak year would overstate its sustainable earning power.",
+        "The average margin is (2 + 5 + 7 + 9 + 12) / 5 = 7.0%. Normalized EBIT is 7% × $400M = $28M. The 12% year produces $48M of EBIT, almost 71% more. Capitalizing the peak year assumes the best point of the cycle is permanent, which overstates value and understates the risk of a downturn.",
+        [
+            q(
+                "Five annual EBIT margins are 2%, 4%, 6%, 8%, and 10%. The average is:",
+                ["6%", "8%", "10%"],
+                0,
+                "The sum is 30%, divided by five years, giving 6%.",
+            ),
+            q(
+                "Why is a peak-year EBIT multiple potentially misleading?",
+                [
+                    "Peak earnings may not be sustainable through the cycle",
+                    "Peak earnings are always fraudulent",
+                    "Multiples cannot be applied to industrials",
+                ],
+                0,
+                "The multiple may look low because the denominator is temporarily high; normalized earnings are a better anchor.",
+            ),
+            q(
+                "Average cycle margin is 5% and normalized revenue is 600. Normalized EBIT is:",
+                ["30", "60", "120"],
+                0,
+                "0.05 × 600 = 30, so normalized EBIT is $30M.",
+            ),
+        ],
+    )
+
+    add(
+        "1.30",
+        "IX",
+        "Real options, dilution, and contingent claims",
+        "Value the claims that sit between debt and common equity, and calculate diluted per-share value under the treasury-stock and if-converted methods.",
+        r"""
+## The analytical question
+
+A common-equity valuation is a residual claim, but the number of shares entitled to that residual is not always the basic share count. Options, warrants, convertibles, and contingent issuance can transfer value from existing owners. The analyst must model the **fully diluted** claim and the conditions under which additional shares appear.
+
+Under the **treasury-stock method**, options are assumed exercised and the proceeds are used to repurchase shares at the current price:
+
+$$\text{Net new shares}=\text{Options}-\frac{\text{Options}\times\text{Strike}}{\text{Share price}}$$
+
+For a convertible bond, the **if-converted** method adds the shares issuable on conversion and removes the after-tax interest expense from earnings:
+
+$$\text{Diluted EPS}=\frac{\text{Net income}+\text{After-tax interest on convertibles}}{\text{Basic shares}+\text{Shares from conversion}}$$
+
+These are accounting conventions, not necessarily the economic value of the claims. A convertible is a hybrid: it participates in upside while retaining a bond's downside claim. A real-options view treats the conversion feature as a call option on the business, but the analyst still needs a per-share bridge that shows who owns what.
+
+## A worked example
+
+A company has 100 million basic shares. It has 10 million options with a $20 strike, and the share price is $40. The treasury-stock method gives:
+
+$$\text{Net new shares}=10-\frac{10\times20}{40}=10-5=5\text{ million}$$
+
+Diluted shares are 105 million. If the company also has a $50 million convertible bond paying 4% interest, convertible into 2 million shares, and the tax rate is 25%, the if-converted calculation adds $1.5 million of after-tax interest and 2 million shares. Assuming net income of $120 million:
+
+$$\text{Diluted EPS}=\frac{120+1.5}{105+2}=\frac{121.5}{107}\approx\$1.136$$
+
+The basic EPS is $1.20. The difference is not merely arithmetic; it is value transferred to option and convertible holders. A valuation that ignores dilution can overpay for the common shares.
+
+## Research discipline
+
+1. **Read the equity-compensation and convertible notes.** Record strikes, vesting, conversion ratios, and anti-dilution terms.
+2. **Use the treasury-stock method for options** and the if-converted method for convertibles, then disclose both basic and diluted figures.
+3. **Test the in-the-money condition.** Options and convertibles can move in and out of the money as the share price changes; dilution is state-dependent.
+4. **Include contingent issuance** such as earn-outs or performance shares in a scenario, not as a certainty.
+""",
+        r"\text{Net new shares}=N_o-\frac{N_o K}{P};\quad \text{Diluted EPS}=\frac{\text{NI}+\text{AT interest}}{N_b+N_c}",
+        'basic = 100\noptions = 10\nstrike = 20\nprice = 40\nnet_new = options - options * strike / price\nprint("Diluted shares:", basic + net_new)\nnet_income = 120\nconvert_interest = 50 * 0.04 * (1 - 0.25)\nprint("Diluted EPS:", round((net_income + convert_interest) / (basic + net_new + 2), 3))',
+        "A company has 200 million basic shares, 20 million options with a $25 strike, and a $50 share price. Calculate diluted shares under the treasury-stock method. Then explain why a convertible bond's dilution depends on the share price.",
+        "Proceeds are 20M × $25 = $500M; at $50 per share, the company can repurchase 10M shares. Net new shares are 20M − 10M = 10M, so diluted shares are 210M. A convertible's dilution depends on the share price because conversion is optional: holders convert when the conversion value exceeds the bond's value, so the shares appear only in the states where the equity is valuable.",
+        [
+            q(
+                "Basic shares are 100, options are 10 at a 20 strike, and the price is 40. Treasury-stock diluted shares are:",
+                ["105", "110", "115"],
+                0,
+                "Net new shares are 10 − (10 × 20 / 40) = 5; diluted shares are 105.",
+            ),
+            q(
+                "The if-converted method for a convertible bond generally:",
+                [
+                    "Adds the conversion shares and adds back after-tax interest",
+                    "Ignores the bond entirely",
+                    "Subtracts the conversion shares",
+                ],
+                0,
+                "It treats the bond as if converted, adding shares and removing the interest expense.",
+            ),
+            q(
+                "Basic shares are 50, options are 5 at a 10 strike, and the price is 20. Net new shares are:",
+                ["2.5", "5", "7.5"],
+                0,
+                "5 − (5 × 10 / 20) = 5 − 2.5 = 2.5 million net new shares.",
+            ),
+        ],
+    )
+
+    add(
+        "1.31",
+        "IX",
+        "Capstone: advanced red-team investment committee",
+        "Reconcile scenario values, dilution, hidden claims, and accounting quality into a red-team memo with an explicit decision rule.",
+        r"""
+## The analytical question
+
+The classical capstone asked whether one conservative valuation supported a purchase. The advanced capstone adds the questions a red team should ask before capital is committed:
+
+1. **Is the earnings base clean?** Have accruals, nonrecurring items, and hidden claims been reconciled?
+2. **Is the valuation internally consistent?** Are the cash flows, discount rate, and share count describing the same claim?
+3. **What would have to be true for the thesis to fail?** Which observable event would falsify it?
+4. **Does the price compensate for the range of outcomes**, not merely the base case?
+
+A useful synthesis is a probability-weighted value beside a strict downside price ceiling:
+
+$$V_{\text{expected}}=\sum_j p_j V_j,\qquad \sum_j p_j=1$$
+
+$$P_{\max}=V_{\text{bear}}\times(1-M_{\text{required}})$$
+
+The expected value answers "what is a fair bet?" The downside ceiling answers "what price protects me if the bear case is the one that happens?" A disciplined committee uses both and explains when they disagree.
+
+## A worked example
+
+An advanced manufacturing company has 10 million diluted shares and net debt of $30 million. The team builds three operating cases:
+
+| Case | Free cash flow | EV multiple | Enterprise value | Equity value | Per share |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| Bear | $8M | 10× | $80M | $50M | $5.00 |
+| Base | $12M | 12× | $144M | $114M | $11.40 |
+| Bull | $16M | 14× | $224M | $194M | $19.40 |
+
+Assign probabilities of 30%, 50%, and 20%. Expected equity value per share is:
+
+$$0.30(5.00)+0.50(11.40)+0.20(19.40)=1.50+5.70+3.88=\$11.08$$
+
+The market price is $9.00. The stock trades at an 18.8% discount to expected value, which may look attractive. But the bear-case value is $5.00, and a 30% margin of safety against that case gives a maximum price of $3.50. At $9.00, the investor is paying a large premium to the downside value and relying on the base and bull cases.
+
+The committee's decision rule matters. A mandate that prioritizes capital preservation rejects the purchase at $9.00 and places the company on a watchlist with a review trigger: either the price falls toward $3.50 or the bear-case cash flow improves with evidence. A mandate that explicitly accepts probability-weighted risk might buy a small position, but it must disclose that the downside case is not protected by the price.
+
+## Research discipline
+
+1. **Use the same share count and net-debt bridge in every scenario.** A valuation that changes the balance sheet between cases is not comparable.
+2. **Separate operating uncertainty from financing claims.** Hidden liabilities, dilution, and pension deficits belong in every case.
+3. **Pre-register the falsification triggers.** Identify the specific filing, margin, or cash-flow observation that would move the bear case.
+4. **Write the memo for a dissenting reader.** State the strongest counterargument and why the decision still holds, or change the decision.
+""",
+        r"V_{\text{expected}}=\sum_j p_jV_j;\quad P_{\max}=V_{\text{bear}}(1-M_{\text{required}})",
+        'bear = 5.00\nbase = 11.40\nbull = 19.40\nexpected = 0.30*bear + 0.50*base + 0.20*bull\nprice = 9.00\nprint("Expected value per share:", round(expected, 2))\nprint("Discount to expected (%):", round((1 - price/expected)*100, 1))\nprint("Bear-case price ceiling:", round(bear*0.70, 2))',
+        "A company has 8 million diluted shares and $20 million of net debt. Bear, base, and bull free cash flows are $6M, $10M, and $14M; the EV multiples are 10×, 12×, and 14×; the probabilities are 25%, 50%, and 25%. Calculate each per-share value, the expected value, and the bear-case price ceiling at a 30% margin of safety.",
+        "Bear: EV $60M − $20M = $40M, or $5.00 per share. Base: $120M − $20M = $100M, or $12.50. Bull: $196M − $20M = $176M, or $22.00. Expected value is 0.25(5.00) + 0.50(12.50) + 0.25(22.00) = $13.00. The bear-case ceiling is $5.00 × 0.70 = $3.50. The gap between expected value and the downside ceiling is the central committee debate.",
+        [
+            q(
+                "Why does the advanced capstone report both expected value and a bear-case price ceiling?",
+                [
+                    "They answer different questions: a fair probability-weighted value and a capital-preservation limit",
+                    "They must always be equal",
+                    "The ceiling replaces the need for scenarios",
+                ],
+                0,
+                "Expected value describes a bet; the downside ceiling describes protection if the bear case occurs.",
+            ),
+            q(
+                "Bear value is $6.00 and the required margin of safety is 25%. The maximum price is:",
+                ["$4.50", "$6.00", "$7.50"],
+                0,
+                "6.00 × (1 − 0.25) = $4.50.",
+            ),
+            q(
+                "A memo's bull case depends on a customer contract that has not been signed. The most appropriate treatment is:",
+                [
+                    "Include it in the base case as certain",
+                    "Put it in a scenario with an explicit probability and a falsification trigger",
+                    "Ignore every scenario and use the current price",
+                ],
+                1,
+                "An unsigned contract is a contingent outcome; scenario weight and a review trigger make the assumption auditable.",
+            ),
+        ],
+    )
+
+    # -------------------------------------------------------------------------
     # CHECKPOINTS
     # -------------------------------------------------------------------------
 
@@ -2794,8 +3299,14 @@ To deliver your Capstone Investment Committee brief:
                         "Modern bridges and capstone",
                         "Separate extensions, model critique, and an original committee case",
                     ),
+                    (
+                        "IX",
+                        "Advanced forensic and valuation synthesis",
+                        "Accrual forensics, manipulation screens, hidden claims, concentration, cyclical normalization, dilution, and a red-team capstone",
+                    ),
                 ]
             ],
         },
         checkpoints,
+        version=3,
     )
