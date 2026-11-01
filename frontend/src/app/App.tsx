@@ -31,6 +31,7 @@ const VerifyCertificate = lazy(
 const TradingSimulator = lazy(
   () => import("@/features/simulator/pages/TradingSimulator"),
 );
+const LegalPage = lazy(() => import("@/features/legal/LegalPage"));
 export default function App() {
   return (
     <BrowserRouter>
@@ -64,6 +65,8 @@ export default function App() {
               <Route path="library" element={<Library />} />
               <Route path="resources" element={<Resources />} />
               <Route path="methodology" element={<Library />} />
+              <Route path="privacy" element={<LegalPage />} />
+              <Route path="terms" element={<LegalPage />} />
               <Route
                 path="*"
                 element={

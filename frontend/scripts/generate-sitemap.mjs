@@ -34,6 +34,8 @@ const urls = [
   { loc: `${baseUrl}/library`, changefreq: "monthly", priority: "0.7" },
   { loc: `${baseUrl}/resources`, changefreq: "monthly", priority: "0.7" },
   { loc: `${baseUrl}/methodology`, changefreq: "monthly", priority: "0.7" },
+  { loc: `${baseUrl}/privacy`, changefreq: "monthly", priority: "0.5" },
+  { loc: `${baseUrl}/terms`, changefreq: "monthly", priority: "0.5" },
 ];
 
 for (const track of tracks) {
