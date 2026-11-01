@@ -2974,3 +2974,16 @@ Add **The intelligent & careful investor** immediately before Security Analysis,
 Expand **Strategy Lab** from four short modules to 32 lessons across eight units (16 hours), 64 practice questions, eight checkpoints and a 32-question final. Cover research specifications, data availability/revisions, historical-universe and action policies, value/quality screens, momentum/reversal, pairs/cointegration, ML signals/nested validation, portfolio sizing/covariance, turnover/capacity, accounting, chronological selection, uncertainty, stress and a research dossier. Preserve subjects and first-practice keys for `4.1`–`4.4`, add `4.5`–`4.32`, and increase the expanded final to version 2 while retaining historical attempts.
 
 Provide a runnable offline standard-library Python project with an original synthetic multi-asset fixture. Implement equal-weight, value-quality and momentum candidates; available-filings selection; next-open fills; costs; whole-share/cash/prior-volume constraints; auditable signals/trades/positions; validation-only candidate selection; a later frozen test and cost/liquidity stresses. Export aligned net valuations and a manifest accepted by the final Algorithm Evaluation reporting project. Include independent arithmetic, causality, malformed-input and selection-boundary tests. Document reset boundaries, target-cap drift, benchmark conventions, synthetic evidence and every omitted execution feature. Pairs/short borrowing, trained ML, actions, impact and live market adapters remain explicit extension work rather than implied capabilities.
+
+---
+
+## 7. Autonomous Agent Readiness, Machine Discovery & Monetization Architecture
+
+### 7.1 Autonomous Agent Readiness & Machine-Readable Discovery
+* **Agent Readiness Discovery (ARD):** Exposes `/.well-known/ard.json` cataloging available computational finance curricula, backtesting APIs, and simulation tools for autonomous agents.
+* **Poppy Manifest & LLMs Context:** Publishes `/poppy.json`, `/llms.txt`, and `/llms-full.txt` providing high-density theoretical summaries and API reference documents for LLM coding agents.
+* **Markdown Content Negotiation:** Returns structured, token-efficient Markdown representations on `Accept: text/markdown` request headers across all lecture and code analysis endpoints.
+
+### 7.2 Multi-Tier Monetization & Free-Tier Resilience
+* **Ad Network Integration:** Integrated Monetag banner container scripts, verification tags, and Google AdSense ad units backed by an authoritative `ads.txt` and rigid Content Security Policy (CSP).
+* **Shuffled OpenRouter Free Model Fallback:** Automatic zero-cost fallback rotating across free OpenRouter models (Gemini Flash, Llama 3) whenever API balance is exhausted, ensuring continuous AI-assisted code evaluation.
