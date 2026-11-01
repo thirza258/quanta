@@ -124,12 +124,17 @@ export default function Sidebar({
           <span>THE QUANTA APPROACH</span>
         </div>
         {!collapsed && (
-          <div style={{ padding: "0.5rem 0.25rem 0", fontSize: "0.75rem", display: "flex", gap: "0.5rem", color: "var(--text-muted, #888)" }}>
-            <NavLink to="/privacy" onClick={onClose} style={{ color: "inherit", textDecoration: "none" }}>Privacy</NavLink>
-            <span>•</span>
-            <NavLink to="/terms" onClick={onClose} style={{ color: "inherit", textDecoration: "none" }}>Terms</NavLink>
-            <span>•</span>
-            <span>Self-Hosted</span>
+          <div style={{ padding: "0.5rem 0.25rem 0", fontSize: "0.75rem", color: "var(--text-muted, #888)", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <NavLink to="/privacy" onClick={onClose} style={{ color: "inherit", textDecoration: "none" }}>Privacy</NavLink>
+              <span>•</span>
+              <NavLink to="/terms" onClick={onClose} style={{ color: "inherit", textDecoration: "none" }}>Terms</NavLink>
+              <span>•</span>
+              <span>Self-Hosted</span>
+            </div>
+            <div style={{ fontSize: "0.6875rem", color: "var(--text-muted, #777)" }}>
+              This project is under nevatal.id for educational purposes.
+            </div>
           </div>
         )}
       </div>

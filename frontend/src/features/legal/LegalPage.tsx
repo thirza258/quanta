@@ -157,10 +157,13 @@ export default function LegalPage() {
         </div>
       )}
 
-      <div style={{ marginTop: "3rem", paddingTop: "1.5rem", borderTop: "1px solid var(--border-color, #333)" }}>
+      <div style={{ marginTop: "3rem", paddingTop: "1.5rem", borderTop: "1px solid var(--border-color, #333)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
         <Link to="/" className="text-link">
           &larr; Return to Quanta Overview
         </Link>
+        <span style={{ fontSize: "0.8rem", color: "var(--text-muted, #888)" }}>
+          This project is under nevatal.id for educational purposes.
+        </span>
       </div>
     </div>
   );
