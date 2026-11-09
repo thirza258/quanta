@@ -11,7 +11,7 @@ quanta/
 │   │   ├── features/
 │   │   │   ├── learning/           # Catalog, progression, course/lesson pages
 │   │   │   ├── assessments/        # Exams, practice, assessment types
-│   │   │   ├── research/           # Sandbox, valuation, factors, broker, AMM
+│   │   │   ├── research/           # Sandbox, valuation, factors, broker, AMM, experiment registry
 │   │   │   ├── simulator/          # Terminal API, models, hooks, components
 │   │   │   ├── workspace/          # Account UI, state, persistence, provider
 │   │   │   ├── notebook/           # Notes and exports
@@ -30,6 +30,7 @@ quanta/
 │   │   ├── api/                    # HTTP dependencies and feature routers
 │   │   ├── services/               # Use cases, transactions, data access
 │   │   ├── domain/                 # Calculations, grading, execution rules, models
+│   │   │   └── research/           # Research runs: validation, diagnostics, red team, provenance
 │   │   ├── db/                     # SQLModel tables, engine, session lifecycle
 │   │   ├── core/                   # Configuration, auth, limits, request guards
 │   │   ├── engine/                 # ctypes binding to the C++ simulator engine
@@ -62,6 +63,8 @@ The trading page composes a state/action hook, toolbar, chart workspace, status 
 
 The previous combined lab file is divided into valuation, AMM, factor, and paper-broker components with a shared calculation hook. Workspace normalization and device-storage reads are separated from the provider that coordinates account synchronization. Course cards and illustrations belong to learning, while generic dialogs and loading states remain shared.
 
+The research feature also holds the experiment registry. Its `ResearchHome`, `NewExperiment` and `ExperimentDetail` pages sit behind the lazily loaded `/research`, `/research/new` and `/research/:experimentId` routes. Their components are in `components/registry/` and `components/experiment/`, the pure, unit-tested helpers in `model/grid.ts` and `model/experiment.ts`, and the typed API contract in `model/registry.ts`. The registry is separate from the workspace's saved experiment snapshots at `/experiments`.
+
 The sidebar has a bounded `100dvh` container, a scrollable navigation region, and a fixed-size search/account region. Mobile navigation is inert while closed so offscreen controls cannot receive focus.
 
 Course code carries an optional language field. Existing lessons default to Python and use the research sandbox; C lessons lazy-load the learning feature's local code lab, reuse the shared editor in C mode and save source drafts through the workspace provider. C compilation is a learner-side local workflow, not a new backend execution mode. Global CSS loads before course overrides so responsive card rules preserve their bottom spacing.
@@ -71,6 +74,15 @@ Course code carries an optional language field. Existing lessons default to Pyth
 `main.py` registers routers, lifecycle initialization, middleware, and domain-error translation. Routers declare HTTP paths, input models, identity/session dependencies, and rate limits. Services orchestrate use cases and version-checked transactions. Database models and session creation are separate from those operations.
 
 Domain modules perform deterministic analytics, exam grading, and paper-account execution. Their rule errors are independent of FastAPI and translated to the existing HTTP response contract. The trading simulator's computation runs in a C++17 engine, `backend/engine`, which the API loads in-process through `quanta.engine` (ctypes, no extra Python dependency): the generated market and the original six-path generator, the execution rules and their exact decimal ledger arithmetic, and the per-bar analytics (indicator series, chart bucketing, the account marked to market). `domain/simulator.py` keeps the interface the services always called and writes the engine's changes back into the stored run state; routes, persistence, idempotency, the newsroom's text, fundamentals and missions stay in Python. The engine reproduces the Python implementations it replaced to the cent and the character, and `backend/tests/reference/` keeps those implementations as the oracle its differential tests compare against. See the [engine guide](../backend/engine/README.md). Isolated workers stay self-contained because they execute with Python's `-I` flag.
+
+The research registry follows the same layers:
+
+- `api/routes/experiments.py` declares the `/api/v1/research` routes, the owner dependency and the `research` rate limit.
+- `services/experiments.py` owns experiments, runs, strategy and dataset versions, the in-process background job queue and reproduction.
+- `services/market_data.py` puts generated and imported bars behind one provider interface.
+- `domain/research/` holds the pure computation: specification, metrics, validation, robustness, diagnostics, the red team, provenance and the research note. Every backtest it runs goes through `domain/analytics.py`.
+
+Strategy code still runs only in the isolated workers, which now accept `strategy(data, params)` and provide causal trailing-window helpers. See the [research platform guide](RESEARCH_PLATFORM.md).
 
 The backend reads `content/catalog/curriculum.json` directly. It does not load frontend source or require Node at runtime. Path defaults derive from the module's repository location rather than the process working directory. SQLite, the JWT secret, and historical datasets remain under `backend/storage/` and `backend/data/`; environment overrides and Compose volumes retain their existing meanings.
 

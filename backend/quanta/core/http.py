@@ -33,6 +33,7 @@ async def request_guards(request: Request, call_next):
             "/api/v1/simulator",
             "/api/v1/assistant",
             "/api/v1/certificates",
+            "/api/v1/research",
         )
     ):
         response.headers["Cache-Control"] = "no-store"

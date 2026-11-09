@@ -13,6 +13,7 @@ import {
   Download,
   FlaskConical,
   LoaderCircle,
+  Microscope,
   Play,
   RotateCcw,
   Save,
@@ -21,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 const CodeEditor = lazy(() => import("@/shared/components/CodeEditor"));
 const FinancialChart = lazy(
   () => import("@/features/research/components/FinancialChart"),
@@ -51,6 +53,7 @@ export default function Sandbox({
   onExecutionError?: (error: string) => void;
 }) {
   const { state, update } = useWorkspace(),
+    navigate = useNavigate(),
     draftKey = experimentId || lessonId || "free-lab";
   const [code, setCode] = useState(state.drafts[draftKey] ?? initialCode),
     [config, setConfig] = useState<Config>(() =>
@@ -707,6 +710,23 @@ export default function Sandbox({
             : "Reproducible by design."}
         </span>
         <div>
+          <button
+            className="text-link"
+            title="Register this strategy as an experiment and try to break it"
+            onClick={() =>
+              navigate("/research/new", {
+                state: {
+                  code,
+                  config,
+                  title: state.experiments.find((e) => e.id === experimentId)
+                    ?.title,
+                },
+              })
+            }
+          >
+            <Microscope size={14} />
+            Validate in research
+          </button>
           <button
             className="text-link"
             onClick={() => {

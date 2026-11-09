@@ -18,6 +18,8 @@ Root `npm run setup` installs both applications. Root `npm run dev` connects the
 
 Configuration is in `quanta/core/config.py`. The generated catalog is `../content/catalog/curriculum.json`, independent of frontend source. Local SQLite and signing-secret files remain in `storage/`; imported Parquet data remains in `data/`. `DATABASE_URL`, `QUANTA_STORAGE`, and `QUANTA_DATA_DIR` override those locations. Preserve these files or Compose volumes across upgrades.
 
+Research registry runs (`/api/v1/research`) are background jobs inside the API process: two execute at once, eight may be queued or running, and each owner may have one active run. Their sandbox calls share `QUANTA_RESEARCH_WORKERS` threads (by default the smaller of 4 and the CPU count; Compose sets 2). Status and heartbeats are stored in the database, so after a restart or `--reload` the runs that were in flight are reported as interrupted once 90 seconds pass without a heartbeat (600 while queued). Provenance records the deployed commit from `QUANTA_GIT_COMMIT`, or from `git rev-parse HEAD` when the checkout has a `.git` directory; the Docker image has none, so set the variable there. See the [research platform guide](../docs/RESEARCH_PLATFORM.md).
+
 Historical import from this directory:
 
 ```sh

@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { nav } from "./navigation";
+import { nav, navGroups } from "./navigation";
 export default function Sidebar({
   open,
   collapsed,
@@ -60,26 +60,44 @@ export default function Sidebar({
             Personal workspace<small>Investment research & learning</small>
           </div>
         </div>
-        <div className="nav-section-label">WORKSPACE</div>
         <nav aria-label="Main navigation">
-          {nav.map(({ path, label, icon: Icon }) => (
-            <NavLink
-              to={path}
-              key={path}
-              aria-label={label}
-              title={collapsed ? label : undefined}
-              end={path === "/"}
-              onClick={onClose}
-              className={({ isActive }) =>
-                `nav-item ${isActive ? "active" : ""}`
-              }
+          {navGroups.map((group, index) => (
+            <div
+              key={group.id}
+              role="group"
+              aria-labelledby={`nav-group-${group.id}`}
             >
-              <Icon size={18} strokeWidth={1.7} />
-              <span>{label}</span>
-              {path === "/experiments" && state.experiments.length > 0 ? (
-                <small className="nav-count">{state.experiments.length}</small>
-              ) : null}
-            </NavLink>
+              <div
+                className="nav-section-label"
+                id={`nav-group-${group.id}`}
+                style={index ? { marginTop: 22 } : undefined}
+              >
+                {group.label}
+              </div>
+              {nav
+                .filter((item) => item.group === group.id)
+                .map(({ path, label, icon: Icon }) => (
+                  <NavLink
+                    to={path}
+                    key={path}
+                    aria-label={label}
+                    title={collapsed ? label : undefined}
+                    end={path === "/"}
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                      `nav-item ${isActive ? "active" : ""}`
+                    }
+                  >
+                    <Icon size={18} strokeWidth={1.7} />
+                    <span>{label}</span>
+                    {path === "/experiments" && state.experiments.length > 0 ? (
+                      <small className="nav-count">
+                        {state.experiments.length}
+                      </small>
+                    ) : null}
+                  </NavLink>
+                ))}
+            </div>
           ))}
         </nav>
         <div className="nav-section-label resources-label">RESOURCES</div>

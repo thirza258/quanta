@@ -22,7 +22,9 @@ export default function PageReferences() {
         ? examTrack(id)
         : section === "curriculum"
           ? tracks.find((item) => item.id === id)
-          : section === "lab" || section === "experiments"
+          : section === "lab" ||
+              section === "experiments" ||
+              section === "research"
             ? tracks.find((item) => item.id === "strategy-lab")
             : undefined;
   const references =

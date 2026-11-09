@@ -1,3 +1,22 @@
+# Research platform — November 9, 2026
+
+The Strategy lab gained an experiment registry that tries to break a result before anyone believes it: hypothesis registered before results, a parameter grid, a chronological split and walk-forward selection, parameter robustness, cost stress, benchmarks, the deflated Sharpe ratio, the probability of backtest overfitting, a random-timing permutation test, alternative synthetic paths, a look-ahead truncation test, a red-team verdict, provenance fingerprints and reruns. See the [research platform guide](RESEARCH_PLATFORM.md).
+
+| Check | Result |
+| --- | --- |
+| Existing figures | `analytics.backtest` with its default arguments is byte-identical to the previous implementation across 144 combinations (4 models × 3 seeds × 4 signal sets × 3 cost settings); `generate` and `strategy_data` are unchanged, so lesson figures such as the lab workshop's still hold |
+| Domain tests (`test_research_platform.py`) | 122 passed, each against an independent recomputation: the deflated Sharpe ratio against the published formula in SciPy (relative 1e-9); PBO equal to a brute-force CSCV loop; the eight sandbox helpers against pandas (1e-9) and exact rational arithmetic, `sma(close, 50)` bit-identical to `sma_50`; every helper prefix-identical on truncated histories; walk-forward choices and the stitched account rebuilt by hand; break-even cost bracketing zero; random timing with every shift as an exact permutation test; every red-team lesson link exists in the catalog |
+| Look-ahead test | Strategies using a full-sample mean or maximum, or failing on a shorter history, are flagged and their run marked invalid; the four templates pass |
+| Registry API tests (`test_research_registry.py`) | 26 passed: the run lifecycle and asynchronous jobs, the hypothesis lock, notebook updates, strategy and dataset versions, a rerun and an unchanged second run reproducing an identical result digest, distinct trial counting, a rewritten Parquet file making a rerun "different" with the dataset named, one active run per owner (409), the queue cap (503), the rate limit (429), stale runs reported interrupted, owner isolation including a forged guest token, HTML export escaping and no-store caching |
+| Full backend suite | 1,096 passed; 1 deselected: `test_assistant.py::test_provider_failures_are_redacted_and_not_retried[402-503]`, which fails on `main` independently of this change |
+| Frontend | TypeScript build and Vite production build passed (existing large-bundle warning remains); 123 unit tests passed, 60 of them for the research model |
+| Browser (local Chrome, development servers) | `research.spec.ts` passed: register a hypothesis, wait for the red team, write the notebook, reproduce the run (verdict Identical, status Reproducible), and hand Strategy lab code to the composer. `sidebar.spec.ts`, `course-attribution.spec.ts` and `simulator.spec.ts` passed. `workspace.spec.ts` fails where it expects lesson 1.1 to print "Margin of safety: 40.0 %": upstream commit `36a8c4b` changed that worksheet to print "Base margin of safety: 40.0 %" |
+| Speed | Job duration, three runs each, four sandbox workers: the default experiment (3 years, 12 configurations, 20 sandbox jobs) 492–538 ms; a 10-year, 15-configuration momentum experiment on a regime-switching market 1,260–1,297 ms |
+
+Reference machine: Apple M2 Pro, Darwin 25.6.0, Python 3.14.4, NumPy 2.5.3, SQLite. PostgreSQL, the Docker image and Linux were not exercised.
+
+---
+
 # C++ simulator engine — October 26, 2026
 
 The trading simulator's market generator, execution engine and per-bar analytics now run in a C++17 library, [`backend/engine`](../backend/engine/README.md), loaded by the API in-process. The engine was held to the Python and numpy implementations it replaced, which are kept verbatim in `backend/tests/reference/`, and to the C/HPC course's engineering bar: checked bounds, deterministic output, hand-calculated fixtures, invalid-input refusals, a sanitizer target, serial/parallel equality and paired measurements.

@@ -196,14 +196,22 @@ def backtest(
     capital: float,
     commission_bps: float,
     slippage_bps: float,
+    *,
+    prior_signal: bool = False,
 ) -> dict:
+    """Run the long/cash rule over `bars`.
+
+    `prior_signal` is the signal from the close before the first bar. A window
+    cut from a longer history passes it so that its first open acts on the
+    previous close, as the uncut backtest would; the default starts in cash.
+    """
     cash, shares, entry_cost = capital, 0.0, 0.0
     fee, slip = commission_bps / 10000, slippage_bps / 10000
     trades, values, benchmark, curve = [], [], [], []
     buy_hold_shares = capital / (bars[0]["open"] * (1 + slip) * (1 + fee))
     for i, bar in enumerate(bars):
         # Only the previous close's signal is visible at this open.
-        target = bool(signals[i - 1]) if i > 0 else False
+        target = bool(signals[i - 1]) if i > 0 else bool(prior_signal)
         if target and shares == 0:
             price = bar["open"] * (1 + slip)
             shares = cash / (price * (1 + fee))

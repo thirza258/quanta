@@ -30,6 +30,8 @@ services:
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-4.1-mini}
       QUANTA_SANDBOX: guided
+      QUANTA_RESEARCH_WORKERS: 2
+      QUANTA_GIT_COMMIT: ${QUANTA_GIT_COMMIT:-}
       QUANTA_STORAGE: /app/storage
       QUANTA_DATA_DIR: /app/data
     volumes:

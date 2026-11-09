@@ -10,7 +10,12 @@ class ExecutionError(ValueError):
     pass
 
 
-def run(code: str, data: dict) -> dict:
+def run(code: str, data: dict, params: dict | None = None) -> dict:
+    """Execute strategy(data) or strategy(data, params) in the configured sandbox.
+
+    The result carries `arity`, the number of arguments the strategy declared,
+    so a caller sweeping parameters can tell when the strategy ignores them.
+    """
     mode = os.getenv("QUANTA_SANDBOX", "guided")
     container = None
     if mode == "docker":
@@ -56,7 +61,7 @@ def run(code: str, data: dict) -> dict:
         # student-code timer. The guided process has a two-second total timeout.
         result = subprocess.run(
             command,
-            input=json.dumps({"code": code, "data": data}),
+            input=json.dumps({"code": code, "data": data, "params": params or {}}),
             text=True,
             capture_output=True,
             timeout=15 if container else 2,

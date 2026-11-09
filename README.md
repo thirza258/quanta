@@ -26,7 +26,7 @@ Persistent volumes:
 
 | Volume | Contents |
 | --- | --- |
-| `postgres_data` | Accounts, revoked/active sessions, exercise and exam submissions, workspace state |
+| `postgres_data` | Accounts, revoked/active sessions, exercise and exam submissions, workspace state, research experiments and runs |
 | `api_storage` | Automatically generated signing secret |
 | `market_data` | Imported Parquet datasets |
 | `redis_data` | Shared request counters |
@@ -81,6 +81,7 @@ For separate terminals, use `npm run dev:api` and `npm run dev:client`. The Vite
 - Research notes, search, experiment snapshots, JSON/Markdown exports, responsive navigation, and persistent dark/light themes.
 - Seeded GBM, Merton jump-diffusion, Heston variance, and Markov regime-switching paths; crash, stagflation, liquidity-crisis, random-walk, and flash-crash scenarios.
 - A standalone [TradingView-style stock simulator](docs/SIMULATOR.md) at `/simulator`: persistent $100,000 paper accounts and 32 fictional companies across 12 sectors, whose one-minute prices are generated endlessly by a factor model driven by the run’s own simulated newsroom, where every headline carries a score of one basis point per point, with generated quarterly statements and consensus, imported historical replay, interactive charts/drawings/indicators, server-computed screening, risk and portfolio analytics computed by a C++17 engine that reproduces the original Python engine to the cent, four order types, partial fills, portfolio accounting, trade journals, exports, and mobile trading. Each new run draws a different market unless a seed is supplied. Imported historical prices never receive generated news or statements.
+- **[Research platform](docs/RESEARCH_PLATFORM.md)** at `/research`: an experiment registry whose hypotheses lock once the first run completes. A run sweeps up to 60 parameter configurations and tries to break the result with walk-forward validation, benchmarks, cost stress, parameter stability, the deflated Sharpe ratio, the probability of backtest overfitting, a random-timing test and a look-ahead check, summarized by a research red team. Each run records strategy and dataset versions and SHA-256 fingerprints, so it can be rerun and compared, and each experiment exports a Markdown or HTML research note. The registry is separate from the workspace's saved experiment snapshots.
 - Long/cash backtesting using previous-close signals and next-open fills, commissions, slippage, same-asset buy-and-hold comparison, equity/candlestick/drawdown charts, monthly returns, and trade logs.
 - CAGR, Sharpe, Sortino, drawdown, win rate, profit factor, alpha, beta, VaR, CVaR, and Calmar analytics. Undefined ratios are explicitly represented by `null`.
 - NCAV, asset-recovery haircuts, Graham valuation, full-range and concentrated-liquidity AMM analysis, and simulated order fills with liquidity/stale-data/spread/drawdown guards.
@@ -140,6 +141,8 @@ def strategy(data):
 
 Available series: `open`, `high`, `low`, `close`, `volume`, `returns`, `sma_50`, `sma_200`. The moving-average slider controls the `sma_50` column. Returns are Boolean or 0/1 long/cash signals. Fractional weights, shorts, and multi-asset portfolio execution are outside this backtester.
 
+A strategy may also be declared as `strategy(data, params)`. The [research platform](docs/RESEARCH_PLATFORM.md#writing-strategies) passes each configuration of its parameter grid as `params`; the Strategy lab sandbox passes an empty dictionary. Both runtimes provide eight trailing-window helpers that read only the current and earlier bars: `sma`, `ema`, `highest`, `lowest`, `change`, `shift` (non-negative lags only), `stdev` and `zscore`.
+
 **Optional full Python containers:** for a local API process with access to a trusted Docker engine:
 
 ```sh
@@ -195,6 +198,10 @@ Interactive API documentation is at `/docs` on the development API URL. The publ
 | GET | `/api/v1/data/catalog` | Installed historical datasets |
 | POST | `/api/v1/data/synthetic/generate` | Seeded OHLCV bars |
 | POST | `/api/v1/sandbox/execute` | Code, dataset config, metrics, series, trades, output |
+| GET | `/api/v1/research/options` | [Research registry](docs/RESEARCH_PLATFORM.md#http-api) defaults, limits, datasets, helpers and strategy templates |
+| GET / POST / PATCH / DELETE | `/api/v1/research/experiments`, `/experiments/{experiment_id}` | Owner-scoped experiments: list, register (optionally queueing the first run), read, edit and delete (same `/research` prefix) |
+| POST | `/api/v1/research/experiments/{experiment_id}/runs`, `/runs/{run_id}/rerun` | Queue a run of the current specification or reproduce a completed run; 6 per minute (same `/research` prefix) |
+| GET | `/api/v1/research/runs/{run_id}`, `/experiments/{experiment_id}/report` | A run's results and provenance; the research note as Markdown or HTML (same `/research` prefix) |
 | GET / POST | `/api/v1/assistant/status`, `/chat`, `/bundle` | AI connection status, course-grounded help, and generated project ZIPs (same `/assistant` prefix) |
 | POST | `/api/v1/analytics/valuation`, `/amm`, `/factors`, `/portfolio` | Financial calculations (same `/analytics` prefix) |
 | POST | `/api/v1/broker/order` | Stateless paper-account transition and fill event |
@@ -228,6 +235,6 @@ scripts/   Root development launcher
 docs/      Architecture, course scope, and verification evidence
 ```
 
-See [architecture](docs/ARCHITECTURE.md), [frontend development](frontend/README.md), and [backend development](backend/README.md). Root npm commands coordinate an npm workspace with dependencies declared in `frontend/package.json` and one root lockfile. Run `npm run content:build` after editing courses or downloadable projects. Compose builds `frontend/Dockerfile` and `backend/Dockerfile` with their shared content.
+See [architecture](docs/ARCHITECTURE.md), the [research platform](docs/RESEARCH_PLATFORM.md), [frontend development](frontend/README.md), and [backend development](backend/README.md). Root npm commands coordinate an npm workspace with dependencies declared in `frontend/package.json` and one root lockfile. Run `npm run content:build` after editing courses or downloadable projects. Compose builds `frontend/Dockerfile` and `backend/Dockerfile` with their shared content.
 
 Implementation references: [FastAPI authentication](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/), [Vite](https://vite.dev/guide/), and [Lightweight Charts](https://tradingview.github.io/lightweight-charts/docs/series-types). Charts retain TradingView attribution. Fonts, Monaco, and math assets are served locally; the application needs no third-party CDN at runtime.

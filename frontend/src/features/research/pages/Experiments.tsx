@@ -8,14 +8,16 @@ import {
   Download,
   FlaskConical,
   FolderOpen,
+  Microscope,
   Plus,
   Search,
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 export default function Experiments() {
   const { state, update } = useWorkspace(),
+    navigate = useNavigate(),
     [query, setQuery] = useState(""),
     [deleteId, setDeleteId] = useState<string | null>(null);
   const experiments = state.experiments.filter((e) =>
@@ -84,6 +86,18 @@ export default function Experiments() {
                 <label>MAX DRAWDOWN</label>
                 <strong>{percent(e.metrics?.max_drawdown)}</strong>
               </div>
+              <button
+                className="icon-button"
+                aria-label={`Validate ${e.title} in research`}
+                title="Validate in research"
+                onClick={() =>
+                  navigate("/research/new", {
+                    state: { code: e.code, config: e.config, title: e.title },
+                  })
+                }
+              >
+                <Microscope size={16} />
+              </button>
               <button
                 className="icon-button"
                 aria-label={`Export ${e.title}`}

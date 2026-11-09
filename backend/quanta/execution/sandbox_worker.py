@@ -11,9 +11,11 @@ import math
 import operator
 import sys
 import time
+from collections import deque
 
 MAX_ITEMS = 10000
 MAX_OPERATIONS = 750000
+INDICATORS = ("sma", "ema", "highest", "lowest", "change", "shift", "stdev", "zscore")
 
 
 class SandboxError(Exception):
@@ -87,6 +89,10 @@ class Interpreter:
             "int": int,
             "bool": bool,
         }
+        # Trailing-window indicators. Each reads only the current and earlier
+        # bars; the first bars use the observations available so far, which
+        # matches the sma_50 and sma_200 series supplied in data.
+        self.env.update({name: getattr(self, name) for name in INDICATORS})
 
     def tick(self, count=1):
         self.fuel -= count
@@ -127,6 +133,134 @@ class Interpreter:
         if len(self.output) + len(value) > 20000:
             raise SandboxError("Output limit exceeded (20 KB).")
         self.output += value
+
+    def series(self, a, name):
+        values = self.sequence(a)
+        if not isinstance(values, list) or any(type(v) not in (int, float, bool) for v in values):
+            raise SandboxError(f'{name}() takes a numeric series such as data["close"].')
+        self.tick(len(values))
+        return [float(v) for v in values]
+
+    def length(self, n, name, minimum=1):
+        # The range test comes before int(n), which raises on inf and NaN.
+        if type(n) not in (int, float) or not minimum <= n <= MAX_ITEMS or n != int(n):
+            raise SandboxError(
+                f"{name}() needs a whole-number window from {minimum} to {MAX_ITEMS}."
+            )
+        return int(n)
+
+    def prefix_sums(self, x):
+        sums, total = [0.0], 0.0
+        for v in x:
+            total += v
+            sums.append(total)
+        return sums
+
+    def sma(self, a, n):
+        x, n = self.series(a, "sma"), self.length(n, "sma")
+        sums = self.prefix_sums(x)
+        return Vector(
+            [
+                (sums[i + 1] - sums[max(0, i - n + 1)]) / (i + 1 - max(0, i - n + 1))
+                for i in range(len(x))
+            ]
+        )
+
+    def ema(self, a, n):
+        x, n = self.series(a, "ema"), self.length(n, "ema")
+        alpha, out = 2 / (n + 1), []
+        for i, v in enumerate(x):
+            out.append(v if i == 0 else alpha * v + (1 - alpha) * out[-1])
+        return Vector(out)
+
+    def extreme(self, a, n, name, keep):
+        x, n = self.series(a, name), self.length(n, name)
+        out, window = [], deque()
+        for i, v in enumerate(x):
+            while window and not keep(x[window[-1]], v):
+                window.pop()
+            window.append(i)
+            if window[0] <= i - n:
+                window.popleft()
+            out.append(x[window[0]])
+        return Vector(out)
+
+    def highest(self, a, n):
+        return self.extreme(a, n, "highest", operator.gt)
+
+    def lowest(self, a, n):
+        return self.extreme(a, n, "lowest", operator.lt)
+
+    def change(self, a, n):
+        x, n = self.series(a, "change"), self.length(n, "change")
+        out = []
+        for i, v in enumerate(x):
+            base = x[max(0, i - n)]
+            if base == 0:
+                raise SandboxError("change() divides by an earlier value of zero.")
+            out.append(v / base - 1)
+        return Vector(out)
+
+    def shift(self, a, n):
+        if type(n) in (int, float) and n < 0:
+            raise SandboxError(
+                "shift() only looks back: a negative lag would read bars that have not happened yet."
+            )
+        x, n = self.series(a, "shift"), self.length(n, "shift", minimum=0)
+        return Vector([x[max(0, i - n)] for i in range(len(x))])
+
+    @staticmethod
+    def pool(a, b):
+        """Combine (count, mean, sum of squared deviations) of two disjoint samples."""
+        if not a[0]:
+            return b
+        if not b[0]:
+            return a
+        count = a[0] + b[0]
+        delta = b[1] - a[1]
+        return (
+            count,
+            a[1] + delta * b[0] / count,
+            a[2] + b[2] + delta * delta * a[0] * b[0] / count,
+        )
+
+    def moments(self, x, n):
+        """(count, mean, sum of squared deviations) of the last n values at each bar.
+
+        A queue made of two stacks: each value joins the back summary, and when the
+        oldest value must leave, the back is folded into suffix summaries at the
+        front. Summaries are only ever pooled, never subtracted, so a quiet window
+        after a volatile one keeps full precision and a flat window has exactly zero
+        spread; running sums of squares lose both. Each result uses only the
+        current and earlier values.
+        """
+        empty = (0, 0.0, 0.0)
+        front, back, recent, out = [], empty, [], []
+        for i, v in enumerate(x):
+            if i >= n:
+                if not front:
+                    suffix = empty
+                    for value in reversed(recent):
+                        suffix = self.pool((1, value, 0.0), suffix)
+                        front.append(suffix)
+                    back, recent = empty, []
+                front.pop()
+            back = self.pool(back, (1, v, 0.0))
+            recent.append(v)
+            out.append(self.pool(front[-1], back) if front else back)
+        return out
+
+    def stdev(self, a, n):
+        x, n = self.series(a, "stdev"), self.length(n, "stdev")
+        return Vector([math.sqrt(m2 / count) for count, _, m2 in self.moments(x, n)])
+
+    def zscore(self, a, n):
+        x, n = self.series(a, "zscore"), self.length(n, "zscore")
+        out = []
+        for v, (count, mean, m2) in zip(x, self.moments(x, n)):
+            deviation = math.sqrt(m2 / count)
+            out.append((v - mean) / deviation if deviation > 1e-12 else 0.0)
+        return Vector(out)
 
     def vector_unary(self, fn, a):
         if isinstance(a, Vector):
@@ -404,7 +538,7 @@ class Interpreter:
         finally:
             self.depth -= 1
 
-    def run(self, code, data):
+    def run(self, code, data, params=None):
         tree = ast.parse(code)
         if sum(1 for _ in ast.walk(tree)) > 4000:
             raise SandboxError("Code exceeds the syntax limit.")
@@ -412,7 +546,16 @@ class Interpreter:
         fn = self.env.get("strategy")
         if not isinstance(fn, Function):
             raise SandboxError("Define strategy(data) and return a Boolean signal for each bar.")
-        result = self.call_function(fn, [{k: Vector(v) for k, v in data.items()}])
+        arity = len(fn.node.args.args)
+        if arity not in (1, 2):
+            raise SandboxError("Define strategy(data) or strategy(data, params).")
+        series = {k: Vector(v) for k, v in data.items()}
+        if params and any(
+            type(v) not in (int, float) or not math.isfinite(v) for v in params.values()
+        ):
+            raise SandboxError("Strategy parameters must be finite numbers.")
+        args = [series] if arity == 1 else [series, dict(params or {})]
+        result = self.call_function(fn, args)
         signals = self.sequence(result)
         if isinstance(signals, bool):
             signals = [signals] * len(data["close"])
@@ -424,6 +567,7 @@ class Interpreter:
             "signals": [bool(x) for x in signals],
             "stdout": self.output,
             "stderr": "",
+            "arity": arity,
         }
 
 
@@ -437,7 +581,7 @@ def main():
         resource.setrlimit(resource.RLIMIT_NOFILE, (32, 32))
         payload = json.loads(sys.stdin.read(3000000))
         vm = Interpreter()
-        result = vm.run(payload["code"], payload["data"])
+        result = vm.run(payload["code"], payload["data"], payload.get("params"))
     except Exception as error:
         result = {"error": f"{type(error).__name__}: {str(error)[:500]}"}
     print(json.dumps(result, allow_nan=False))
