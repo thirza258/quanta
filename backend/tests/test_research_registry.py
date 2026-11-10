@@ -820,6 +820,11 @@ def missing_dataset(spec):
     }
 
 
+def missing_parameter(spec):
+    spec["strategy"]["parameters"] = [{"name": "window", "values": [10, 20]}]
+    spec["strategy"]["base"] = {"window": 10}
+
+
 FAILURES = {
     "syntax error": (
         source('def strategy(data, params):\n    return data["close"] >\n'),
@@ -833,6 +838,7 @@ FAILURES = {
         source('def strategy(data):\n    return data["close"] > data["sma_50"]\n'),
         "strategy(data, params)",
     ),
+    "missing parameter": (missing_parameter, "has no row in the parameter grid"),
     "dataset missing": (missing_dataset, "No imported dataset named NOSUCHFILE"),
 }
 

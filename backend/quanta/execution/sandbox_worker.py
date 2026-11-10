@@ -357,7 +357,15 @@ class Interpreter:
             if not isinstance(value, (dict, list, Vector)):
                 raise SandboxError("Only data dictionaries and series can be indexed.")
             key = self.expr(node.slice, env)
-            return self.sequence(value)[key]
+            try:
+                return self.sequence(value)[key]
+            except KeyError:
+                if isinstance(value, dict):
+                    keys = ", ".join(f"'{k}'" for k in sorted(value)) if value else "empty"
+                    raise SandboxError(
+                        f"KeyError: '{key}'. The parameter or field was not found (available: {keys})."
+                    )
+                raise
         if isinstance(node, ast.Slice):
             return slice(
                 self.expr(node.lower, env) if node.lower else None,

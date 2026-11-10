@@ -20,7 +20,7 @@ from quanta.domain.research.metrics import (
     yearly_pnl,
 )
 from quanta.domain.research.provenance import digest
-from quanta.domain.research.spec import ExperimentSpec, expand_grid
+from quanta.domain.research.spec import ExperimentSpec, expand_grid, referenced_parameters
 
 MAX_TRADES = 1000
 MAX_STDOUT = 4000
@@ -70,6 +70,14 @@ def execute(
         return step
 
     progress("strategies", 0, total)
+    param_names = {p.name for p in spec.strategy.parameters}
+    referenced = referenced_parameters(spec.strategy.code)
+    missing = [name for name in referenced if name not in param_names]
+    if missing:
+        raise StrategyFailure(
+            f"The strategy code reads params['{missing[0]}'], which has no row in the parameter grid. "
+            f"Declare '{missing[0]}' as a parameter or update the code."
+        )
     base = run_many([(data, spec.strategy.base)], tick("strategies"))[0]
     if "error" in base:
         raise StrategyFailure(base["error"])

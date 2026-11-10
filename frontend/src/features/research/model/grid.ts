@@ -459,6 +459,14 @@ export function composerIssues(
   if (form.grid.length && arity === 1)
     issues.arity =
       "strategy(data) takes one argument, so grid values never reach it. Declare def strategy(data, params): or remove the parameters.";
+  if (arity !== null && arity >= 2) {
+    const declaredNames = form.grid.map((d) => d.name.trim());
+    const referenced = referencedParams(form.code);
+    const missing = referenced.filter((name) => !declaredNames.includes(name));
+    if (missing.length && !issues.grid) {
+      issues.grid = `The strategy code reads params["${missing[0]}"], which has no row in the grid. Add ${missing[0]} to the parameter grid or update the code.`;
+    }
+  }
   if (form.dataset.kind === "historical" && !form.dataset.params.symbol)
     issues["dataset.symbol"] = options.historical.length
       ? "Choose an imported dataset."

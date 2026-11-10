@@ -669,9 +669,11 @@ def test_walk_forward_stitched_account_is_rebuilt_independently(bars, grid, anch
         choices.append(chosen)
         assert row["chosen"] == chosen and row["params"] == configs[chosen]
         s = signal_sets[chosen]
-        assert row["out_of_sample_sharpe"] == pytest.approx(
-            manual(bars[c:d], s[c:d], prior=bool(s[c - 1]))["sharpe"], rel=1e-12
-        )
+        expected_sharpe = manual(bars[c:d], s[c:d], prior=bool(s[c - 1]))["sharpe"]
+        if expected_sharpe is None:
+            assert row["out_of_sample_sharpe"] is None
+        else:
+            assert row["out_of_sample_sharpe"] == pytest.approx(expected_sharpe, rel=1e-12)
     # The position held through bar t is the previous close's signal of the configuration
     # chosen for t's fold.
     position = [

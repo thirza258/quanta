@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import math
 from itertools import product
 from typing import Literal
@@ -201,3 +202,29 @@ def expand_grid(parameters: list[GridParameter]) -> list[dict]:
 
 def grid_shape(parameters: list[GridParameter]) -> list[int]:
     return [len(p.values) for p in parameters]
+
+
+def referenced_parameters(code: str) -> list[str]:
+    """Parameter names subscripted on strategy's second argument: params['name']."""
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "strategy":
+            if len(node.args.args) < 2:
+                return []
+            param_name = node.args.args[1].arg
+            refs = []
+            for child in ast.walk(node):
+                if isinstance(child, ast.Subscript):
+                    if (
+                        isinstance(child.value, ast.Name)
+                        and child.value.id == param_name
+                        and isinstance(child.slice, ast.Constant)
+                        and isinstance(child.slice.value, str)
+                    ):
+                        if child.slice.value not in refs:
+                            refs.append(child.slice.value)
+            return refs
+    return []

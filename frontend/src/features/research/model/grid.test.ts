@@ -276,6 +276,16 @@ describe("composer validation", () => {
     ).toEqual({});
   });
 
+  it("refuses when the strategy code reads parameters missing from the grid", () => {
+    const value = form();
+    // form() has default trend code reading params["fast"] and params["slow"].
+    // Filter out "fast" from the grid to simulate renaming or removing it:
+    value.grid = value.grid.filter((draft) => draft.name !== "fast");
+    const issues = composerIssues(value, resolveGrid(value.grid), options);
+    expect(issues.grid).toContain('reads params["fast"]');
+    expect(issues.grid).toContain("has no row in the grid");
+  });
+
   it("checks the numbers it shows and resets the ones it hides", () => {
     const value = form();
     value.dataset = {
