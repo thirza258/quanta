@@ -5,8 +5,9 @@ import {
   trackProgress,
 } from "@/features/learning/model/progress";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
-import { Search, Sparkles, X } from "lucide-react";
+import { Network, Search, Sparkles, X } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import TrackCard from "../components/TrackCard";
 const courseSearchText = new Map(
   tracks.map((track) => [
@@ -53,12 +54,21 @@ export default function Curriculum() {
   return (
     <div className="page curriculum-page">
       <div className="page-eyebrow">A CONNECTED CURRICULUM</div>
-      <h1>Start with the basics. Build your perspective.</h1>
-      <p className="page-subtitle">
-        Explore {tracks.length} connected courses, from market fundamentals and
-        careful investing to company analysis, strategy research, and algorithm
-        evaluation.
-      </p>
+      <div className="page-title-row">
+        <div>
+          <h1>Start with the basics. Build your perspective.</h1>
+          <p className="page-subtitle">
+            Explore {tracks.length} connected courses, from market fundamentals
+            and careful investing to company analysis, strategy research, and
+            algorithm evaluation.
+          </p>
+        </div>
+        <div>
+          <Link to="/course-map" className="button secondary">
+            <Network size={16} /> Course connections & map
+          </Link>
+        </div>
+      </div>
       <div className="catalog-toolbar">
         <div className="tabs">
           {["All tracks", "In progress", "Not started", "Completed"].map(

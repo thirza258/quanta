@@ -27,6 +27,7 @@ const lastmod = new Date().toISOString().slice(0, 10);
 const urls = [
   { loc: `${baseUrl}/`, changefreq: "weekly", priority: "1.0" },
   { loc: `${baseUrl}/curriculum`, changefreq: "weekly", priority: "0.9" },
+  { loc: `${baseUrl}/course-map`, changefreq: "weekly", priority: "0.9" },
   { loc: `${baseUrl}/simulator`, changefreq: "weekly", priority: "0.8" },
   { loc: `${baseUrl}/lab`, changefreq: "weekly", priority: "0.8" },
   { loc: `${baseUrl}/notebook`, changefreq: "monthly", priority: "0.7" },

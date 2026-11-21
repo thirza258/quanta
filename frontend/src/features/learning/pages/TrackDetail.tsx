@@ -19,6 +19,7 @@ import {
   Check,
   ChevronRight,
   Clock3,
+  Network,
   Play,
 } from "lucide-react";
 import { Fragment } from "react";
@@ -117,6 +118,9 @@ export default function TrackDetail() {
               {progress.complete
                 ? "View certificate"
                 : "Certificate requirements"}
+            </Link>
+            <Link className="button secondary" to="/course-map">
+              <Network size={16} /> Course map
             </Link>
           </div>
         </div>

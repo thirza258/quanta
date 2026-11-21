@@ -10,6 +10,7 @@ const TrackDetail = lazy(() => import("@/features/learning/pages/TrackDetail"));
 const LessonReader = lazy(
   () => import("@/features/learning/pages/LessonReader"),
 );
+const CourseMap = lazy(() => import("@/features/learning/pages/CourseMap"));
 const StrategyLab = lazy(() => import("@/features/research/pages/StrategyLab"));
 const Notebook = lazy(() => import("@/features/notebook/pages/Notebook"));
 const Experiments = lazy(() => import("@/features/research/pages/Experiments"));
@@ -56,6 +57,8 @@ export default function App() {
               <Route index element={<Overview />} />
               <Route path="curriculum" element={<Curriculum />} />
               <Route path="curriculum/:trackId" element={<TrackDetail />} />
+              <Route path="course-map" element={<CourseMap />} />
+              <Route path="pathways" element={<CourseMap />} />
               <Route path="learn/:lessonId" element={<LessonReader />} />
               <Route path="exams/:examId" element={<ExamRoom />} />
               <Route path="certifications" element={<Certifications />} />

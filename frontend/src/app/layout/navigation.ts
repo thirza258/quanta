@@ -7,6 +7,7 @@ import {
   FolderOpen,
   LayoutDashboard,
   Microscope,
+  Network,
   type LucideIcon,
 } from "lucide-react";
 
@@ -29,6 +30,7 @@ export type NavItem = {
 export const nav: NavItem[] = [
   { path: "/", label: "Overview", icon: LayoutDashboard, group: "workspace" },
   { path: "/curriculum", label: "Curriculum", icon: BookOpen, group: "learn" },
+  { path: "/course-map", label: "Course map", icon: Network, group: "learn" },
   {
     path: "/certifications",
     label: "Certifications",
