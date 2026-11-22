@@ -28,11 +28,15 @@ const urls = [
   { loc: `${baseUrl}/`, changefreq: "weekly", priority: "1.0" },
   { loc: `${baseUrl}/curriculum`, changefreq: "weekly", priority: "0.9" },
   { loc: `${baseUrl}/course-map`, changefreq: "weekly", priority: "0.9" },
+  { loc: `${baseUrl}/pathways`, changefreq: "weekly", priority: "0.8" },
+  { loc: `${baseUrl}/certifications`, changefreq: "weekly", priority: "0.8" },
+  { loc: `${baseUrl}/verify`, changefreq: "monthly", priority: "0.6" },
   { loc: `${baseUrl}/simulator`, changefreq: "weekly", priority: "0.8" },
   { loc: `${baseUrl}/lab`, changefreq: "weekly", priority: "0.8" },
   { loc: `${baseUrl}/notebook`, changefreq: "monthly", priority: "0.7" },
   { loc: `${baseUrl}/experiments`, changefreq: "monthly", priority: "0.7" },
   { loc: `${baseUrl}/research`, changefreq: "monthly", priority: "0.7" },
+  { loc: `${baseUrl}/research/new`, changefreq: "monthly", priority: "0.6" },
   { loc: `${baseUrl}/library`, changefreq: "monthly", priority: "0.7" },
   { loc: `${baseUrl}/resources`, changefreq: "monthly", priority: "0.7" },
   { loc: `${baseUrl}/methodology`, changefreq: "monthly", priority: "0.7" },
@@ -47,6 +51,13 @@ for (const track of tracks) {
       changefreq: "weekly",
       priority: "0.8",
     });
+    if (track.certificate && track.certificate.enabled !== false) {
+      urls.push({
+        loc: `${baseUrl}/certifications/course/${encodeURIComponent(track.id)}`,
+        changefreq: "monthly",
+        priority: "0.7",
+      });
+    }
   }
 
   for (const mod of track.modules || []) {
@@ -111,6 +122,11 @@ if (!targetDir) {
 
 const targetFile = path.join(targetDir, "sitemap.xml");
 fs.writeFileSync(targetFile, xmlContent, "utf-8");
+
+const distDir = path.resolve(__dirname, "../dist");
+if (fs.existsSync(distDir)) {
+  fs.writeFileSync(path.join(distDir, "sitemap.xml"), xmlContent, "utf-8");
+}
 
 console.log(
   `Generated ${urls.length} URLs in sitemap for ${baseUrl} -> ${targetFile}`,
