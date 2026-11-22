@@ -96,6 +96,26 @@ COURSE_GUIDES = {
         "Work through documented accounting failures, private-company evidence gaps, platform governance, and solvency events using primary sources.",
         "The best way to learn security analysis is to study cases where the evidence mattered. This casebook begins with Enron, CSC and WorldCom, Luckin Coffee, and Theranos, then moves to Nikola, FTX, SVB and Lehman, and GE. Each case is paired with a primary source and a transparent method.\n\nThe lessons distinguish allegations from findings and teaching figures from source figures. You will reconstruct affiliated structures, capitalized costs, revenue and backlog claims, related-party balance sheets, and solvency-liquidity spirals. The goal is not to memorize outcomes; it is to build a repeatable process for testing a story against evidence before capital is committed.",
     ),
+    "msme-financial-literacy": (
+        "Master practical cash management, 12-month forecasting, break-even unit economics, working capital gaps, and Indonesian UMKM tax rules under PP 55/2022.",
+        "Designed specifically for Indonesian MSME owners (warung, jasa, toko online) and small entrepreneurs. Move step-by-step from separating personal and enterprise bank accounts to building a full 12-month cash forecast (capstone), calculating break-even on single products, closing working capital gaps, evaluating bank loans using DSCR, and complying with the 0.5% PPh final tax regime and Rp500 million exemption threshold.",
+    ),
+    "spreadsheet-to-strategy-lab": (
+        "Translate spreadsheet models from Excel and Google Sheets into Strategy Lab's causal backtesting and factor research engine.",
+        "The bridge for spreadsheet-native analysts and investors who want to move from manual cell formulas into systematic quantitative research. Understand the three blind spots of spreadsheets (look-ahead leaks, transaction friction, formula drift), map tabular data into standard OHLCV bars, reproduce moving-average crossovers with causal chronological ordering, and explore the Factor Studio and AMM simulator.",
+    ),
+    "data-hygiene": (
+        "Master tidy data architecture, tabular defect detection, bias prevention, and reproducible research workflows.",
+        "Essential data hygiene principles for investors, bookkeepers, and analysts. Learn Hadley Wickham's tidy data rules, detect and fix the five most common spreadsheet defects (date ambiguity, mixed currencies, duplicates, missing periods, category drift), avoid survivorship and look-ahead bias, and build immutable, reproducible data transformation pipelines.",
+    ),
+    "conduct-compliance-essentials": (
+        "Verifiable compliance credential: fiduciary duty of loyalty, client asset segregation, conflict disclosure, market abuse safeguards, and algorithmic firewalls.",
+        "A comprehensive standalone credential course preparing MSME owners, corporate finance managers, and quantitative developers for ethical market conduct. Master the fiduciary duty of loyalty, client asset segregation, hidden fee detection, material non-public information boundaries (MNPI vs Mosaic), market manipulation defenses, SEC Rule 15c3-5 pre-trade risk controls, and GIPS performance standards.",
+    ),
+    "python-reluctant-investor": (
+        "Zero-prerequisite Python coding confidence: execute scripts in-browser, load CSVs, compute moving averages, plot charts, and demystify tracebacks.",
+        "Designed to eliminate the fear of programming for high-school students, non-coders, and curious investors. No local installation required: write and execute Python scripts directly in the browser sandbox. Progress from printing your first return to loading tables with pandas, computing rolling statistics, visualizing price trends, running sensitivity experiments, and reading error tracebacks with complete confidence.",
+    ),
 }
 
 # The first lesson in each unit supplies the conceptual bridge to its new topic.

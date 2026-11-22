@@ -185,7 +185,14 @@ export const learningResources: LearningResource[] = [
     access:
       "Free Open Access HTML edition; print and e-book formats are sold separately.",
     url: "https://wesmckinney.com/book/",
-    courses: ["strategy-lab", "stock-bots", "stock-machine-learning"],
+    courses: [
+      "strategy-lab",
+      "stock-bots",
+      "stock-machine-learning",
+      "python-reluctant-investor",
+      "data-hygiene",
+      "spreadsheet-to-strategy-lab",
+    ],
   },
   {
     id: "quantecon",
@@ -227,7 +234,12 @@ export const learningResources: LearningResource[] = [
       "Reproducible empirical finance in R and Python, covering factor construction, portfolio sorts and beta estimation, with the code behind every result.",
     access: "Open-source online book.",
     url: "https://www.tidy-finance.org/",
-    courses: ["econometrics", "strategy-lab"],
+    courses: [
+      "econometrics",
+      "strategy-lab",
+      "data-hygiene",
+      "spreadsheet-to-strategy-lab",
+    ],
   },
   {
     id: "damodaran",
@@ -253,6 +265,7 @@ export const learningResources: LearningResource[] = [
       "cyclical-industrials",
       "tech-intangibles",
       "real-world-casebook",
+      "conduct-compliance-essentials",
     ],
   },
   {
@@ -582,7 +595,13 @@ export const learningResources: LearningResource[] = [
       "The financial-literacy portal of Indonesia's financial-services regulator (in Indonesian), covering financial planning, consumer protection and investment warnings.",
     access: "Free public portal.",
     url: "https://sikapiuangmu.ojk.go.id/",
-    courses: ["trading-fundamentals", "trading-ethics", "intelligent-investor"],
+    courses: [
+      "trading-fundamentals",
+      "trading-ethics",
+      "intelligent-investor",
+      "msme-financial-literacy",
+      "conduct-compliance-essentials",
+    ],
   },
   // Free with paid options
   {
@@ -824,6 +843,7 @@ export const learningResources: LearningResource[] = [
       "cyclical-industrials",
       "tech-intangibles",
       "real-world-casebook",
+      "conduct-compliance-essentials",
     ],
   },
   {

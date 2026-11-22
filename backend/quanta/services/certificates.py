@@ -14,6 +14,7 @@ from quanta.db.models import Certificate, ExamSubmission, User, Workspace
 from quanta.domain.assessments import ExamAnswers, grade
 from quanta.domain.catalog import CATALOG
 from quanta.domain.errors import DomainError
+from quanta.services.pdf_certificate import generate_certificate_pdf
 
 
 class CertificateClaim(BaseModel):
@@ -29,7 +30,7 @@ def _passed(exam: dict, attempt: object) -> bool:
         return False
     try:
         return grade(exam, ExamAnswers.model_validate(attempt))["passed"]
-    except ValidationError, DomainError:
+    except (ValidationError, DomainError):
         return False
 
 
@@ -63,6 +64,8 @@ def claim(payload: CertificateClaim, user: User, db: Session):
     device_attempts = workspace.state.get("examAttempts", {})
     if not isinstance(device_attempts, dict):
         device_attempts = {}
+
+    all_attempts = []
     for exam in course["exams"]:
         online = db.exec(
             select(ExamSubmission).where(
@@ -73,10 +76,31 @@ def claim(payload: CertificateClaim, user: User, db: Session):
         attempts = [submission.result for submission in online] + (
             saved if isinstance(saved, list) else []
         )
+        all_attempts.extend(attempts)
         if not any(_passed(exam, attempt) for attempt in attempts):
             raise HTTPException(
                 422, f"Pass the current {exam['title']} before claiming this certificate."
             )
+
+    # Compute score band if applicable (e.g. Conduct & Compliance Essentials)
+    score_band = None
+    best_pct = 0.0
+    for a in all_attempts:
+        if isinstance(a, dict):
+            if "score" in a:
+                best_pct = max(best_pct, float(a.get("score", 0)))
+            elif "correct" in a and "total" in a and a.get("total", 0) > 0:
+                best_pct = max(best_pct, float(a["correct"]) / float(a["total"]) * 100.0)
+
+    cert_config = course.get("certificate", {})
+    if payload.trackId == "conduct-compliance-essentials" or cert_config.get("verification_required"):
+        if best_pct >= 95.0:
+            score_band = "Distinction"
+        elif best_pct >= 90.0:
+            score_band = "Merit"
+        else:
+            score_band = "Pass"
+
     identifier = f"QTA-{str(uuid4()).upper()}"
     issued_at = datetime.now(timezone.utc).isoformat()
     record = {
@@ -87,6 +111,12 @@ def claim(payload: CertificateClaim, user: User, db: Session):
         "issuedAt": issued_at,
         "studyMinutes": sum(lesson["minutes"] for lesson in course["modules"]),
     }
+    if payload.trackId == "conduct-compliance-essentials" or cert_config.get("verification_required"):
+        record["contentVersion"] = 1
+        record["publicVerificationOptOut"] = False
+        if score_band:
+            record["scoreBand"] = score_band
+
     db.add(
         Certificate(
             id=identifier,
@@ -120,5 +150,31 @@ def verify(identifier: str, db: Session):
     certificate = db.get(Certificate, identifier.upper()) if len(identifier) == 40 else None
     if not certificate:
         raise HTTPException(404, "No issued certificate matches this ID.")
-    # Deliberately omit the owner's account ID, email, workspace, and answers.
-    return {"status": "valid", "certificate": certificate.record}
+    rec = dict(certificate.record)
+    if rec.get("publicVerificationOptOut"):
+        rec["recipientName"] = "Withheld by recipient (authentic certificate confirmed)"
+    return {"status": "valid", "certificate": rec}
+
+
+def set_privacy(identifier: str, opt_out: bool, user: User, db: Session):
+    certificate = db.get(Certificate, identifier.upper()) if len(identifier) == 40 else None
+    if not certificate:
+        raise HTTPException(404, "No issued certificate matches this ID.")
+    if certificate.user_id != user.id:
+        raise HTTPException(403, "You do not have permission to modify this certificate.")
+    rec = dict(certificate.record)
+    rec["publicVerificationOptOut"] = opt_out
+    certificate.record = rec
+    db.add(certificate)
+    db.commit()
+    db.refresh(certificate)
+    return {"status": "updated", "publicVerificationOptOut": opt_out}
+
+
+def generate_pdf(identifier: str, db: Session) -> tuple[bytes, str]:
+    certificate = db.get(Certificate, identifier.upper()) if len(identifier) == 40 else None
+    if not certificate:
+        raise HTTPException(404, "No issued certificate matches this ID.")
+    pdf_bytes = generate_certificate_pdf(certificate.record)
+    filename = f"certificate_{certificate.id}.pdf"
+    return pdf_bytes, filename

@@ -24,8 +24,8 @@ const emptyState: WorkspaceState = {
 };
 
 describe("courseConnections model", () => {
-  it("covers all 23 tracks from curriculum.json", () => {
-    expect(tracks.length).toBe(23);
+  it("covers all 28 tracks from curriculum.json", () => {
+    expect(tracks.length).toBe(28);
     expect(courseConnections.length).toBe(tracks.length);
 
     const trackIds = new Set(tracks.map((t) => t.id));

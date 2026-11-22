@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import Response
 from sqlmodel import Session
 
 from quanta.api.dependencies import key
@@ -31,3 +32,26 @@ def claim(
 def verify(identifier: str, request: Request, db: Session = Depends(get_session)):
     limiter.check(key(request, "certificate-verification", None), 120, 60)
     return service.verify(identifier, db)
+
+
+@router.get("/api/v1/certificates/{identifier}/pdf")
+def download_pdf(identifier: str, request: Request, db: Session = Depends(get_session)):
+    limiter.check(key(request, "certificate-pdf", None), 60, 60)
+    pdf_bytes, filename = service.generate_pdf(identifier, db)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.post("/api/v1/certificates/{identifier}/privacy")
+def set_privacy(
+    identifier: str,
+    payload: dict,
+    user: User = Depends(auth.require_user),
+    db: Session = Depends(get_session),
+):
+    opt_out = bool(payload.get("publicVerificationOptOut", False))
+    return service.set_privacy(identifier, opt_out, user, db)
+

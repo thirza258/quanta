@@ -32,6 +32,11 @@ from track_exams import attach_exams
 from trading_ethics import build_trading_ethics
 from valuation_uncertainty_course import build_valuation_uncertainty
 from web3_course import build_web3
+from msme_course import build_msme_financial_literacy
+from spreadsheet_to_strategy_course import build_spreadsheet_to_strategy
+from data_hygiene_course import build_data_hygiene
+from conduct_compliance_course import build_conduct_compliance
+from python_reluctant_investor_course import build_python_reluctant_investor
 
 tracks = [
     (
@@ -648,7 +653,200 @@ for builder in (
     build_security_casebook,
 ):
     catalog.append(builder())
+catalog.append(build_msme_financial_literacy())
+catalog.append(build_spreadsheet_to_strategy())
+catalog.append(build_data_hygiene())
+catalog.append(build_conduct_compliance())
+catalog.append(build_python_reluctant_investor())
 catalog.append(build_algorithm_evaluation())
+
+
+
+def attach_course_metadata(tracks):
+    """Enforce CS-1 course metadata schema across all courses and validate build integrity."""
+    DEFAULT_FUNNEL_CTAS = {
+        "trading-fundamentals": {
+            "label": "Continue to The Intelligent & Careful Investor",
+            "target_course_id": "intelligent-investor",
+            "secondary_label": "Practice in Trading Simulator",
+            "secondary_target_course_id": "simulator-workshop",
+        },
+        "trading-ethics": {
+            "label": "Advance to Classical Security Analysis",
+            "target_course_id": "security-analysis",
+            "secondary_label": "Explore Conduct & Compliance Essentials",
+            "secondary_target_course_id": "conduct-compliance-essentials",
+        },
+        "simulator-workshop": {
+            "label": "Advance to Strategy Lab Workshop",
+            "target_course_id": "lab-workshop",
+            "secondary_label": "Study The Intelligent Investor",
+            "secondary_target_course_id": "intelligent-investor",
+        },
+        "lab-workshop": {
+            "label": "Enter The Strategy Lab",
+            "target_course_id": "strategy-lab",
+            "secondary_label": "Build Stock Bots",
+            "secondary_target_course_id": "stock-bots",
+        },
+        "intelligent-investor": {
+            "label": "Advance to Classical Security Analysis",
+            "target_course_id": "security-analysis",
+            "secondary_label": "Study Financial News Analysis",
+            "secondary_target_course_id": "news-to-markets",
+        },
+        "security-analysis": {
+            "label": "Explore Quantitative Investment Analysis",
+            "target_course_id": "statistical-foundations",
+            "secondary_label": "Analyze Financial News",
+            "secondary_target_course_id": "news-to-markets",
+        },
+        "news-to-markets": {
+            "label": "Advance to Quantitative Investment Analysis",
+            "target_course_id": "statistical-foundations",
+            "secondary_label": "Read Security Analysis Casebook",
+            "secondary_target_course_id": "real-world-casebook",
+        },
+        "statistical-foundations": {
+            "label": "Master Financial Econometrics & Factor Models",
+            "target_course_id": "econometrics",
+            "secondary_label": "Test Systematic Strategies in Strategy Lab",
+            "secondary_target_course_id": "strategy-lab",
+        },
+        "econometrics": {
+            "label": "Build Systematic Strategies in Strategy Lab",
+            "target_course_id": "strategy-lab",
+            "secondary_label": "Machine Learning for Stocks",
+            "secondary_target_course_id": "stock-machine-learning",
+        },
+        "strategy-lab": {
+            "label": "Deploy Autonomous Stock Bots",
+            "target_course_id": "stock-bots",
+            "secondary_label": "Evaluate Algorithms & Results",
+            "secondary_target_course_id": "algorithm-evaluation",
+        },
+        "stock-bots": {
+            "label": "Advance to High-Performance C Trading",
+            "target_course_id": "c-hpc-trading",
+            "secondary_label": "Machine Learning for Stocks",
+            "secondary_target_course_id": "stock-machine-learning",
+        },
+        "c-hpc-trading": {
+            "label": "Explore Web3, Cryptography & Coins",
+            "target_course_id": "web3",
+            "secondary_label": "Evaluate Algorithms & Results",
+            "secondary_target_course_id": "algorithm-evaluation",
+        },
+        "web3": {
+            "label": "Explore Machine Learning for Stocks",
+            "target_course_id": "stock-machine-learning",
+            "secondary_label": "Algorithm Evaluation & Reporting",
+            "secondary_target_course_id": "algorithm-evaluation",
+        },
+        "stock-machine-learning": {
+            "label": "Forensic Accounting & Earnings Quality",
+            "target_course_id": "forensic-accounting",
+            "secondary_label": "Algorithm Evaluation",
+            "secondary_target_course_id": "algorithm-evaluation",
+        },
+        "forensic-accounting": {
+            "label": "Credit Analysis & Distressed Securities",
+            "target_course_id": "credit-distress",
+            "secondary_label": "Business Quality & Moats",
+            "secondary_target_course_id": "quality-moats",
+        },
+        "credit-distress": {
+            "label": "Business Quality & Moats",
+            "target_course_id": "quality-moats",
+            "secondary_label": "Analyzing Banks",
+            "secondary_target_course_id": "bank-analysis",
+        },
+        "quality-moats": {
+            "label": "Analyzing Banks & Financial Institutions",
+            "target_course_id": "bank-analysis",
+            "secondary_label": "Valuation Under Uncertainty",
+            "secondary_target_course_id": "valuation-uncertainty",
+        },
+        "bank-analysis": {
+            "label": "Valuation Under Uncertainty",
+            "target_course_id": "valuation-uncertainty",
+            "secondary_label": "Cyclicals & Commodities",
+            "secondary_target_course_id": "cyclical-industrials",
+        },
+        "valuation-uncertainty": {
+            "label": "Cyclicals, Commodities & Industrials",
+            "target_course_id": "cyclical-industrials",
+            "secondary_label": "Technology & Intangibles",
+            "secondary_target_course_id": "tech-intangibles",
+        },
+        "cyclical-industrials": {
+            "label": "Technology, Platforms & Intangibles",
+            "target_course_id": "tech-intangibles",
+            "secondary_label": "Real-World Casebook",
+            "secondary_target_course_id": "real-world-casebook",
+        },
+        "tech-intangibles": {
+            "label": "Real-World Security Analysis Casebook",
+            "target_course_id": "real-world-casebook",
+            "secondary_label": "Algorithm Evaluation",
+            "secondary_target_course_id": "algorithm-evaluation",
+        },
+        "real-world-casebook": {
+            "label": "Algorithm Evaluation & Results Reporting",
+            "target_course_id": "algorithm-evaluation",
+            "secondary_label": "Conduct & Compliance Essentials",
+            "secondary_target_course_id": "conduct-compliance-essentials",
+        },
+        "algorithm-evaluation": {
+            "label": "Explore Strategy Lab Research",
+            "target_course_id": "strategy-lab",
+            "secondary_label": "Conduct & Compliance Essentials",
+            "secondary_target_course_id": "conduct-compliance-essentials",
+        },
+    }
+
+    for track in tracks:
+        track.setdefault("slug", track["id"])
+        if "subtitle" not in track:
+            desc = track.get("description", "")
+            track["subtitle"] = desc.split(".")[0] + "." if desc else track["title"]
+        track.setdefault(
+            "audience_tags",
+            ["investor", "quant"] if "advanced" in track.get("level", "").lower() else ["beginner", "investor"],
+        )
+        track.setdefault(
+            "estimated_minutes",
+            sum(m.get("minutes", 15) for m in track.get("modules", [])),
+        )
+        track.setdefault("lesson_count", len(track.get("modules", [])))
+        track.setdefault("assessment_count", len(track.get("exams", [])))
+        track.setdefault("completion_criteria", {"lessons_pct": 100, "assessment_pass_pct": 70})
+        track.setdefault(
+            "certificate",
+            {"enabled": True, "template_id": "standard", "verification_required": False},
+        )
+        if "funnel_cta" not in track:
+            track["funnel_cta"] = DEFAULT_FUNNEL_CTAS.get(
+                track["id"],
+                {"label": "Explore Course Catalog", "target_course_id": "curriculum"},
+            )
+        track.setdefault("language", ["en"])
+
+        # Validate CS-1 metadata requirements at build time (Acceptance Criterion)
+        assert track["slug"], f"Track {track['id']} missing slug"
+        assert track["title"], f"Track {track['id']} missing title"
+        assert track["level"], f"Track {track['id']} missing level"
+        assert isinstance(track["audience_tags"], list), f"Track {track['id']} audience_tags must be list"
+        assert isinstance(track["language"], list), f"Track {track['id']} language must be list"
+        assert "funnel_cta" in track and track["funnel_cta"].get("label"), (
+            f"Track {track['id']} missing funnel_cta.label"
+        )
+        assert (
+            track["funnel_cta"].get("target_course_id") or track["funnel_cta"].get("target_url")
+        ), f"Track {track['id']} missing funnel_cta target"
+
+
+attach_course_metadata(catalog)
 attach_learning_guidance(catalog)
 # Research sections run before references so their cited links reach each lesson's sources.
 attach_research_depth(catalog)

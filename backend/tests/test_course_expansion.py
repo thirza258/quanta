@@ -1,0 +1,171 @@
+"""Integration tests for the 5 PRD courses: MSME, Strategy Bridge, Data Hygiene, Conduct, Python."""
+
+from datetime import datetime, timezone
+import pytest
+
+from quanta.db.models import Certificate, User
+from quanta.domain.catalog import CATALOG
+
+
+def test_catalog_contains_all_28_courses():
+    course_ids = [c["id"] for c in CATALOG]
+    assert len(course_ids) == 28
+    assert "msme-financial-literacy" in course_ids
+    assert "spreadsheet-to-strategy-lab" in course_ids
+    assert "data-hygiene" in course_ids
+    assert "conduct-compliance-essentials" in course_ids
+    assert "python-reluctant-investor" in course_ids
+    assert course_ids[0] == "trading-fundamentals"
+    assert course_ids[-1] == "algorithm-evaluation"
+
+
+def test_course_metadata_schema_fields():
+    for course in CATALOG:
+        assert course["slug"]
+        assert course["title"]
+        assert course["level"]
+        assert isinstance(course["audience_tags"], list)
+        assert isinstance(course["language"], list)
+        assert "funnel_cta" in course
+        assert course["funnel_cta"]["label"]
+        assert course["funnel_cta"].get("target_course_id") or course["funnel_cta"].get("target_url")
+
+
+def test_analytics_event_recording(client):
+    res = client.post(
+        "/api/v1/analytics/events",
+        json={
+            "event_type": "course_start",
+            "course_id": "msme-financial-literacy",
+            "session_id": "sess-test-123",
+            "metadata": {"source": "direct_url"},
+        },
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "ok"
+    assert data["event_id"]
+
+    query_res = client.get(
+        "/api/v1/analytics/events?course_id=msme-financial-literacy&event_type=course_start"
+    )
+    assert query_res.status_code == 200
+    events = query_res.json()["events"]
+    assert len(events) >= 1
+    assert events[0]["course_id"] == "msme-financial-literacy"
+
+
+def test_msme_capstone_validation(client):
+    valid_csv = """month,opening_balance,cash_inflows,cash_outflows,closing_balance
+1,10000000,15000000,12000000,13000000
+2,13000000,16000000,11000000,18000000
+3,18000000,14000000,15000000,17000000
+4,17000000,18000000,12000000,23000000
+5,23000000,20000000,16000000,27000000
+6,27000000,22000000,18000000,31000000
+7,31000000,19000000,17000000,33000000
+8,33000000,21000000,15000000,39000000
+9,39000000,24000000,19000000,44000000
+10,44000000,25000000,20000000,49000000
+11,49000000,23000000,18000000,54000000
+12,54000000,26000000,22000000,58000000"""
+
+    res = client.post(
+        "/api/v1/courses/msme-financial-literacy/capstone",
+        json={"content": valid_csv},
+    )
+    assert res.status_code == 200
+    assert res.json()["status"] == "passed"
+
+    # Test invalid: continuity break
+    broken_continuity = valid_csv.replace("2,13000000", "2,99999999")
+    res_err = client.post(
+        "/api/v1/courses/msme-financial-literacy/capstone",
+        json={"content": broken_continuity},
+    )
+    assert res_err.status_code == 422
+    assert "continuity" in res_err.json()["detail"].lower()
+
+    # Test invalid: only 5 rows instead of 12
+    short_csv = "\n".join(valid_csv.splitlines()[:6])
+    res_short = client.post(
+        "/api/v1/courses/msme-financial-literacy/capstone",
+        json={"content": short_csv},
+    )
+    assert res_short.status_code == 422
+    assert "12 monthly rows" in res_short.json()["detail"]
+
+
+def test_data_hygiene_capstone_validation(client):
+    clean_csv = """id,date,amount,currency,category
+tx_001,2026-01-05,150000.00,IDR,Bahan Baku
+tx_002,2026-01-06,200000.00,IDR,Operasional
+tx_003,2026-01-07,50.00,USD,Langganan SaaS"""
+
+    res = client.post(
+        "/api/v1/courses/data-hygiene/capstone",
+        json={"content": clean_csv},
+    )
+    assert res.status_code == 200
+    assert res.json()["status"] == "passed"
+
+    # Test invalid: date ambiguity (04/05/2026)
+    bad_date_csv = clean_csv.replace("2026-01-05", "04/05/2026")
+    res_bad_date = client.post(
+        "/api/v1/courses/data-hygiene/capstone",
+        json={"content": bad_date_csv},
+    )
+    assert res_bad_date.status_code == 422
+    assert "ISO-8601" in res_bad_date.json()["detail"]
+
+
+def test_certificate_pdf_and_privacy(client):
+    from quanta.db.session import engine
+    from sqlmodel import Session
+    from uuid import uuid4
+
+    test_cert_id = f"QTA-{str(uuid4()).upper()}"
+    with Session(engine) as session:
+        user = User(
+            id=str(uuid4()),
+            email=f"compliance_{uuid4().hex[:6]}@example.com",
+            name="Compliance Scholar",
+            hashed_password="pw",
+        )
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+
+        cert = Certificate(
+            id=test_cert_id,
+            user_id=user.id,
+            course_key="test-conduct-key",
+            record={
+                "id": test_cert_id,
+                "trackId": "conduct-compliance-essentials",
+                "courseTitle": "Conduct & Compliance Essentials",
+                "recipientName": "Compliance Scholar",
+                "issuedAt": datetime.now(timezone.utc).isoformat(),
+                "studyMinutes": 420,
+                "scoreBand": "Distinction",
+                "contentVersion": 1,
+                "publicVerificationOptOut": False,
+                "lessonIds": [],
+                "examVersions": {},
+            },
+        )
+        session.add(cert)
+        session.commit()
+
+    # Test PDF generation
+    pdf_res = client.get(f"/api/v1/certificates/{test_cert_id}/pdf")
+    assert pdf_res.status_code == 200
+    assert pdf_res.headers["content-type"] == "application/pdf"
+    assert pdf_res.content.startswith(b"%PDF-1.4")
+    assert b"DISTINCTION" in pdf_res.content
+
+    # Test public verification returns full name initially
+    verify_res = client.get(f"/api/v1/certificates/{test_cert_id}/verify")
+    assert verify_res.status_code == 200
+    assert verify_res.json()["certificate"]["recipientName"] == "Compliance Scholar"
+    assert verify_res.json()["certificate"]["scoreBand"] == "Distinction"

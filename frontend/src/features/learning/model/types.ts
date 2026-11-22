@@ -46,6 +46,26 @@ export type Lesson = {
   realWorld: RealWorldApplication;
 };
 
+export type FunnelCta = {
+  label: string;
+  target_course_id?: string;
+  target_url?: string;
+  secondary_label?: string;
+  secondary_target_course_id?: string;
+  secondary_target_url?: string;
+};
+
+export type CourseCompletionCriteria = {
+  lessons_pct: number;
+  assessment_pass_pct: number;
+};
+
+export type CourseCertificateConfig = {
+  enabled: boolean;
+  template_id: string;
+  verification_required: boolean;
+};
+
 export type Track = {
   id: string;
   number: number;
@@ -64,4 +84,14 @@ export type Track = {
   references?: { title: string; url: string }[];
   parts?: { id: string; title: string; description: string }[];
   exams: Exam[];
+  slug?: string;
+  subtitle?: string;
+  audience_tags?: string[];
+  estimated_minutes?: number;
+  lesson_count?: number;
+  assessment_count?: number;
+  completion_criteria?: CourseCompletionCriteria;
+  certificate?: CourseCertificateConfig;
+  funnel_cta?: FunnelCta;
+  language?: string[];
 };

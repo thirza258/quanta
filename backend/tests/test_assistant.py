@@ -129,7 +129,7 @@ def test_provider_failures_are_redacted_and_not_retried(client, provider, upstre
     response = client.post("/api/v1/assistant/chat", json=request())
     assert response.status_code == status
     assert "secret provider" not in response.text
-    assert len(calls) == 1
+    assert len(calls) == (1 + len(assistant.FREE_OPENROUTER_MODELS) if upstream == 402 else 1)
 
 
 def test_provider_timeout(client, provider):

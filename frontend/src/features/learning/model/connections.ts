@@ -604,6 +604,116 @@ export const courseConnections: CourseConnection[] = [
     ],
   },
   {
+    id: "msme-financial-literacy",
+    stage: 1,
+    stageName: "Foundations & Market Mechanics",
+    domain: "fundamentals",
+    domainLabel: "Foundations & Ethics",
+    prerequisites: [],
+    recommendedBefore: [],
+    unlocks: ["intelligent-investor", "data-hygiene"],
+    whyPrerequisites:
+      "The dedicated on-ramp for small business owners and non-technical adults. No prerequisites required.",
+    whyUnlocks:
+      "Builds the cash-flow awareness and accounting discipline needed to evaluate public equities and maintain clean financial records.",
+    focusSummary:
+      "Cash flow vs accounting profit, 12-month cash forecast capstone, break-even unit analysis, working capital cycles, and Indonesian UMKM tax obligations.",
+    skillsGained: [
+      "12-month cash flow forecasting",
+      "Segregating personal & business accounts",
+      "Single-product break-even calculations",
+      "Indonesian UMKM tax compliance (PP 55/2022)",
+    ],
+  },
+  {
+    id: "spreadsheet-to-strategy-lab",
+    stage: 2,
+    stageName: "Core Analysis & Quantitative Modeling",
+    domain: "quant",
+    domainLabel: "Quantitative & Factor Methods",
+    prerequisites: [],
+    recommendedBefore: ["trading-fundamentals"],
+    unlocks: ["strategy-lab", "stock-bots"],
+    whyPrerequisites:
+      "Designed for spreadsheet users; requires no programming background or prior platform experience.",
+    whyUnlocks:
+      "Bridges tabular spreadsheet thinking directly into Strategy Lab's 32-lesson track, Factor Studio, and automated stock bots.",
+    focusSummary:
+      "Translating spreadsheet models to OHLCV bar dictionaries, eliminating look-ahead bias, accounting for transaction friction, and saving versioned strategies.",
+    skillsGained: [
+      "Spreadsheet-to-code translation",
+      "Causal execution & lag modeling",
+      "Transaction friction & slippage accounting",
+      "Strategy versioning & Factor Studio navigation",
+    ],
+  },
+  {
+    id: "data-hygiene",
+    stage: 1,
+    stageName: "Foundations & Market Mechanics",
+    domain: "fundamentals",
+    domainLabel: "Foundations & Ethics",
+    prerequisites: [],
+    recommendedBefore: [],
+    unlocks: ["statistical-foundations", "econometrics"],
+    whyPrerequisites:
+      "Zero prerequisites. Open to spreadsheet investors, small bookkeepers, and curious analysts.",
+    whyUnlocks:
+      "Clean, tidy data is the foundation of institutional research, protecting subsequent econometric models from garbage-in garbage-out artifacts.",
+    focusSummary:
+      "Tidy data rules, detecting and repairing the 5 common tabular defects, eliminating survivorship and look-ahead biases, and reproducible pipelines.",
+    skillsGained: [
+      "Tidy data rectangular architecture",
+      "Detecting 5 tabular defect classes",
+      "Survivorship & look-ahead bias elimination",
+      "Reproducible data cleaning pipelines",
+    ],
+  },
+  {
+    id: "conduct-compliance-essentials",
+    stage: 1,
+    stageName: "Foundations & Market Mechanics",
+    domain: "fundamentals",
+    domainLabel: "Foundations & Ethics",
+    prerequisites: [],
+    recommendedBefore: ["trading-fundamentals"],
+    unlocks: ["security-analysis", "algorithm-evaluation"],
+    whyPrerequisites:
+      "No prerequisites. Suitable for MSME founders, junior corporate finance staff, and quantitative researchers.",
+    whyUnlocks:
+      "Yields a verifiable compliance certificate and grounds pre-trade risk controls and GIPS standards before algorithmic execution.",
+    focusSummary:
+      "Fiduciary duty of loyalty, client asset segregation, MNPI vs Mosaic Theory, market manipulation defense, SEC Rule 15c3-5 risk firewalls, and GIPS standards.",
+    skillsGained: [
+      "Fiduciary duty of loyalty & asset segregation",
+      "MNPI & Mosaic Theory compliance",
+      "Pre-trade risk controls & emergency kill switches",
+      "GIPS compliant net-of-fee performance presentation",
+    ],
+  },
+  {
+    id: "python-reluctant-investor",
+    stage: 1,
+    stageName: "Foundations & Market Mechanics",
+    domain: "quant",
+    domainLabel: "Quantitative & Factor Methods",
+    prerequisites: [],
+    recommendedBefore: [],
+    unlocks: ["spreadsheet-to-strategy-lab", "stock-bots"],
+    whyPrerequisites:
+      "Zero programming, finance, or advanced math required. Designed for non-coders and high-school students.",
+    whyUnlocks:
+      "Removes the fear of code, enabling learners to confidently enter the Strategy Lab and automated stock bot tracks.",
+    focusSummary:
+      "Zero-install Python execution, pandas CSV manipulation, rolling moving averages, trend charting, parameterization, and confident traceback debugging.",
+    skillsGained: [
+      "Interactive browser-based Python execution",
+      "pandas DataFrame inspection & slicing",
+      "Rolling moving average calculation",
+      "Python traceback reading & error resolution",
+    ],
+  },
+  {
     id: "algorithm-evaluation",
     stage: 4,
     stageName: "Specialized Deep Dives & Systems Architecture",

@@ -83,6 +83,13 @@ export function CertificateView({
         <button className="button primary" onClick={() => window.print()}>
           <Printer size={16} /> Print / save PDF
         </button>
+        <a
+          className="button secondary"
+          href={`/api/v1/certificates/${certificate.id}/pdf`}
+          download={`certificate_${certificate.id}.pdf`}
+        >
+          Download PDF
+        </a>
       </div>
       <div className="verification-banner" role="status">
         <CheckCircle2 size={20} />
@@ -94,6 +101,22 @@ export function CertificateView({
           </p>
         </div>
       </div>
+      {publicView && certificate.publicVerificationOptOut ? (
+        <div
+          className="privacy-notice-banner"
+          style={{
+            marginTop: "1rem",
+            padding: "0.75rem 1rem",
+            borderRadius: "8px",
+            background: "rgba(255, 255, 255, 0.05)",
+            border: "1px solid rgba(255, 255, 255, 0.12)",
+            fontSize: "0.85rem",
+          }}
+        >
+          Recipient name details are withheld by the learner for public
+          verification. Credential authenticity remains confirmed.
+        </div>
+      ) : null}
       {copyStatus ? (
         <p className="certificate-print-help" role="status">
           {copyStatus}
@@ -115,6 +138,25 @@ export function CertificateView({
         <h2 className="certificate-recipient">{certificate.recipientName}</h2>
         <p>for completing the Quanta course</p>
         <h3 className="certificate-course-title">{certificate.courseTitle}</h3>
+        {certificate.scoreBand ? (
+          <div
+            className="certificate-score-band"
+            style={{
+              margin: "0.5rem auto",
+              display: "inline-block",
+              padding: "0.25rem 0.75rem",
+              borderRadius: "999px",
+              background: "rgba(56, 189, 248, 0.15)",
+              border: "1px solid rgba(56, 189, 248, 0.4)",
+              color: "var(--color-accent, #38bdf8)",
+              fontWeight: 600,
+              fontSize: "0.85rem",
+              letterSpacing: "0.05em",
+            }}
+          >
+            CREDENTIAL ACHIEVEMENT BAND: {certificate.scoreBand.toUpperCase()}
+          </div>
+        ) : null}
         <p>
           {certificate.lessonIds.length} modules completed ·{" "}
           {Object.keys(certificate.examVersions).length} exams passed

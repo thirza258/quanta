@@ -43,3 +43,33 @@ def exam_attempts(
     db: Session = Depends(get_session),
 ):
     return service.exam_attempts(exam_id, user, db)
+
+
+@router.post("/api/v1/analytics/events")
+def record_event(
+    payload: dict,
+    user: User | None = Depends(auth.optional_user),
+    db: Session = Depends(get_session),
+):
+    return service.record_analytics_event(payload, user, db)
+
+
+@router.get("/api/v1/analytics/events")
+def list_events(
+    course_id: str | None = None,
+    event_type: str | None = None,
+    db: Session = Depends(get_session),
+):
+    return service.list_analytics_events(course_id, event_type, db)
+
+
+@router.post("/api/v1/courses/{course_id}/capstone")
+def submit_capstone(
+    course_id: str,
+    payload: dict,
+    user: User | None = Depends(auth.optional_user),
+    db: Session = Depends(get_session),
+):
+    content = payload.get("content", "")
+    return service.validate_capstone(course_id, content, user, db)
+

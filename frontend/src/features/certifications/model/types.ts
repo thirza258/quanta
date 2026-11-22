@@ -1,3 +1,5 @@
+export type ScoreBand = "Pass" | "Merit" | "Distinction";
+
 export type Certificate = {
   id: string;
   trackId: string;
@@ -7,4 +9,7 @@ export type Certificate = {
   lessonIds: string[];
   examVersions: Record<string, number>;
   studyMinutes: number;
+  scoreBand?: ScoreBand;
+  contentVersion?: number;
+  publicVerificationOptOut?: boolean;
 };

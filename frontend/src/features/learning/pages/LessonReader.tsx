@@ -393,6 +393,20 @@ function Reader({ lesson }: { lesson: Lesson }) {
                 Next module
                 <ArrowRight size={15} />
               </Link>
+            ) : track?.funnel_cta ? (
+              <Link
+                to={
+                  track.funnel_cta.target_course_id
+                    ? track.funnel_cta.target_course_id === "curriculum"
+                      ? "/curriculum"
+                      : `/curriculum/${track.funnel_cta.target_course_id}`
+                    : track.funnel_cta.target_url || "/curriculum"
+                }
+                className="text-link"
+              >
+                {track.funnel_cta.label}
+                <ArrowRight size={15} />
+              </Link>
             ) : null}
           </div>
         </article>

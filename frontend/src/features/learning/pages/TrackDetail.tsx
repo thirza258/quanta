@@ -67,6 +67,37 @@ export default function TrackDetail() {
           <div className="page-eyebrow">
             {trackLabel(track)}
             <span className="level-badge">{track.level}</span>
+            {track.language?.length ? (
+              <span
+                className="lang-badge"
+                style={{
+                  marginLeft: "0.5rem",
+                  fontSize: "0.75rem",
+                  padding: "0.15rem 0.5rem",
+                  borderRadius: "4px",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                }}
+              >
+                {track.language.map((l) => l.toUpperCase()).join(" / ")}
+              </span>
+            ) : null}
+            {track.audience_tags?.map((tag) => (
+              <span
+                key={tag}
+                className="tag-badge"
+                style={{
+                  marginLeft: "0.4rem",
+                  fontSize: "0.7rem",
+                  padding: "0.1rem 0.4rem",
+                  borderRadius: "4px",
+                  background: "rgba(56, 189, 248, 0.12)",
+                  color: "#38bdf8",
+                }}
+              >
+                #{tag}
+              </span>
+            ))}
           </div>
           <h1>{track.title}</h1>
           <p className="page-subtitle">
@@ -301,6 +332,71 @@ export default function TrackDetail() {
           </Fragment>
         ))}
       </div>
+      {track.funnel_cta ? (
+        <section
+          className="funnel-cta-section"
+          style={{
+            marginTop: "3rem",
+            padding: "2rem",
+            borderRadius: "14px",
+            background:
+              "linear-gradient(135deg, rgba(24, 24, 27, 0.95), rgba(39, 39, 42, 0.75))",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+          }}
+        >
+          <span
+            className="eyebrow"
+            style={{
+              textTransform: "uppercase",
+              fontSize: "0.75rem",
+              letterSpacing: "0.08em",
+              color: "#38bdf8",
+              fontWeight: 600,
+            }}
+          >
+            Recommended Next Step
+          </span>
+          <h2 style={{ margin: "0.5rem 0 1rem", fontSize: "1.35rem" }}>
+            Where to go after {track.title}
+          </h2>
+          <div
+            style={{
+              display: "flex",
+              gap: "1rem",
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <Link
+              className="button primary"
+              to={
+                track.funnel_cta.target_course_id
+                  ? track.funnel_cta.target_course_id === "curriculum"
+                    ? "/curriculum"
+                    : `/curriculum/${track.funnel_cta.target_course_id}`
+                  : track.funnel_cta.target_url || "/curriculum"
+              }
+            >
+              {track.funnel_cta.label} <ArrowRight size={16} />
+            </Link>
+            {track.funnel_cta.secondary_label ? (
+              <Link
+                className="button secondary"
+                to={
+                  track.funnel_cta.secondary_target_course_id
+                    ? track.funnel_cta.secondary_target_course_id ===
+                      "certifications"
+                      ? "/certifications"
+                      : `/curriculum/${track.funnel_cta.secondary_target_course_id}`
+                    : track.funnel_cta.secondary_target_url || "/curriculum"
+                }
+              >
+                {track.funnel_cta.secondary_label}
+              </Link>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

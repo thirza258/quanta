@@ -133,3 +133,30 @@ class DatasetVersion(SQLModel, table=True):
     meta: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
     quality: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class AnalyticsEvent(SQLModel, table=True):
+    """CS-8 Analytics event persistence."""
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    user_id: str | None = Field(default=None, index=True)
+    session_id: str | None = Field(default=None, index=True)
+    event_type: str = Field(index=True)
+    course_id: str = Field(index=True)
+    lesson_id: str | None = Field(default=None, index=True)
+    metadata_json: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class CapstoneSubmission(SQLModel, table=True):
+    """Mandatory capstone project submission and automated grading record."""
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    user_id: str | None = Field(default=None, index=True)
+    course_id: str = Field(index=True)
+    status: str = Field(default="passed")
+    score: float = 100.0
+    rubric_feedback: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
+    submission_data: str
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
