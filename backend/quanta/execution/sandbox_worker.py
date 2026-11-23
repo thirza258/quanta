@@ -16,6 +16,10 @@ from collections import deque
 
 MAX_ITEMS = 10000
 MAX_OPERATIONS = 750000
+FORMAT_SPEC = re.compile(
+    r"(?:.?[<>=^])?[+\- ]?z?#?0?(?P<width>\d+)?[,_]?(?:\.(?P<precision>\d+))?[bcdeEfFgGnosxX%]?",
+    re.DOTALL,
+)
 INDICATORS = ("sma", "ema", "highest", "lowest", "change", "shift", "stdev", "zscore")
 
 
@@ -270,9 +274,14 @@ class Interpreter:
         if node.format_spec is None:
             return str(self.sequence(value))
         spec = self.expr(node.format_spec, env)
-        width = re.match(r"^(?:.?[<>=^])?[+\- ]?z?#?0?(\d*)", spec).group(1)
-        if len(spec) > 20 or (width and int(width) > 200):
-            raise SandboxError("Format specification is too long.")
+        # The whole spec must parse; width and precision are capped so a spec cannot
+        # allocate an unbounded string (e.g. ".99999999f").
+        parsed = FORMAT_SPEC.fullmatch(spec) if len(spec) <= 20 else None
+        if parsed is None:
+            raise SandboxError("Unsupported format specification.")
+        width, precision = parsed.group("width"), parsed.group("precision")
+        if (width and int(width) > 200) or (precision and int(precision) > 50):
+            raise SandboxError("Format width or precision exceeds the limit.")
         if type(value) not in (int, float, bool, str):
             raise SandboxError("Format specifications apply to numbers and text.")
         return format(value, spec)
