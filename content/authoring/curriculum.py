@@ -658,6 +658,28 @@ catalog.append(build_spreadsheet_to_strategy())
 catalog.append(build_data_hygiene())
 catalog.append(build_conduct_compliance())
 catalog.append(build_python_reluctant_investor())
+
+
+def _rebalance(q):
+    """Rotate options so the correct answer's position depends on the question, not the author."""
+    import hashlib
+
+    n = len(q["options"])
+    target = int(hashlib.sha256(q["question"].encode()).hexdigest(), 16) % n
+    shift = (target - q["answer"]) % n
+    q["options"] = [q["options"][(i - shift) % n] for i in range(n)]
+    q["answer"] = target
+
+
+# The expansion courses were authored with the key almost always in one slot.
+for _course in catalog[-5:]:
+    for _m in _course["modules"]:
+        # Rotation is idempotent, so `exercise` (a copy of exercises[0]) stays in step.
+        for _q in ([_m["exercise"]] if _m.get("exercise") else []) + list(_m.get("exercises") or []):
+            _rebalance(_q)
+    for _e in _course.get("exams", []):
+        for _q in _e["questions"]:
+            _rebalance(_q)
 catalog.append(build_algorithm_evaluation())
 
 

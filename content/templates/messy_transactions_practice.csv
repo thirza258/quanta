@@ -2,7 +2,7 @@ date,transaction_id,description,category,inflow,outflow,balance
 2026-02-01,TXN-2001,Penjualan Katering Kantor A,Penjualan,5000000,0,5000000
 02/02/2026,TXN-2002,Beli Bahan Sayur dan Daging,Persediaan,0,1800000,3200000
 2026/02/03,TXN-2003,Biaya Listrik Warung,OpEx,0,450000,2750000
-Feb 04, 2026,TXN-2004,Penjualan Prasmanan,penjualan,3500000,0,6250000
+"Feb 04, 2026",TXN-2004,Penjualan Prasmanan,penjualan,3500000,0,6250000
 2026-02-05,TXN-2005,Pembelian Kemasan Box,Operasional,0,500000,5750000
 2026-02-05,TXN-2005,Pembelian Kemasan Box,Operasional,0,500000,5750000
 2026-02-06,TXN-2006,Konsultasi Software Kasir,Operations,0,750000,5000000

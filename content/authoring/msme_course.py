@@ -774,7 +774,7 @@ def build_msme_financial_literacy():
             "kind": "final",
             "passingScore": 70,
             "minutes": 30,
-            "version": 1,
+            "version": 2,
             "description": "Evaluasi komprehensif literasi keuangan UMKM: arus kas, BEP, modal kerja, keputusan pinjaman, dan perpajakan Indonesia. Terbuka, tanpa batasan waktu.",
             "moduleIds": [m["id"] for m in modules],
             "questions": [

@@ -259,7 +259,7 @@ def build_spreadsheet_to_strategy():
                 "\n$$\n\n"
                 "## A worked example\n\n"
                 "Consider a 20-day moving average. In Excel, column D contains `=AVERAGE(C2:C21)` and column E contains `=IF(C21>D21, 1, 0)`.\n\n"
-                "In Strategy Lab, `data['close'] > data['sma_20']` produces the exact same boolean array. The crucial difference is execution: Strategy Lab automatically executes the position on the **next open** ($t+1$), completely removing the accidental look-ahead leakage that plagues spreadsheet models.\n\n"
+                "In Strategy Lab, `data['close'] > data['sma_50']` produces the exact same boolean array. The crucial difference is execution: Strategy Lab automatically executes the position on the **next open** ($t+1$), completely removing the accidental look-ahead leakage that plagues spreadsheet models.\n\n"
                 "## Work through it yourself\n\n"
                 "1. Inspect your moving average formula in Excel.\n"
                 "2. Rewrite it in Strategy Lab using `data['close'] > data['sma_50']`.\n"
@@ -542,7 +542,7 @@ def build_spreadsheet_to_strategy():
             "kind": "final",
             "passingScore": 70,
             "minutes": 25,
-            "version": 1,
+            "version": 2,
             "description": "Comprehensive assessment on translating spreadsheet workflows into systematic code, causal ordering, and Strategy Lab tools.",
             "moduleIds": [m["id"] for m in modules],
             "questions": [

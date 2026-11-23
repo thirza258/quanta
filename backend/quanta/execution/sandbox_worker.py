@@ -9,6 +9,7 @@ import ast
 import json
 import math
 import operator
+import re
 import sys
 import time
 from collections import deque
@@ -262,6 +263,20 @@ class Interpreter:
             out.append((v - mean) / deviation if deviation > 1e-12 else 0.0)
         return Vector(out)
 
+    def formatted(self, node, env):
+        value = self.expr(node.value, env)
+        if node.conversion not in (-1, ord("s")):
+            raise SandboxError("Only plain and !s conversions are supported in f-strings.")
+        if node.format_spec is None:
+            return str(self.sequence(value))
+        spec = self.expr(node.format_spec, env)
+        width = re.match(r"^(?:.?[<>=^])?[+\- ]?z?#?0?(\d*)", spec).group(1)
+        if len(spec) > 20 or (width and int(width) > 200):
+            raise SandboxError("Format specification is too long.")
+        if type(value) not in (int, float, bool, str):
+            raise SandboxError("Format specifications apply to numbers and text.")
+        return format(value, spec)
+
     def vector_unary(self, fn, a):
         if isinstance(a, Vector):
             self.tick(len(a.values))
@@ -429,7 +444,7 @@ class Interpreter:
             return result
         if isinstance(node, ast.JoinedStr):
             result = "".join(
-                str(self.expr(v.value, env)) if isinstance(v, ast.FormattedValue) else v.value
+                self.formatted(v, env) if isinstance(v, ast.FormattedValue) else v.value
                 for v in node.values
             )
             if len(result) > 20000:

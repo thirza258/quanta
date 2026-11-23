@@ -455,7 +455,7 @@ def build_data_hygiene():
             "kind": "final",
             "passingScore": 70,
             "minutes": 20,
-            "version": 1,
+            "version": 2,
             "description": "Comprehensive evaluation of tidy data principles, defect detection, bias prevention, and dataset reproducibility.",
             "moduleIds": [m["id"] for m in modules],
             "questions": [

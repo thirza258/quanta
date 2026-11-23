@@ -187,7 +187,7 @@ def build_conduct_compliance():
             ),
             "content": (
                 "## Understand the idea\n\n"
-                "A small 2% annual fee sounds trivial when presented verbally. Over a 30-year investing horizon, however, a 2% fee drag consumes **over 45% of your total lifetime accumulated wealth** due to the loss of compounding returns.\n\n"
+                "A small 2% annual fee sounds trivial when presented verbally. Over a 30-year investing horizon, however, a 2% fee drag consumes **about 43% of your total lifetime accumulated wealth** due to the loss of compounding returns.\n\n"
                 "Fiduciary duty requires full disclosure of all direct and indirect compensation:\n"
                 "- Management fees and performance fees.\n"
                 "- 12b-1 trailer fees and custodial custody markups.\n"
@@ -196,8 +196,8 @@ def build_conduct_compliance():
                 r"\mathrm{Wealth}(T) = W_0 (1 + r - \mathrm{TER})^T"
                 "\n$$\n\n"
                 "## A worked example\n\n"
-                "A client invests $100,000 earning 8% gross annual returns over 30 years. In an index fund charging 0.20%, terminal wealth reaches **$935,000**.\n\n"
-                "In a loaded active fund charging 2.20% (including hidden distribution kickbacks), terminal wealth reaches only **$516,000**. The $419,000 difference is not pocket change—it represents the destruction of nearly half of the client's retirement capital.\n\n"
+                "A client invests $100,000 earning 8% gross annual returns over 30 years. In an index fund charging 0.20%, terminal wealth reaches **$951,838**.\n\n"
+                "In a loaded active fund charging 2.20% (including hidden distribution kickbacks), terminal wealth reaches only **$542,713**. The $409,125 difference is not pocket change—it represents the destruction of nearly half of the client's retirement capital.\n\n"
                 "## Work through it yourself\n\n"
                 "1. Audit all fee disclosures for explicit Total Expense Ratios.\n"
                 "2. Check whether product recommendations carry third-party kickbacks.\n"
@@ -919,13 +919,13 @@ def build_conduct_compliance():
             "A pre-trade kill switch is a mandatory electronic mechanism that immediately terminates order routing and cancels open orders when market or software anomalies occur.",
         ),
         question(
-            "When presenting historical performance to prospective clients under GIPS standards, why must returns be displayed net of all management and custodial fees?",
+            "When an adviser shows gross-of-fee performance to prospective clients, why should net-of-fee returns be shown alongside it?",
             [
                 "Because gross returns give clients a false, inflated expectation of what capital actually compounds into their accounts",
                 "Because computing gross returns requires advanced calculus",
                 "Because taxes cannot be deducted",
             ],
-            1,
+            0,
             "Net-of-fee returns represent the true economic return realized by the client after subtracting all fee drag that depletes compounding.",
         ),
         question(
@@ -1006,7 +1006,7 @@ def build_conduct_compliance():
             "kind": "final",
             "passingScore": 80,  # PRD requirement: >=80% pass threshold
             "minutes": 45,
-            "version": 1,
+            "version": 2,
             "description": "Comprehensive credential assessment covering fiduciary duties, conflict disclosure, market manipulation, algorithmic risk controls, GIPS, and compliance charters. Passing threshold: 80%.",
             "moduleIds": [m["id"] for m in modules],
             "questions": exam_questions,

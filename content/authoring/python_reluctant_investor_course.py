@@ -315,16 +315,16 @@ def build_python_reluctant_investor():
             "content": (
                 "## The idea\n\n"
                 "The hallmark of disciplined quantitative programming is **clean parameterization**.\n\n"
-                "Never bury magic numbers deep inside your code. Instead, place key parameters at the very top of your script in capitalized variable names (`LOOKBACK_WINDOW = 7`). That way, you or your teammates can change one assumption and observe the effect without having to edit formulas throughout the program:\n\n"
+                "Never bury magic numbers deep inside your code. Instead, place key parameters at the very top of your script in clearly named variables (`lookback_window = 7`). That way, you or your teammates can change one assumption and observe the effect without having to edit formulas throughout the program:\n\n"
                 "$$\n"
                 r"\theta = \{\text{Window}, \text{StopLoss}, \text{Threshold}\} \to \text{Output}(\theta)"
                 "\n$$\n\n"
                 "## A worked example\n\n"
-                "A script tests a moving average crossover on 60 days of market data. With `LOOKBACK_WINDOW = 7`, the strategy generates **38 buy signals** because the short window reacts quickly to every small price wiggle.\n\n"
-                "When you change `LOOKBACK_WINDOW = 30`, the moving average becomes much slower and smoother, and the strategy generates only **24 buy signals**. You have successfully performed a **parameter sensitivity experiment**!\n\n"
+                "A script tests a moving average crossover on 60 days of market data. With `lookback_window = 7`, the strategy generates **38 buy signals** because the short window reacts quickly to every small price wiggle.\n\n"
+                "When you change `lookback_window = 30`, the moving average becomes much slower and smoother, and the strategy generates only **24 buy signals**. You have successfully performed a **parameter sensitivity experiment**!\n\n"
                 "## Work through it yourself\n\n"
-                "1. Run the script with `LOOKBACK_WINDOW = 7`.\n"
-                "2. Change line 3 to `LOOKBACK_WINDOW = 30`.\n"
+                "1. Run the script with `lookback_window = 7`.\n"
+                "2. Change line 3 to `lookback_window = 30`.\n"
                 "3. Re-run and compare the number of bullish signals.\n\n"
                 "### In the sandbox\n\n"
                 "Run the script, change the parameter, and observe how the output responds."
@@ -456,7 +456,7 @@ def build_python_reluctant_investor():
             "kind": "final",
             "passingScore": 70,
             "minutes": 20,
-            "version": 1,
+            "version": 2,
             "description": "Practical confidence-builder assessment on basic Python execution, pandas CSV handling, moving averages, and traceback diagnosis.",
             "moduleIds": [m["id"] for m in modules],
             "questions": [

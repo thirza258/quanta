@@ -53948,11 +53948,11 @@
           {
             "question": "Manakah tindakan preventif terbaik untuk mencegah krisis kas akibat piutang tertunda?",
             "options": [
-              "Membeli lebih banyak inventaris dengan pinjaman berbunga tinggi",
               "Menerapkan uang muka (DP) minimal 50% dan menetapkan batas waktu pelunasan yang ketat",
-              "Menghentikan pencatatan pengeluaran harian"
+              "Menghentikan pencatatan pengeluaran harian",
+              "Membeli lebih banyak inventaris dengan pinjaman berbunga tinggi"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Menetapkan uang muka dan batas termin pembayaran memastikan kas operasional selalu tersedia untuk membeli bahan baku."
           }
         ],
@@ -54073,22 +54073,22 @@
         "exercise": {
           "question": "Apa tujuan utama melakukan rekonsiliasi kas harian sebelum menutup toko?",
           "options": [
-            "Memastikan tidak ada selisih antara uang fisik di laci dengan transaksi yang tercatat hari itu",
             "Menghitung proyeksi inflasi tahun depan",
-            "Membuat laporan pajak tahunan"
+            "Membuat laporan pajak tahunan",
+            "Memastikan tidak ada selisih antara uang fisik di laci dengan transaksi yang tercatat hari itu"
           ],
-          "answer": 0,
+          "answer": 2,
           "explanation": "Rekonsiliasi harian memastikan seluruh kas fisik cocok dengan catatan transaksi, mendeteksi kesalahan kembalian atau nota lupa catat seketika."
         },
         "exercises": [
           {
             "question": "Apa tujuan utama melakukan rekonsiliasi kas harian sebelum menutup toko?",
             "options": [
-              "Memastikan tidak ada selisih antara uang fisik di laci dengan transaksi yang tercatat hari itu",
               "Menghitung proyeksi inflasi tahun depan",
-              "Membuat laporan pajak tahunan"
+              "Membuat laporan pajak tahunan",
+              "Memastikan tidak ada selisih antara uang fisik di laci dengan transaksi yang tercatat hari itu"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "Rekonsiliasi harian mendeteksi selisih fisik kas saat ingatan masih segar."
           }
         ],
@@ -54133,22 +54133,22 @@
         "exercise": {
           "question": "Jika saldo rekening kas UMKM Anda bertambah Rp50 juta bulan ini karena pinjaman KUR cair, apakah bisnis Anda dapat dikatakan untung?",
           "options": [
-            "Ya, karena saldo kas di bank bertambah banyak",
             "Belum tentu, karena pencairan pinjaman adalah arus kas pendanaan yang harus dicicil kembali, bukan laba operasional",
-            "Pasti untung jika uangnya langsung dipakai belanja pribadi"
+            "Pasti untung jika uangnya langsung dipakai belanja pribadi",
+            "Ya, karena saldo kas di bank bertambah banyak"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "Pinjaman bank adalah kewajiban (liabilitas) pendanaan yang wajib dibayar kembali beserta bunganya, bukan pendapatan hasil penjualan."
         },
         "exercises": [
           {
             "question": "Jika saldo rekening kas UMKM bertambah karena pinjaman KUR cair, apakah bisnis otomatis untung?",
             "options": [
-              "Ya, karena saldo bertambah",
               "Belum tentu, pinjaman adalah arus kas pendanaan yang harus dicicil kembali, bukan laba penjualan",
-              "Pasti untung"
+              "Pasti untung",
+              "Ya, karena saldo bertambah"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Pinjaman bank adalah liabilitas pendanaan yang wajib dicicil kembali, bukan pendapatan operasional."
           }
         ],
@@ -54197,22 +54197,22 @@
         "exercise": {
           "question": "Dalam pembuatan proyeksi arus kas 12 bulan yang benar, darimana angka saldo awal bulan Maret berasal?",
           "options": [
+            "Rata-rata penjualan bulan Januari",
             "Dihitung acak sesuai target omzet",
-            "Sama persis dengan saldo kas akhir bulan Februari",
-            "Rata-rata penjualan bulan Januari"
+            "Sama persis dengan saldo kas akhir bulan Februari"
           ],
-          "answer": 1,
+          "answer": 2,
           "explanation": "Secara prinsip kontinuitas kas, uang yang ada di rekening pada 1 Maret pagi hari adalah sisa uang fisik yang ada pada penutupan 28/29 Februari malam hari."
         },
         "exercises": [
           {
             "question": "Dalam proyeksi kas 12 bulan, dari mana saldo awal bulan Maret berasal?",
             "options": [
-              "Dihitung acak",
               "Sama persis dengan saldo kas akhir bulan Februari",
-              "Rata-rata penjualan"
+              "Rata-rata penjualan",
+              "Dihitung acak"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Saldo awal bulan berikutnya selalu sama persis dengan saldo akhir bulan sebelumnya."
           }
         ],
@@ -54261,22 +54261,22 @@
         "exercise": {
           "question": "Jika biaya tetap warung Anda Rp6 juta/bulan dan margin kontribusi per porsi Rp12.000, berapa porsi yang harus terjual dalam sebulan agar tidak rugi?",
           "options": [
-            "250 porsi",
             "500 porsi",
-            "1.000 porsi"
+            "1.000 porsi",
+            "250 porsi"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "BEP = Biaya Tetap / Margin Kontribusi = Rp6.000.000 / Rp12.000 = 500 porsi per bulan."
         },
         "exercises": [
           {
             "question": "Jika biaya tetap Rp6 juta/bulan dan margin kontribusi Rp12.000/porsi, berapa porsi target BEP sebulan?",
             "options": [
+              "1.000 porsi",
               "250 porsi",
-              "500 porsi",
-              "1.000 porsi"
+              "500 porsi"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "BEP = Rp6.000.000 / Rp12.000 = 500 porsi."
           }
         ],
@@ -54332,11 +54332,11 @@
           {
             "question": "Jika hari persediaan 20 hari, piutang 30 hari, dan tempo supplier 15 hari, berapa hari cash gap usaha?",
             "options": [
-              "15 hari",
               "35 hari",
-              "65 hari"
+              "65 hari",
+              "15 hari"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Cash Gap = 20 + 30 − 15 = 35 hari."
           }
         ],
@@ -54449,22 +54449,22 @@
         "exercise": {
           "question": "Berapa batas rasio minimal Debt Service Coverage Ratio (DSCR) yang disarankan agar UMKM aman dari risiko gagal bayar kredit?",
           "options": [
+            "1,3× (memiliki buffer cadangan minimal 30%)",
             "0,8×",
-            "1,0× (pas-pasan)",
-            "1,3× (memiliki buffer cadangan minimal 30%)"
+            "1,0× (pas-pasan)"
           ],
-          "answer": 2,
+          "answer": 0,
           "explanation": "DSCR minimal 1,3× memastikan arus kas operasional memiliki cadangan keamanan 30% di atas cicilan jika penjualan mengalami penurunan."
         },
         "exercises": [
           {
             "question": "Berapa batas rasio minimal DSCR yang disarankan agar UMKM aman dari risiko gagal bayar?",
             "options": [
-              "0,8×",
               "1,0×",
-              "1,3× (memiliki buffer aman 30%)"
+              "1,3× (memiliki buffer aman 30%)",
+              "0,8×"
             ],
-            "answer": 2,
+            "answer": 1,
             "explanation": "DSCR minimal 1,3× memastikan ada bantalan pengaman 30% di atas nilai angsuran cicilan."
           }
         ],
@@ -54513,22 +54513,22 @@
         "exercise": {
           "question": "Berdasarkan PP 55/2022 dan UU HPP, berapa batas peredaran bruto (omzet) yang tidak dikenai pajak (0%) bagi Wajib Pajak Orang Pribadi UMKM dalam satu tahun pajak?",
           "options": [
-            "Rp50 juta per tahun",
             "Rp500 juta per tahun",
-            "Rp4,8 miliar per tahun"
+            "Rp4,8 miliar per tahun",
+            "Rp50 juta per tahun"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "Sesuai UU HPP dan PP 55/2022, peredaran bruto kumulatif sampai dengan Rp500 juta dalam satu tahun pajak untuk Wajib Pajak Orang Pribadi UMKM dibebaskan dari PPh Final (0%)."
         },
         "exercises": [
           {
             "question": "Berapa batas omzet bebas pajak (0%) bagi Wajib Pajak Orang Pribadi UMKM per tahun sesuai PP 55/2022?",
             "options": [
+              "Rp4,8 miliar",
               "Rp50 juta",
-              "Rp500 juta",
-              "Rp4,8 miliar"
+              "Rp500 juta"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "Omzet kumulatif sampai dengan Rp500 juta dalam satu tahun pajak tidak dikenai PPh Final bagi Wajib Pajak Orang Pribadi."
           }
         ],
@@ -54642,7 +54642,7 @@
         "kind": "final",
         "passingScore": 70,
         "minutes": 30,
-        "version": 1,
+        "version": 2,
         "description": "Evaluasi komprehensif literasi keuangan UMKM: arus kas, BEP, modal kerja, keputusan pinjaman, dan perpajakan Indonesia. Terbuka, tanpa batasan waktu.",
         "moduleIds": [
           "23.1",
@@ -54662,11 +54662,11 @@
             "lessonId": "23.1",
             "question": "Dalam evaluasi solvabilitas warung, apa risiko utama jika omzet kredit (piutang) meningkat jauh lebih cepat daripada kas tunai masuk?",
             "options": [
+              "Pelanggan akan memesan barang lebih sedikit",
               "Pajak penghasilan otomatis berkurang",
-              "Usaha mengalami defisit kas operasional untuk membayar pemasok dan upah harian",
-              "Pelanggan akan memesan barang lebih sedikit"
+              "Usaha mengalami defisit kas operasional untuk membayar pemasok dan upah harian"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "Omzet tercatat pada piutang belum berwujud uang kas riil; jika kewajiban tunai datang lebih awal, warung mengalami insolvensi kas meski di atas kertas laba."
           },
           {
@@ -54686,11 +54686,11 @@
             "lessonId": "23.3",
             "question": "Format catatan transaksi harian paling ringkas yang tetap andal untuk warung sibuk harus minimal mencatat kolom:",
             "options": [
-              "Warna kemasan barang, nama kurir pengantar, dan cuaca",
               "Tanggal, deskripsi pos kas, nominal kas masuk/keluar, dan saldo kas berjalan",
-              "Estimasi harga saham kompetitor global"
+              "Estimasi harga saham kompetitor global",
+              "Warna kemasan barang, nama kurir pengantar, dan cuaca"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Pencatatan tanggal, pos transaksi, arus kas masuk/keluar, dan saldo akhir berjalan memberikan kepastian rekonsiliasi kas harian yang akurat."
           },
           {
@@ -54698,11 +54698,11 @@
             "lessonId": "23.4",
             "question": "Mengapa pembukuan harian harus rutin direkonsiliasi dengan uang fisik di laci kasir dan mutasi rekening bank?",
             "options": [
-              "Untuk memvalidasi bahwa uang nyata benar-benar ada dan mendeteksi selisih atau kebocoran sejak dini",
               "Agar saldo di aplikasi kasir otomatis berlipat ganda",
-              "Untuk mengubah seluruh kas fisik menjadi koin emas"
+              "Untuk mengubah seluruh kas fisik menjadi koin emas",
+              "Untuk memvalidasi bahwa uang nyata benar-benar ada dan mendeteksi selisih atau kebocoran sejak dini"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "Rekonsiliasi fisik dan rekening bank memastikan catatan transaksi sesuai dengan fakta uang riil dan segera mengungkap ketidaksesuaian pencatatan."
           },
           {
@@ -54710,11 +54710,11 @@
             "lessonId": "23.5",
             "question": "Dalam tabel proyeksi arus kas 12 bulan (capstone), aturan kontinuitas saldo menyatakan bahwa:",
             "options": [
+              "Saldo kas akhir tidak dipengaruhi oleh pengeluaran modal",
               "Saldo kas awal bulan t harus persis sama dengan saldo kas akhir bulan t-1",
-              "Saldo kas awal selalu bernilai nol setiap awal bulan",
-              "Saldo kas akhir tidak dipengaruhi oleh pengeluaran modal"
+              "Saldo kas awal selalu bernilai nol setiap awal bulan"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "Secara matematis, saldo kas akhir bulan sebelumnya menjadi saldo kas awal bulan berjalan, memastikan rantai kontinuitas likuiditas 12 bulan."
           },
           {
@@ -54722,11 +54722,11 @@
             "lessonId": "23.6",
             "question": "Jika harga jual per porsi mie ayam Rp15.000, biaya bahan baku Rp9.000/porsi, dan sewa tempat Rp3.000.000/bulan, berapa porsi minimal harus terjual per bulan untuk mencapai titik impas?",
             "options": [
+              "1.000 porsi",
               "200 porsi",
-              "500 porsi",
-              "1.000 porsi"
+              "500 porsi"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "Margin kontribusi per porsi = Rp15.000 − Rp9.000 = Rp6.000. BEP porsi = Rp3.000.000 / Rp6.000 = 500 porsi per bulan."
           },
           {
@@ -54734,11 +54734,11 @@
             "lessonId": "23.7",
             "question": "Bagaimana cara menutup cash gap (kesenjangan siklus kas) tanpa harus menambah utang bank berbunga mahal?",
             "options": [
+              "Menghentikan pembayaran gaji karyawan selama 3 bulan",
               "Mempercepat penagihan piutang pelanggan dan menegosiasikan termin pembayaran bahan baku lebih panjang kepada pemasok",
-              "Menjual seluruh aset tetap usaha di bawah harga pasar",
-              "Menghentikan pembayaran gaji karyawan selama 3 bulan"
+              "Menjual seluruh aset tetap usaha di bawah harga pasar"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "Memperpendek Days Sales Outstanding (DSO) dan memperpanjang Days Payable Outstanding (DPO) secara efektif memangkas siklus konversi kas tanpa biaya bunga."
           },
           {
@@ -54758,11 +54758,11 @@
             "lessonId": "23.9",
             "question": "Berapa batas rasio cakupan pelunasan utang (Debt Service Coverage Ratio - DSCR) minimal yang aman sebelum UMKM mengambil pinjaman baru?",
             "options": [
-              "Minimal 1.25x hingga 1.50x dari arus kas operasional bersih",
               "Tepat 0.50x dari omzet kotor bulanan",
-              "Tidak ada batas, semakin besar pinjaman semakin baik"
+              "Tidak ada batas, semakin besar pinjaman semakin baik",
+              "Minimal 1.25x hingga 1.50x dari arus kas operasional bersih"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "DSCR di atas 1.25x memastikan kas operasional yang dihasilkan memiliki bantalan pengaman 25% di atas jumlah angsuran pokok dan bunga yang wajib dibayar."
           },
           {
@@ -54770,11 +54770,11 @@
             "lessonId": "23.10",
             "question": "Sesuai regulasi perpajakan Indonesia (PP 55/2022 dan UU HPP), batas omzet tahunan maksimal untuk dapat memanfaatkan tarif PPh Final UMKM 0,5% adalah:",
             "options": [
+              "Rp10 miliar per tahun",
               "Rp500 juta per tahun",
-              "Rp4,8 miliar per tahun",
-              "Rp10 miliar per tahun"
+              "Rp4,8 miliar per tahun"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "Fasilitas tarif PPh Final 0,5% berlaku untuk wajib pajak dengan peredaran bruto (omzet) tidak melebihi Rp4,8 miliar dalam satu tahun pajak."
           }
         ]
@@ -54901,11 +54901,11 @@
         "exercise": {
           "question": "Which error is the most common cause of unrealistic profitability in spreadsheet trading backtests?",
           "options": [
+            "Having too many decimal places in the formula",
             "Using Arial font instead of Courier",
-            "Look-ahead bias where a buy signal at today's close is assumed to fill at today's close with zero lag or fees",
-            "Having too many decimal places in the formula"
+            "Look-ahead bias where a buy signal at today's close is assumed to fill at today's close with zero lag or fees"
           ],
-          "answer": 1,
+          "answer": 2,
           "explanation": "Look-ahead bias occurs when a backtest uses data from the future or assumes instant execution at the signal price without friction or delay."
         },
         "exercises": [
@@ -54984,11 +54984,11 @@
           {
             "question": "Which invariant must hold true for a valid OHLC bar?",
             "options": [
+              "Volume must be zero",
               "Close must equal Open",
-              "Low <= min(Open, Close) and High >= max(Open, Close)",
-              "Volume must be zero"
+              "Low <= min(Open, Close) and High >= max(Open, Close)"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "High is the highest price of the period and Low is the lowest."
           }
         ],
@@ -55097,7 +55097,7 @@
         "kind": "fundamentals",
         "formula": "\\text{Signal}_t = \\begin{cases} 1 & \\text{if } \\text{SMA}_{20}(t) > \\text{SMA}_{50}(t) \\\\ 0 & \\text{otherwise} \\end{cases}",
         "code": "# Translating Excel =IF(AVERAGE(C2:C21) > AVERAGE(C2:C51), 1, 0)\n# In Strategy Lab, trailing moving averages are computed causally\ndef strategy(data):\n    # The engine evaluates indicators with strict chronological ordering\n    return sma(data['close'], 20) > sma(data['close'], 50)\n\nprint('Strategy logic defined cleanly with built-in sma indicator!')\n",
-        "content": "## The idea\n\nIn a spreadsheet, calculating a 20-day Simple Moving Average requires writing `=AVERAGE(C2:C21)` in row 21, then dragging the formula down across 500 rows. If someone sorts the sheet by date descending, all formulas break silently.\n\nIn Strategy Lab, the same logic is expressed as a **declarative signal function**. You define the logic once, and the engine evaluates it across all time periods with strict chronological ordering:\n\n```python\ndef strategy(data):\n    return data['close'] > data['sma_50']\n```\n\n$$\n\\mathrm{SMA}_k(t) = \\frac{1}{k}\\sum_{i=0}^{k-1} C_{t-i}\n$$\n\n## A worked example\n\nConsider a 20-day moving average. In Excel, column D contains `=AVERAGE(C2:C21)` and column E contains `=IF(C21>D21, 1, 0)`.\n\nIn Strategy Lab, `data['close'] > data['sma_20']` produces the exact same boolean array. The crucial difference is execution: Strategy Lab automatically executes the position on the **next open** ($t+1$), completely removing the accidental look-ahead leakage that plagues spreadsheet models.\n\n## Work through it yourself\n\n1. Inspect your moving average formula in Excel.\n2. Rewrite it in Strategy Lab using `data['close'] > data['sma_50']`.\n3. Click **Run backtest** and compare the equity curve.\n\n### In the sandbox\n\nRun the Python strategy function template and verify that the signal produces clean true/false values.",
+        "content": "## The idea\n\nIn a spreadsheet, calculating a 20-day Simple Moving Average requires writing `=AVERAGE(C2:C21)` in row 21, then dragging the formula down across 500 rows. If someone sorts the sheet by date descending, all formulas break silently.\n\nIn Strategy Lab, the same logic is expressed as a **declarative signal function**. You define the logic once, and the engine evaluates it across all time periods with strict chronological ordering:\n\n```python\ndef strategy(data):\n    return data['close'] > data['sma_50']\n```\n\n$$\n\\mathrm{SMA}_k(t) = \\frac{1}{k}\\sum_{i=0}^{k-1} C_{t-i}\n$$\n\n## A worked example\n\nConsider a 20-day moving average. In Excel, column D contains `=AVERAGE(C2:C21)` and column E contains `=IF(C21>D21, 1, 0)`.\n\nIn Strategy Lab, `data['close'] > data['sma_50']` produces the exact same boolean array. The crucial difference is execution: Strategy Lab automatically executes the position on the **next open** ($t+1$), completely removing the accidental look-ahead leakage that plagues spreadsheet models.\n\n## Work through it yourself\n\n1. Inspect your moving average formula in Excel.\n2. Rewrite it in Strategy Lab using `data['close'] > data['sma_50']`.\n3. Click **Run backtest** and compare the equity curve.\n\n### In the sandbox\n\nRun the Python strategy function template and verify that the signal produces clean true/false values.",
         "exercise": {
           "question": "What is the key advantage of writing a strategy function in Strategy Lab compared to dragging formulas in Excel?",
           "options": [
@@ -55112,11 +55112,11 @@
           {
             "question": "What is the advantage of Strategy Lab over dragging formulas in Excel?",
             "options": [
-              "Spreadsheets run out of colors",
               "Strategy Lab enforces chronological order and causal execution automatically",
-              "Strategy Lab guarantees 100% win rate"
+              "Strategy Lab guarantees 100% win rate",
+              "Spreadsheets run out of colors"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Strategy Lab guarantees chronological order and executes fills causally at the next open."
           }
         ],
@@ -55169,11 +55169,11 @@
         "exercise": {
           "question": "If a strategy generates $1,500 gross profit across 60 trades, but fees and slippage cost $20 per trade, what is the true net profit?",
           "options": [
+            "-$500",
             "$1,500",
-            "$300",
-            "-$500"
+            "$300"
           ],
-          "answer": 1,
+          "answer": 2,
           "explanation": "Total friction = 60 * $20 = $1,200. Net profit = $1,500 − $1,200 = $300."
         },
         "exercises": [
@@ -55237,22 +55237,22 @@
         "exercise": {
           "question": "Why does Strategy Lab use content-addressed versioning for saved strategies instead of overwriting files?",
           "options": [
-            "To fill up the database faster",
             "To guarantee scientific reproducibility so past backtest results can always be verified against the exact code that produced them",
-            "To require users to re-type code every session"
+            "To require users to re-type code every session",
+            "To fill up the database faster"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "Content-addressed versioning ensures that every backtest result is permanently linked to the exact immutable source code that created it."
         },
         "exercises": [
           {
             "question": "Why does Strategy Lab use content-addressed versioning for saved strategies?",
             "options": [
+              "To require re-typing",
               "To fill up database",
-              "To guarantee scientific reproducibility linking results to exact code",
-              "To require re-typing"
+              "To guarantee scientific reproducibility linking results to exact code"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "Content-addressed versioning guarantees results can be reproduced from exact source code."
           }
         ],
@@ -55440,7 +55440,7 @@
         "kind": "final",
         "passingScore": 70,
         "minutes": 25,
-        "version": 1,
+        "version": 2,
         "description": "Comprehensive assessment on translating spreadsheet workflows into systematic code, causal ordering, and Strategy Lab tools.",
         "moduleIds": [
           "24.1",
@@ -55469,11 +55469,11 @@
             "lessonId": "24.2",
             "question": "In Strategy Lab's OHLCV bar dictionary, what relation must always hold between the High, Low, Open, and Close values of any single bar?",
             "options": [
-              "High must be greater than or equal to Open, Low, and Close, while Low must be less than or equal to all three",
               "Open must always equal High",
-              "Close must always be higher than Open"
+              "Close must always be higher than Open",
+              "High must be greater than or equal to Open, Low, and Close, while Low must be less than or equal to all three"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "By definition, the High is the highest recorded trade and Low is the lowest recorded trade within that time bucket, bounding Open and Close."
           },
           {
@@ -55481,11 +55481,11 @@
             "lessonId": "24.3",
             "question": "When validating imported tabular data against an external reference, why is matching the terminal closing price and row count necessary but not sufficient?",
             "options": [
-              "Because internal bars could still contain misaligned dates, missing days, or look-ahead price insertions",
               "Because terminal closing prices change every minute",
-              "Because row count is ignored by backtest engines"
+              "Because row count is ignored by backtest engines",
+              "Because internal bars could still contain misaligned dates, missing days, or look-ahead price insertions"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "Even if endpoints and row counts match, intervening timestamps could skip trading sessions, contain duplicate dates, or include interpolated prices."
           },
           {
@@ -55493,11 +55493,11 @@
             "lessonId": "24.4",
             "question": "How does Strategy Lab's moving average implementation guarantee causal trade execution compared to a naive spreadsheet formula?",
             "options": [
+              "It rounds prices to the nearest dollar",
               "It calculates signals at bar t close and queues fills for bar t+1 open rather than assuming instantaneous fills at the signal close",
-              "It multiplies all moving averages by two",
-              "It rounds prices to the nearest dollar"
+              "It multiplies all moving averages by two"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "Causal execution enforces realistic chronological lag: an indicator evaluated at the close of day t cannot trade until the open of day t+1."
           },
           {
@@ -55505,11 +55505,11 @@
             "lessonId": "24.5",
             "question": "A strategy executes 200 round-trip trades per year with an average gross gain of 15 bps per trade. If brokerage commissions and slippage total 25 bps per round trip, what is the strategy's annual net result?",
             "options": [
+              "Break-even at zero bps",
               "A profit of 300 bps",
-              "A net loss of 2,000 bps (-10 bps per trade x 200 trades)",
-              "Break-even at zero bps"
+              "A net loss of 2,000 bps (-10 bps per trade x 200 trades)"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "Net return per trade = Gross gain (15 bps) - Total friction (25 bps) = -10 bps. Over 200 trades, the cumulative loss is 2,000 bps (-20%), turning an apparent winner into a loss."
           },
           {
@@ -55529,11 +55529,11 @@
             "lessonId": "24.7",
             "question": "What unique capability does Strategy Lab's AMM Simulator provide that cannot be replicated in a standard spreadsheet cell?",
             "options": [
-              "Dynamic non-linear slippage and constant-product liquidity pool reserve rebalancing under shifting order size",
               "Spell-checking stock ticker symbols",
-              "Automatic tax deduction for overseas transactions"
+              "Automatic tax deduction for overseas transactions",
+              "Dynamic non-linear slippage and constant-product liquidity pool reserve rebalancing under shifting order size"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "Strategy Lab's AMM simulator models constant product invariants (x * y = k), computing precise price impact and impermanent loss dynamically across trade sizes."
           }
         ]
@@ -55708,11 +55708,11 @@
         "exercise": {
           "question": "Which characteristic violates the fundamental rules of tidy data?",
           "options": [
-            "Using consistent lowercase column names",
             "Merging cells across multiple rows to create decorative section headers",
-            "Sorting rows chronologically by date"
+            "Sorting rows chronologically by date",
+            "Using consistent lowercase column names"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "Merged cells destroy tabular indexing and cause automated CSV parsers to treat rows as containing missing or shifted values."
         },
         "exercises": [
@@ -55832,22 +55832,22 @@
         "exercise": {
           "question": "What is a composite primary key in the context of financial transaction hygiene?",
           "options": [
-            "A password used to encrypt the spreadsheet",
             "A combination of two or more columns (such as date and transaction ID) that together uniquely identify a single record",
-            "A formula that computes compound interest"
+            "A formula that computes compound interest",
+            "A password used to encrypt the spreadsheet"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "A composite primary key combines attributes (e.g. date + transaction ID) to guarantee that no duplicate record enters the analytical dataset."
         },
         "exercises": [
           {
             "question": "What is a composite primary key in financial transaction hygiene?",
             "options": [
+              "Formula for interest",
               "Password used to encrypt",
-              "A combination of columns (date + transaction ID) that uniquely identifies a record",
-              "Formula for interest"
+              "A combination of columns (date + transaction ID) that uniquely identifies a record"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "A composite key combines multiple attributes to uniquely identify a transaction."
           }
         ],
@@ -55903,11 +55903,11 @@
           {
             "question": "Why does backtesting on current members of an index overstate returns?",
             "options": [
-              "Computers calculate too fast",
               "Survivorship bias ignores companies that failed and were removed in past years",
-              "No taxes paid"
+              "No taxes paid",
+              "Computers calculate too fast"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Survivorship bias ignores failed companies, creating a falsely optimistic sample of winners."
           }
         ],
@@ -55960,22 +55960,22 @@
         "exercise": {
           "question": "Why should you never manually edit or save changes directly inside a raw data export file?",
           "options": [
-            "Because Excel files expire after 30 days",
             "Because it destroys the audit trail and makes it impossible to reproduce the analysis or verify errors against the original source",
-            "Because raw files are too heavy to save"
+            "Because raw files are too heavy to save",
+            "Because Excel files expire after 30 days"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "Editing raw files destroys the audit trail. Separating raw data from transformation scripts guarantees reproducibility."
         },
         "exercises": [
           {
             "question": "Why should you never manually edit raw data export files directly?",
             "options": [
+              "Files too heavy",
               "Files expire in 30 days",
-              "Destroys audit trail and prevents reproducible verification",
-              "Files too heavy"
+              "Destroys audit trail and prevents reproducible verification"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "Editing raw data destroys the provenance audit trail."
           }
         ],
@@ -56024,22 +56024,22 @@
         "exercise": {
           "question": "When standardizing the category column in a messy transactions file, which approach represents best practice?",
           "options": [
+            "Delete the category column entirely",
             "Invent a new random name for every row",
-            "Establish a fixed canonical taxonomy (e.g. 'Operasional', 'Penjualan', 'Gaji') and map all spelling variants into that taxonomy",
-            "Delete the category column entirely"
+            "Establish a fixed canonical taxonomy (e.g. 'Operasional', 'Penjualan', 'Gaji') and map all spelling variants into that taxonomy"
           ],
-          "answer": 1,
+          "answer": 2,
           "explanation": "Standardizing categories requires creating a controlled dictionary or taxonomy and mapping all drift variations into canonical names."
         },
         "exercises": [
           {
             "question": "When standardizing categories in messy data, what is the best practice?",
             "options": [
-              "Invent random names",
               "Establish a fixed canonical taxonomy and map spelling variants into it",
-              "Delete column"
+              "Delete column",
+              "Invent random names"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Establish a controlled taxonomy and map spelling variations into canonical names."
           }
         ],
@@ -56143,7 +56143,7 @@
         "kind": "final",
         "passingScore": 70,
         "minutes": 20,
-        "version": 1,
+        "version": 2,
         "description": "Comprehensive evaluation of tidy data principles, defect detection, bias prevention, and dataset reproducibility.",
         "moduleIds": [
           "25.1",
@@ -56171,11 +56171,11 @@
             "lessonId": "25.2",
             "question": "Why does the ISO-8601 standard 'YYYY-MM-DD' prevent date ambiguity in multi-regional financial datasets?",
             "options": [
+              "It automatically translates dates into all languages",
               "It sorts chronologically via standard lexicographical string sorting and eliminates confusion between month-first and day-first formats",
-              "It compresses dates into 4 bytes of memory",
-              "It automatically translates dates into all languages"
+              "It compresses dates into 4 bytes of memory"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "ISO-8601 follows a big-endian hierarchy (Year-Month-Day), ensuring consistent alphabetical sorting and eliminating ambiguity between US (MM/DD) and international (DD/MM) conventions."
           },
           {
@@ -56183,11 +56183,11 @@
             "lessonId": "25.3",
             "question": "When standardizing transaction amounts stored with mixed notations ('$1,200.50', 'Rp 18.000.000', '1500 EUR'), what is the correct data hygiene transformation?",
             "options": [
+              "Store the entire string unchanged in an object column",
               "Remove all punctuation and symbols, convert the value to a standardized numeric column, and track currency in a separate ISO-4217 column",
-              "Multiply all IDR values by zero to match USD",
-              "Store the entire string unchanged in an object column"
+              "Multiply all IDR values by zero to match USD"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "Clean tabular hygiene requires isolating the pure numeric magnitude in one column and recording the currency symbol/code (USD, IDR, EUR) in a dedicated adjacent column."
           },
           {
@@ -56195,11 +56195,11 @@
             "lessonId": "25.4",
             "question": "How does defining a composite primary key (e.g., date + account_id + check_number) protect a ledger against double-entry errors?",
             "options": [
-              "It prevents the database or dataframe from accepting duplicate entries with the exact same combination of key attributes",
               "It automatically pays bank fees without human intervention",
-              "It converts negative cash balances into positive credits"
+              "It converts negative cash balances into positive credits",
+              "It prevents the database or dataframe from accepting duplicate entries with the exact same combination of key attributes"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "A composite primary key enforces uniqueness across the combined set of columns, rejecting any subsequent record that shares identical identifier values."
           },
           {
@@ -56207,11 +56207,11 @@
             "lessonId": "25.5",
             "question": "How does survivorship bias distort backtested investment returns on an equity index?",
             "options": [
+              "It forces computers to run out of memory during regression calculations",
               "It excludes bankrupt or delisted companies from historical testing, artificially inflating the apparent performance of the surviving winners",
-              "It includes too many dead companies, making returns look worse than reality",
-              "It forces computers to run out of memory during regression calculations"
+              "It includes too many dead companies, making returns look worse than reality"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "Survivorship bias occurs when only companies that survived to the present day are included in historical analysis, systematically ignoring those that failed."
           },
           {
@@ -56219,11 +56219,11 @@
             "lessonId": "25.6",
             "question": "In an auditable data pipeline, why must raw source datasets be treated as read-only immutable artifacts?",
             "options": [
-              "Because modifying raw files directly destroys the audit trail and prevents recreating derived datasets from scratch",
               "Because operating systems do not allow files larger than 10MB to be modified",
-              "Because spreadsheets become corrupted if opened more than once"
+              "Because spreadsheets become corrupted if opened more than once",
+              "Because modifying raw files directly destroys the audit trail and prevents recreating derived datasets from scratch"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "Data provenance requires that raw inputs never undergo destructive manual edits; all transformations must be expressed as deterministic, reproducible scripts."
           }
         ]
@@ -56366,22 +56366,22 @@
         "exercise": {
           "question": "Why must client prepayments and custodial funds be strictly segregated from everyday operational accounts?",
           "options": [
-            "Because bank fees are lower on separate accounts",
             "To prevent commingling where client funds are accidentally spent on operating expenses, violating fiduciary custody",
-            "Because accounts must always be opened in pairs"
+            "Because accounts must always be opened in pairs",
+            "Because bank fees are lower on separate accounts"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "Custodial and client funds must be segregated so they cannot be consumed by general business operations or seized by general creditors."
         },
         "exercises": [
           {
             "question": "Why must client prepayments be segregated from operational accounts?",
             "options": [
-              "Lower fees",
               "To prevent commingling where client money is spent on general operating expenses",
-              "Must be opened in pairs"
+              "Must be opened in pairs",
+              "Lower fees"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Segregation prevents custodial funds from being commingled or spent on general operations."
           }
         ],
@@ -56438,22 +56438,22 @@
         "exercise": {
           "question": "What is front-running in security trading?",
           "options": [
+            "Trading only during the first hour of market open",
             "Running faster than other traders to the exchange building",
-            "Entering a personal order ahead of a known, pending client order to profit from the price movement the client order will cause",
-            "Trading only during the first hour of market open"
+            "Entering a personal order ahead of a known, pending client order to profit from the price movement the client order will cause"
           ],
-          "answer": 1,
+          "answer": 2,
           "explanation": "Front-running is the illegal practice of placing orders on one's own account based on advance knowledge of pending client orders."
         },
         "exercises": [
           {
             "question": "What is front-running in security trading?",
             "options": [
+              "Trading at market open",
               "Running faster to building",
-              "Entering personal orders ahead of known client orders to profit from price impact",
-              "Trading at market open"
+              "Entering personal orders ahead of known client orders to profit from price impact"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "Front-running places personal trades ahead of pending client orders."
           }
         ],
@@ -56494,7 +56494,7 @@
         "kind": "applied-study",
         "formula": "\\text{Terminal Drag} = (1 + r - \\text{TER})^T - (1 + r)^T",
         "code": "# Computing compounding fee drag over 30 years\ncapital = 100_000\ngross_return = 0.08\nter_low = 0.002   # 0.2% index fund\nter_high = 0.022  # 2.2% loaded mutual fund with trailer fee\n\nwealth_clean = capital * (1 + gross_return - ter_low)**30\nwealth_loaded = capital * (1 + gross_return - ter_high)**30\nfee_drag_lost = wealth_clean - wealth_loaded\nprint(f'Terminal Wealth (0.2% fee): ${wealth_clean:,.0f}')\nprint(f'Terminal Wealth (2.2% fee): ${wealth_loaded:,.0f}')\nprint(f'Wealth Lost to Compounding Fees: ${fee_drag_lost:,.0f}')\n\n\n# The price sandbox stays in cash; its equity curve is not evidence for the strategy's performance.\ndef strategy(data):\n    return data[\"close\"] < 0",
-        "content": "## Understand the idea\n\nA small 2% annual fee sounds trivial when presented verbally. Over a 30-year investing horizon, however, a 2% fee drag consumes **over 45% of your total lifetime accumulated wealth** due to the loss of compounding returns.\n\nFiduciary duty requires full disclosure of all direct and indirect compensation:\n- Management fees and performance fees.\n- 12b-1 trailer fees and custodial custody markups.\n- Revenue-sharing kickbacks from third-party product providers.\n\n$$\n\\mathrm{Wealth}(T) = W_0 (1 + r - \\mathrm{TER})^T\n$$\n\n## A worked example\n\nA client invests $100,000 earning 8% gross annual returns over 30 years. In an index fund charging 0.20%, terminal wealth reaches **$935,000**.\n\nIn a loaded active fund charging 2.20% (including hidden distribution kickbacks), terminal wealth reaches only **$516,000**. The $419,000 difference is not pocket change—it represents the destruction of nearly half of the client's retirement capital.\n\n## Work through it yourself\n\n1. Audit all fee disclosures for explicit Total Expense Ratios.\n2. Check whether product recommendations carry third-party kickbacks.\n3. Disclose all compensation in plain writing before accepting client capital.\n\n### In the sandbox\n\nRun the script to observe how a 2% fee compounds into a 45% wealth loss over 30 years.",
+        "content": "## Understand the idea\n\nA small 2% annual fee sounds trivial when presented verbally. Over a 30-year investing horizon, however, a 2% fee drag consumes **about 43% of your total lifetime accumulated wealth** due to the loss of compounding returns.\n\nFiduciary duty requires full disclosure of all direct and indirect compensation:\n- Management fees and performance fees.\n- 12b-1 trailer fees and custodial custody markups.\n- Revenue-sharing kickbacks from third-party product providers.\n\n$$\n\\mathrm{Wealth}(T) = W_0 (1 + r - \\mathrm{TER})^T\n$$\n\n## A worked example\n\nA client invests $100,000 earning 8% gross annual returns over 30 years. In an index fund charging 0.20%, terminal wealth reaches **$951,838**.\n\nIn a loaded active fund charging 2.20% (including hidden distribution kickbacks), terminal wealth reaches only **$542,713**. The $409,125 difference is not pocket change—it represents the destruction of nearly half of the client's retirement capital.\n\n## Work through it yourself\n\n1. Audit all fee disclosures for explicit Total Expense Ratios.\n2. Check whether product recommendations carry third-party kickbacks.\n3. Disclose all compensation in plain writing before accepting client capital.\n\n### In the sandbox\n\nRun the script to observe how a 2% fee compounds into a 45% wealth loss over 30 years.",
         "exercise": {
           "question": "Over a 30-year investment period, what proportion of total potential wealth is consumed by a 2% annual fee drag compared to a 0.2% low-cost baseline (assuming 8% gross returns)?",
           "options": [
@@ -56566,11 +56566,11 @@
         "exercise": {
           "question": "Under Mosaic Theory, is an analyst allowed to trade based on non-material non-public clues combined with public data?",
           "options": [
+            "Only if the trade size is under $1,000",
             "No, all research is illegal",
-            "Yes, an analyst may assemble public data with non-material clues to form an investment conclusion",
-            "Only if the trade size is under $1,000"
+            "Yes, an analyst may assemble public data with non-material clues to form an investment conclusion"
           ],
-          "answer": 1,
+          "answer": 2,
           "explanation": "Mosaic theory explicitly protects analysts who synthesize public filings with non-material observations to reach a research conclusion."
         },
         "exercises": [
@@ -56630,22 +56630,22 @@
         "exercise": {
           "question": "What distinguishes illegal spoofing from legitimate order cancellation?",
           "options": [
+            "There is no difference; all cancellations are illegal",
             "Spoofing uses faster computers",
-            "Spoofing involves submitting orders with the pre-existing intent to cancel them before execution to manipulate market perception",
-            "There is no difference; all cancellations are illegal"
+            "Spoofing involves submitting orders with the pre-existing intent to cancel them before execution to manipulate market perception"
           ],
-          "answer": 1,
+          "answer": 2,
           "explanation": "The defining legal standard of spoofing is the pre-meditated intent to cancel orders before execution rather than genuinely seeking liquidity."
         },
         "exercises": [
           {
             "question": "What distinguishes illegal spoofing from legitimate order cancellation?",
             "options": [
+              "No difference",
               "Faster computers",
-              "Pre-existing intent to cancel orders before execution to deceive other participants",
-              "No difference"
+              "Pre-existing intent to cancel orders before execution to deceive other participants"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "Spoofing is characterized by the intent to cancel rather than seek execution."
           }
         ],
@@ -56694,22 +56694,22 @@
         "exercise": {
           "question": "Under SEC Rule 15c3-5, who bears ultimate responsibility for orders submitted to an exchange by an autonomous trading algorithm?",
           "options": [
+            "The exchange matching engine",
             "The programming language compiler",
-            "The broker-dealer and human supervisory principals who operate the system",
-            "The exchange matching engine"
+            "The broker-dealer and human supervisory principals who operate the system"
           ],
-          "answer": 1,
+          "answer": 2,
           "explanation": "Supervisory principals and broker-dealers bear strict legal accountability for all algorithmic orders routed through their systems."
         },
         "exercises": [
           {
             "question": "Under SEC Rule 15c3-5, who bears responsibility for algorithmic orders?",
             "options": [
-              "Compiler",
               "The broker-dealer and human supervisory principals",
-              "Matching engine"
+              "Matching engine",
+              "Compiler"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Humans and supervisory broker-dealers bear strict accountability for algorithmic orders."
           }
         ],
@@ -56765,11 +56765,11 @@
           {
             "question": "Under GIPS, how must closed accounts be treated in historical composites?",
             "options": [
-              "Deleted",
               "Must remain included in historical composite calculations for the periods they were active",
-              "Replaced with index"
+              "Replaced with index",
+              "Deleted"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Terminated accounts must remain in historical composite periods to prevent survivorship bias."
           }
         ],
@@ -56814,22 +56814,22 @@
         "exercise": {
           "question": "What is the primary function of establishing a written personal trading charter before executing live trades?",
           "options": [
-            "To print on fancy paper for office decoration",
             "To pre-commit to objective risk boundaries and ethical standards before market volatility and greed cloud decision-making",
-            "To avoid paying capital gains taxes"
+            "To avoid paying capital gains taxes",
+            "To print on fancy paper for office decoration"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "A personal charter pre-commits the investor to objective risk limits and ethical boundaries before emotional pressure arises in volatile markets."
         },
         "exercises": [
           {
             "question": "What is the function of a written trading charter before trading?",
             "options": [
-              "Office decoration",
               "Pre-commit to objective risk limits and ethical standards before volatility clouds decisions",
-              "Avoid taxes"
+              "Avoid taxes",
+              "Office decoration"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "A charter pre-commits an investor to objective boundaries before stress occurs."
           }
         ],
@@ -56885,11 +56885,11 @@
           {
             "question": "What is the primary regulatory objective behind best execution and implementation shortfall?",
             "options": [
-              "To slow down trading",
               "To ensure transparency, protect capital, and prevent fraudulent practices",
-              "To generate paperwork"
+              "To generate paperwork",
+              "To slow down trading"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Regulations exist to preserve market transparency and protect investors from abuse."
           }
         ],
@@ -56934,11 +56934,11 @@
         "exercise": {
           "question": "What is the core regulatory objective behind p-hacking and backtest overfitting?",
           "options": [
-            "To slow down market trading",
             "To ensure market transparency, protect client capital, and prevent fraudulent practices",
-            "To generate paperwork for compliance officers"
+            "To generate paperwork for compliance officers",
+            "To slow down market trading"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "The objective is to preserve market integrity, protect investors from abuse, and maintain transparency in p-hacking and backtest overfitting."
         },
         "exercises": [
@@ -56998,22 +56998,22 @@
         "exercise": {
           "question": "What is the core regulatory objective behind point-in-time data hygiene and corporate actions?",
           "options": [
-            "To slow down market trading",
             "To ensure market transparency, protect client capital, and prevent fraudulent practices",
-            "To generate paperwork for compliance officers"
+            "To generate paperwork for compliance officers",
+            "To slow down market trading"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "The objective is to preserve market integrity, protect investors from abuse, and maintain transparency in point-in-time data hygiene and corporate actions."
         },
         "exercises": [
           {
             "question": "What is the primary regulatory objective behind point-in-time data hygiene and corporate actions?",
             "options": [
-              "To slow down trading",
               "To ensure transparency, protect capital, and prevent fraudulent practices",
-              "To generate paperwork"
+              "To generate paperwork",
+              "To slow down trading"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Regulations exist to preserve market transparency and protect investors from abuse."
           }
         ],
@@ -57062,11 +57062,11 @@
         "exercise": {
           "question": "What is the core regulatory objective behind objective risk capacity versus emotional risk tolerance?",
           "options": [
+            "To generate paperwork for compliance officers",
             "To slow down market trading",
-            "To ensure market transparency, protect client capital, and prevent fraudulent practices",
-            "To generate paperwork for compliance officers"
+            "To ensure market transparency, protect client capital, and prevent fraudulent practices"
           ],
-          "answer": 1,
+          "answer": 2,
           "explanation": "The objective is to preserve market integrity, protect investors from abuse, and maintain transparency in objective risk capacity versus emotional risk tolerance."
         },
         "exercises": [
@@ -57122,11 +57122,11 @@
         "exercise": {
           "question": "What is the core regulatory objective behind detecting ponzi schemes and unauthorized instructions?",
           "options": [
-            "To slow down market trading",
             "To ensure market transparency, protect client capital, and prevent fraudulent practices",
-            "To generate paperwork for compliance officers"
+            "To generate paperwork for compliance officers",
+            "To slow down market trading"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "The objective is to preserve market integrity, protect investors from abuse, and maintain transparency in detecting ponzi schemes and unauthorized instructions."
         },
         "exercises": [
@@ -57182,22 +57182,22 @@
         "exercise": {
           "question": "What is the core regulatory objective behind audit trails and regulatory whistleblowing?",
           "options": [
+            "To generate paperwork for compliance officers",
             "To slow down market trading",
-            "To ensure market transparency, protect client capital, and prevent fraudulent practices",
-            "To generate paperwork for compliance officers"
+            "To ensure market transparency, protect client capital, and prevent fraudulent practices"
           ],
-          "answer": 1,
+          "answer": 2,
           "explanation": "The objective is to preserve market integrity, protect investors from abuse, and maintain transparency in audit trails and regulatory whistleblowing."
         },
         "exercises": [
           {
             "question": "What is the primary regulatory objective behind audit trails and regulatory whistleblowing?",
             "options": [
+              "To generate paperwork",
               "To slow down trading",
-              "To ensure transparency, protect capital, and prevent fraudulent practices",
-              "To generate paperwork"
+              "To ensure transparency, protect capital, and prevent fraudulent practices"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "Regulations exist to preserve market transparency and protect investors from abuse."
           }
         ],
@@ -57313,11 +57313,11 @@
           {
             "question": "What is the primary regulatory objective behind supervisory systems and written procedures?",
             "options": [
-              "To slow down trading",
               "To ensure transparency, protect capital, and prevent fraudulent practices",
-              "To generate paperwork"
+              "To generate paperwork",
+              "To slow down trading"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Regulations exist to preserve market transparency and protect investors from abuse."
           }
         ],
@@ -57545,7 +57545,7 @@
         "kind": "final",
         "passingScore": 80,
         "minutes": 45,
-        "version": 1,
+        "version": 2,
         "description": "Comprehensive credential assessment covering fiduciary duties, conflict disclosure, market manipulation, algorithmic risk controls, GIPS, and compliance charters. Passing threshold: 80%.",
         "moduleIds": [
           "26.1",
@@ -57584,11 +57584,11 @@
             "lessonId": "26.2",
             "question": "Why is front-running considered an egregious violation of fair trading standards?",
             "options": [
+              "Because it makes the computer trade too slowly",
               "Because the broker profits by trading ahead of an anticipated client order that is expected to move the market price",
-              "Because it requires brokers to work during the night",
-              "Because it makes the computer trade too slowly"
+              "Because it requires brokers to work during the night"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "Front-running exploits advance non-public knowledge of pending client orders to take personal positions, driving up costs for the client."
           },
           {
@@ -57596,11 +57596,11 @@
             "lessonId": "26.3",
             "question": "In wealth management, how do hidden distribution or 12b-1 trailer fees create severe agency conflicts?",
             "options": [
-              "They incentivize advisors to recommend higher-cost, inferior products that pay kickbacks over better lower-cost alternatives",
               "They eliminate all management fees for clients",
-              "They reduce the trading hours of the stock exchange"
+              "They reduce the trading hours of the stock exchange",
+              "They incentivize advisors to recommend higher-cost, inferior products that pay kickbacks over better lower-cost alternatives"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "Trailer fees align the advisor's income with product issuers rather than the client, creating a hidden conflict of interest that biases investment recommendations."
           },
           {
@@ -57644,11 +57644,11 @@
             "lessonId": "26.7",
             "question": "Under GIPS standards, why must composites include all actual, fee-paying, discretionary portfolios managed to a specific mandate?",
             "options": [
+              "To ensure that non-paying internal employee accounts determine performance",
               "To prevent 'cherry-picking' where a firm presents only its top-performing accounts while omitting poorly performing accounts",
-              "To make marketing brochures as long as possible",
-              "To ensure that non-paying internal employee accounts determine performance"
+              "To make marketing brochures as long as possible"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "GIPS composites mandate complete inclusion of all qualifying portfolios to eliminate selection bias and provide a fair, unmanipulated track record."
           },
           {
@@ -57680,11 +57680,11 @@
             "lessonId": "26.10",
             "question": "In quantitative factor research, what is 'p-hacking' and why is it considered an integrity failure?",
             "options": [
-              "Testing hundreds of factor variations until one randomly passes statistical significance, then publishing it as an authentic discovery",
               "Writing unit tests to verify algorithmic syntax",
-              "Optimizing code compilation speed in C++"
+              "Optimizing code compilation speed in C++",
+              "Testing hundreds of factor variations until one randomly passes statistical significance, then publishing it as an authentic discovery"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "P-hacking exploits data snooping and multiple hypothesis testing to report false positive statistical artifacts as genuine predictive signals."
           },
           {
@@ -57692,11 +57692,11 @@
             "lessonId": "26.11",
             "question": "Why must historical backtests strictly use 'point-in-time' fundamental data rather than restated financial statements?",
             "options": [
+              "Auditors require companies to delete historical filings every 5 years",
               "Restated filings incorporate information and revisions that were unknown to market participants on the historical trading date",
-              "Point-in-time data files are smaller and faster to download",
-              "Auditors require companies to delete historical filings every 5 years"
+              "Point-in-time data files are smaller and faster to download"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "Using restated numbers introduces backward-looking information leakage; point-in-time databases preserve only what was known to the market at that exact moment."
           },
           {
@@ -57704,11 +57704,11 @@
             "lessonId": "26.12",
             "question": "When publishing investment research, why must analysts disclose personal or firm holdings in the covered security?",
             "options": [
-              "To allow investors to assess potential bias and determine whether the recommendation is influenced by personal economic interests",
               "To advertise the analyst's personal net worth",
-              "To comply with international copyright treaties"
+              "To comply with international copyright treaties",
+              "To allow investors to assess potential bias and determine whether the recommendation is influenced by personal economic interests"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "Full disclosure of ownership and material conflicts enables investors to weigh the objectivity and independence of the research report."
           },
           {
@@ -57716,11 +57716,11 @@
             "lessonId": "26.13",
             "question": "What is a major red flag indicating a potential Ponzi scheme or fraudulent investment syndicate?",
             "options": [
+              "Using an independent, regulated custodian for all investor funds",
               "Consistent, abnormally high returns with zero reported down months, combined with vague trading strategies and opaque third-party custody",
-              "Clear disclosure of market volatility and negative months during market downturns",
-              "Using an independent, regulated custodian for all investor funds"
+              "Clear disclosure of market volatility and negative months during market downturns"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "Guaranteed high yields with zero volatility and lack of independent custodial verification are classic indicators of fraudulent Ponzi structures."
           },
           {
@@ -57728,11 +57728,11 @@
             "lessonId": "26.14",
             "question": "Why must financial trading firms implement immutable, append-only audit logging for all algorithmic order state changes?",
             "options": [
+              "To eliminate the need for backup batteries in data centers",
               "To provide regulatory authorities and risk officers with an indisputable reconstruction of events during anomalous market activity",
-              "To consume server hard drive space before the fiscal year ends",
-              "To eliminate the need for backup batteries in data centers"
+              "To consume server hard drive space before the fiscal year ends"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "Immutable audit logs guarantee post-incident reconstructability, allowing investigators to verify the exact causal chain of algorithmic decisions."
           },
           {
@@ -57740,11 +57740,11 @@
             "lessonId": "26.15",
             "question": "Under modern cybersecurity regulations, what is the responsibility of investment firms regarding sensitive client financial data?",
             "options": [
-              "Implementing end-to-end encryption, multi-factor authentication, and strict least-privilege access controls with annual penetration testing",
               "Storing passwords in plain text in an open spreadsheet for ease of access",
-              "Sharing customer data freely with third-party advertising networks"
+              "Sharing customer data freely with third-party advertising networks",
+              "Implementing end-to-end encryption, multi-factor authentication, and strict least-privilege access controls with annual penetration testing"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "Cybersecurity stewardship requires robust technical safeguards, encryption, access controls, and prompt notification of potential breaches."
           },
           {
@@ -57752,11 +57752,11 @@
             "lessonId": "26.16",
             "question": "In an investment firm, what is the role of a 'Restricted List' managed by the Compliance department?",
             "options": [
+              "A list of employees who are not allowed to take vacation",
               "A list of securities in which all trading (personal and firm) is prohibited due to possession of material non-public information or advisory engagements",
-              "A list of stocks that have had poor earnings reports",
-              "A list of employees who are not allowed to take vacation"
+              "A list of stocks that have had poor earnings reports"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "Restricted lists prevent illegal trading in securities where the firm possesses confidential advisory or underwriting relationships."
           },
           {
@@ -57764,11 +57764,11 @@
             "lessonId": "26.17",
             "question": "What is 'greenwashing' in investment fund marketing, and how do regulators penalize it?",
             "options": [
+              "Investing exclusively in solar energy startups",
               "Misleadingly marketing an investment product as environmentally friendly or ESG-compliant when its underlying holdings do not meet stated criteria",
-              "Using recycled paper to print annual shareholder reports",
-              "Investing exclusively in solar energy startups"
+              "Using recycled paper to print annual shareholder reports"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "Greenwashing is a deceptive marketing practice where funds falsely claim environmental or social criteria, prosecuted under anti-fraud and disclosure rules."
           },
           {
@@ -57776,11 +57776,11 @@
             "lessonId": "26.1",
             "question": "An investment advisor learns from a close relative that a pharmaceutical company received unexpected FDA drug approval 30 minutes before the public press release. Can the advisor trade on this information for client accounts?",
             "options": [
-              "Yes, because the advisor owes a duty to maximize client profits",
               "No, this constitutes Material Non-Public Information (MNPI) in breach of confidentiality; trading on it is illegal insider trading regardless of whose account is used",
-              "Yes, provided the advisor trades less than 1,000 shares"
+              "Yes, provided the advisor trades less than 1,000 shares",
+              "Yes, because the advisor owes a duty to maximize client profits"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "MNPI cannot be used for any account (client or personal). The duty of loyalty to clients never overrides the legal prohibition against insider trading."
           },
           {
@@ -57788,21 +57788,21 @@
             "lessonId": "26.2",
             "question": "Under SEC Rule 15c3-5 (Market Access Rule), which risk control must be configured to immediately halt all outbound orders across a broker's electronic desk?",
             "options": [
+              "An annual end-of-year audit report",
               "A 24-hour customer service phone number",
-              "An automated emergency kill switch capable of halting routing and canceling outstanding orders",
-              "An annual end-of-year audit report"
+              "An automated emergency kill switch capable of halting routing and canceling outstanding orders"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "A pre-trade kill switch is a mandatory electronic mechanism that immediately terminates order routing and cancels open orders when market or software anomalies occur."
           },
           {
             "id": "conduct-final-scenario-3",
             "lessonId": "26.3",
-            "question": "When presenting historical performance to prospective clients under GIPS standards, why must returns be displayed net of all management and custodial fees?",
+            "question": "When an adviser shows gross-of-fee performance to prospective clients, why should net-of-fee returns be shown alongside it?",
             "options": [
+              "Because taxes cannot be deducted",
               "Because gross returns give clients a false, inflated expectation of what capital actually compounds into their accounts",
-              "Because computing gross returns requires advanced calculus",
-              "Because taxes cannot be deducted"
+              "Because computing gross returns requires advanced calculus"
             ],
             "answer": 1,
             "explanation": "Net-of-fee returns represent the true economic return realized by the client after subtracting all fee drag that depletes compounding."
@@ -57812,11 +57812,11 @@
             "lessonId": "26.4",
             "question": "What constitutes an illegal wash trade in financial markets?",
             "options": [
-              "Selling a stock at a loss to harvest tax deductions",
               "Executing simultaneous buy and sell orders in the same instrument where there is no change in beneficial ownership, purely to fabricate false trading volume",
-              "Purchasing shares in a laundry detergent manufacturing company"
+              "Purchasing shares in a laundry detergent manufacturing company",
+              "Selling a stock at a loss to harvest tax deductions"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "Wash trading involves trading with oneself or coordinated accounts to manipulate reported trading volume with zero economic risk or change in beneficial ownership."
           },
           {
@@ -57824,11 +57824,11 @@
             "lessonId": "26.5",
             "question": "In a business context, what does the 'separate entity' and client asset segregation rule prevent?",
             "options": [
-              "Accidental commingling and spending of client prepayments on general operating expenses",
               "Paying utility bills on time",
-              "Opening business bank accounts"
+              "Opening business bank accounts",
+              "Accidental commingling and spending of client prepayments on general operating expenses"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "Segregating client funds prevents fiduciary commingling where client money is spent on general enterprise expenses."
           },
           {
@@ -57836,11 +57836,11 @@
             "lessonId": "26.6",
             "question": "What is the key ethical difference between legitimate Mosaic Theory research and illegal insider trading?",
             "options": [
-              "Mosaic theory combines public data and non-material observations; insider trading exploits material non-public information breached from a duty of trust",
               "Mosaic theory is only used by professors",
-              "Insider trading is legal for amounts under $10,000"
+              "Insider trading is legal for amounts under $10,000",
+              "Mosaic theory combines public data and non-material observations; insider trading exploits material non-public information breached from a duty of trust"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "Mosaic theory relies on public information and non-material clues, whereas insider trading relies on material non-public information obtained in breach of confidence."
           },
           {
@@ -57872,11 +57872,11 @@
             "lessonId": "26.9",
             "question": "If a learner opts out of public verifiability for privacy, what does the public verification route (/verify/:id) return?",
             "options": [
-              "HTTP 404 Not Found",
               "Valid certificate status with recipient details withheld",
-              "Full personal address and email"
+              "Full personal address and email",
+              "HTTP 404 Not Found"
             ],
-            "answer": 1,
+            "answer": 0,
             "explanation": "When opted out, the verification route confirms that the certificate is authentic while withholding personal identifiable details."
           }
         ]
@@ -58213,11 +58213,11 @@
         "exercise": {
           "question": "In Python, what is the purpose of the `print()` function?",
           "options": [
-            "To send a document to a physical office paper printer",
             "To display text or calculated numbers on the computer screen or terminal",
-            "To permanently erase your hard drive"
+            "To permanently erase your hard drive",
+            "To send a document to a physical office paper printer"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "In programming, print() outputs text and variables to the screen or console."
         },
         "exercises": [
@@ -58333,22 +58333,22 @@
         "exercise": {
           "question": "Why do the first two values of a 3-day rolling moving average show `NaN` (empty) in Python?",
           "options": [
-            "Because the computer ran out of memory",
             "Because calculating a 3-day average requires at least 3 historical observations, so days 1 and 2 cannot be computed yet",
-            "Because day 1 and 2 are always non-trading days"
+            "Because day 1 and 2 are always non-trading days",
+            "Because the computer ran out of memory"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "A rolling window of size k requires k observations; earlier rows lack sufficient history and are correctly marked as NaN."
         },
         "exercises": [
           {
             "question": "Why do the first two values of a 3-day rolling moving average show NaN?",
             "options": [
+              "Non-trading days",
               "Out of memory",
-              "Requires at least 3 historical observations",
-              "Non-trading days"
+              "Requires at least 3 historical observations"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "A rolling window of size k requires k data points before calculating."
           }
         ],
@@ -58393,22 +58393,22 @@
         "exercise": {
           "question": "Why is visual chart plotting essential in systematic investment research?",
           "options": [
+            "To avoid ever having to look at numbers",
             "Because charts use more colorful pixels",
-            "To quickly verify data quality, spot obvious anomalies (such as negative prices or missing periods), and confirm mathematical trends",
-            "To avoid ever having to look at numbers"
+            "To quickly verify data quality, spot obvious anomalies (such as negative prices or missing periods), and confirm mathematical trends"
           ],
-          "answer": 1,
+          "answer": 2,
           "explanation": "Visual charts help analysts immediately detect data anomalies, bad ticks, and trend regime changes that summary numbers might obscure."
         },
         "exercises": [
           {
             "question": "Why is visual plotting essential in quantitative research?",
             "options": [
+              "Avoid numbers",
               "More colorful",
-              "Quickly spot anomalies and verify trends visually",
-              "Avoid numbers"
+              "Quickly spot anomalies and verify trends visually"
             ],
-            "answer": 1,
+            "answer": 2,
             "explanation": "Visual charts help spot outliers, bad ticks, and trend shifts immediately."
           }
         ],
@@ -58457,7 +58457,7 @@
         "kind": "fundamentals",
         "formula": "\\text{Sensitivity: } \\Delta \\text{Output} = f(\\theta + \\Delta \\theta) - f(\\theta)",
         "code": "# Lesson 5: Parameter sensitivity - changing one parameter\n# PARAMETER AT THE TOP (Easy to modify!)\nlookback_window = 7  # Change this parameter to test sensitivity!\nsample_prices = [100, 101, 103, 102, 105, 107, 106, 108, 110, 109]\nprint('Lookback parameter:', lookback_window)\nprint('Sample prices observed:', len(sample_prices))\nactive_sample = sample_prices[len(sample_prices) - lookback_window:]\nparameterized_mean = sum(active_sample) / len(active_sample)\nprint('Parameterized Rolling Average:', round(parameterized_mean, 2))\n\n\n# The price sandbox stays in cash; its equity curve is not evidence for the strategy's performance.\ndef strategy(data):\n    return data[\"close\"] < 0",
-        "content": "## The idea\n\nThe hallmark of disciplined quantitative programming is **clean parameterization**.\n\nNever bury magic numbers deep inside your code. Instead, place key parameters at the very top of your script in capitalized variable names (`LOOKBACK_WINDOW = 7`). That way, you or your teammates can change one assumption and observe the effect without having to edit formulas throughout the program:\n\n$$\n\\theta = \\{\\text{Window}, \\text{StopLoss}, \\text{Threshold}\\} \\to \\text{Output}(\\theta)\n$$\n\n## A worked example\n\nA script tests a moving average crossover on 60 days of market data. With `LOOKBACK_WINDOW = 7`, the strategy generates **38 buy signals** because the short window reacts quickly to every small price wiggle.\n\nWhen you change `LOOKBACK_WINDOW = 30`, the moving average becomes much slower and smoother, and the strategy generates only **24 buy signals**. You have successfully performed a **parameter sensitivity experiment**!\n\n## Work through it yourself\n\n1. Run the script with `LOOKBACK_WINDOW = 7`.\n2. Change line 3 to `LOOKBACK_WINDOW = 30`.\n3. Re-run and compare the number of bullish signals.\n\n### In the sandbox\n\nRun the script, change the parameter, and observe how the output responds.",
+        "content": "## The idea\n\nThe hallmark of disciplined quantitative programming is **clean parameterization**.\n\nNever bury magic numbers deep inside your code. Instead, place key parameters at the very top of your script in clearly named variables (`lookback_window = 7`). That way, you or your teammates can change one assumption and observe the effect without having to edit formulas throughout the program:\n\n$$\n\\theta = \\{\\text{Window}, \\text{StopLoss}, \\text{Threshold}\\} \\to \\text{Output}(\\theta)\n$$\n\n## A worked example\n\nA script tests a moving average crossover on 60 days of market data. With `lookback_window = 7`, the strategy generates **38 buy signals** because the short window reacts quickly to every small price wiggle.\n\nWhen you change `lookback_window = 30`, the moving average becomes much slower and smoother, and the strategy generates only **24 buy signals**. You have successfully performed a **parameter sensitivity experiment**!\n\n## Work through it yourself\n\n1. Run the script with `lookback_window = 7`.\n2. Change line 3 to `lookback_window = 30`.\n3. Re-run and compare the number of bullish signals.\n\n### In the sandbox\n\nRun the script, change the parameter, and observe how the output responds.",
         "exercise": {
           "question": "Why should parameters (such as moving average windows or stop-loss percentages) be defined at the top of a Python script?",
           "options": [
@@ -58525,11 +58525,11 @@
         "exercise": {
           "question": "When Python displays a traceback error, what is the recommended procedure for diagnosing it?",
           "options": [
-            "Immediately delete all your files and reinstall your computer",
             "Read the very last line to identify the error type, then check the line number to locate and fix the specific line of code",
-            "Ignore the message because computers fix themselves"
+            "Ignore the message because computers fix themselves",
+            "Immediately delete all your files and reinstall your computer"
           ],
-          "answer": 1,
+          "answer": 0,
           "explanation": "The last line of a traceback identifies the exact error type (e.g. KeyError), while the line number points directly to where the error occurred."
         },
         "exercises": [
@@ -58641,7 +58641,7 @@
         "kind": "final",
         "passingScore": 70,
         "minutes": 20,
-        "version": 1,
+        "version": 2,
         "description": "Practical confidence-builder assessment on basic Python execution, pandas CSV handling, moving averages, and traceback diagnosis.",
         "moduleIds": [
           "27.1",
@@ -58681,11 +58681,11 @@
             "lessonId": "27.3",
             "question": "In pandas, how do you calculate a 20-period simple moving average of a price column named 'close'?",
             "options": [
-              "df['close'].rolling(20).mean()",
               "df['close'].average(20)",
-              "df['close'].sum() / 20"
+              "df['close'].sum() / 20",
+              "df['close'].rolling(20).mean()"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "The .rolling(20) method creates a rolling window of 20 observations across which .mean() computes the average."
           },
           {
@@ -58693,11 +58693,11 @@
             "lessonId": "27.4",
             "question": "When visualizing a moving average crossover on a price chart, what condition typically indicates an upward trend signal?",
             "options": [
+              "The trading volume becomes negative",
               "The short-term moving average crosses above the long-term moving average",
-              "The stock price drops to exactly zero",
-              "The trading volume becomes negative"
+              "The stock price drops to exactly zero"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "A golden cross occurs when a faster short-term moving average rises above a slower long-term moving average, indicating upward price momentum."
           },
           {
@@ -58705,11 +58705,11 @@
             "lessonId": "27.5",
             "question": "Why should investment scripts define key variables (such as lookback periods or stop-loss percentages) as named constants at the top of the file?",
             "options": [
+              "To make the file load faster into memory",
               "To make parameters easily adjustable and testable across sensitivity experiments without editing nested code",
-              "Because Python forbids numbers inside functions",
-              "To make the file load faster into memory"
+              "Because Python forbids numbers inside functions"
             ],
-            "answer": 0,
+            "answer": 1,
             "explanation": "Parameterizing scripts prevents magic numbers, facilitates clean hyperparameter sweeps, and reduces the risk of accidental logic errors."
           },
           {
@@ -58717,11 +58717,11 @@
             "lessonId": "27.6",
             "question": "When Python raises an IndexError: list index out of range, what does the traceback indicate?",
             "options": [
-              "The script attempted to access an element at an index that does not exist in the list",
               "The computer has run out of disk storage",
-              "The Python version is out of date"
+              "The Python version is out of date",
+              "The script attempted to access an element at an index that does not exist in the list"
             ],
-            "answer": 0,
+            "answer": 2,
             "explanation": "An IndexError occurs when attempting to read or write a list subscript that is greater than or equal to the list length, or below the negative bounds."
           }
         ]
