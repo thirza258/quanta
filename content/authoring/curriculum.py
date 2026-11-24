@@ -867,6 +867,38 @@ def attach_course_metadata(tracks):
             track["funnel_cta"].get("target_course_id") or track["funnel_cta"].get("target_url")
         ), f"Track {track['id']} missing funnel_cta target"
 
+        # Build guard: length bias check for expansion courses (Acceptance Criterion)
+        if track["id"] in {
+            "msme-financial-literacy",
+            "spreadsheet-to-strategy-lab",
+            "data-hygiene",
+            "conduct-compliance-essentials",
+            "python-reluctant-investor",
+        }:
+            all_q = []
+            for m in track.get("modules", []):
+                for ex in m.get("exercises") or []:
+                    all_q.append(ex)
+                if m.get("exercise") and not m.get("exercises"):
+                    all_q.append(m["exercise"])
+            for exam in track.get("exams", []):
+                for q in exam.get("questions", []):
+                    all_q.append(q)
+            longest_count = 0
+            for q in all_q:
+                opts = q.get("options", [])
+                ans = q.get("answer", -1)
+                if 0 <= ans < len(opts):
+                    opt_lens = [len(opt) for opt in opts]
+                    max_len = max(opt_lens)
+                    if opt_lens[ans] == max_len and opt_lens.count(max_len) == 1:
+                        longest_count += 1
+            if all_q:
+                pct = longest_count / len(all_q)
+                assert (
+                    pct <= 0.45
+                ), f"Track {track['id']} fails length bias guard: key longest in {longest_count}/{len(all_q)} ({pct*100:.1f}%) questions"
+
 
 attach_course_metadata(catalog)
 attach_learning_guidance(catalog)

@@ -43,7 +43,7 @@ test("mobile lesson tables scroll by keyboard and numbered instructions retain t
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/learn/0.8");
-  const list = page.locator(".prose ol");
+  const list = page.locator(".prose ol").first();
   await expect(list).toHaveCSS("list-style-type", "decimal");
   await expect(list.locator("li")).toHaveCount(5);
   const tableRegion = page.getByRole("region", { name: "Lesson table" });
@@ -82,7 +82,7 @@ test("curriculum search recovers from no results and mobile lesson navigation st
     page.getByRole("heading", { name: "No matching tracks" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Show all courses" }).click();
-  await expect(page.locator(".track-card")).toHaveCount(23);
+  await expect(page.locator(".track-card")).toHaveCount(28);
   await page.getByRole("button", { name: "Not started", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Not started", exact: true }),

@@ -214,7 +214,9 @@ test("every expanded lesson renders its mathematics, assignment, and practice", 
       // One lesson equation, plus any in the research extension.
       (lesson.content.split("$$").length - 1) / 2,
     );
-    await expect(page.locator(".exercise-card")).toHaveCount(2);
+    await expect(page.locator(".exercise-card")).toHaveCount(
+      lesson.exercises?.length ?? 2,
+    );
     await expect(page.locator(".lesson-assignment")).toContainText(
       lesson.assignment!.prompt,
     );

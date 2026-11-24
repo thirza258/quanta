@@ -95,6 +95,37 @@ def test_msme_capstone_validation(client):
     assert res_short.status_code == 422
     assert "12 monthly rows" in res_short.json()["detail"]
 
+    # Test Indonesian number formatting: Rp and dots as thousand separators
+    idr_formatted_csv = valid_csv.replace("10000000", "Rp 10.000.000").replace("15000000", "15.000.000")
+    res_idr = client.post(
+        "/api/v1/courses/msme-financial-literacy/capstone",
+        json={"content": idr_formatted_csv},
+    )
+    assert res_idr.status_code == 200
+    assert res_idr.json()["status"] == "passed"
+
+    # Test negative closing balance generates a cash-gap warning instead of hard rejection
+    seasonal_gap_csv = """month,opening_balance,cash_inflows,cash_outflows,closing_balance
+1,10000000,5000000,20000000,-5000000
+2,-5000000,10000000,4000000,1000000
+3,1000000,5000000,4000000,2000000
+4,2000000,5000000,4000000,3000000
+5,3000000,5000000,4000000,4000000
+6,4000000,5000000,4000000,5000000
+7,5000000,5000000,4000000,6000000
+8,6000000,5000000,4000000,7000000
+9,7000000,5000000,4000000,8000000
+10,8000000,5000000,4000000,9000000
+11,9000000,5000000,4000000,10000000
+12,10000000,5000000,4000000,11000000"""
+    res_gap = client.post(
+        "/api/v1/courses/msme-financial-literacy/capstone",
+        json={"content": seasonal_gap_csv},
+    )
+    assert res_gap.status_code == 200
+    assert res_gap.json()["status"] == "passed"
+    assert "cash gap" in res_gap.json()["message"].lower()
+
 
 def test_data_hygiene_capstone_validation(client):
     clean_csv = """id,date,amount,currency,category
@@ -117,6 +148,33 @@ tx_003,2026-01-07,50.00,USD,Langganan SaaS"""
     )
     assert res_bad_date.status_code == 422
     assert "ISO-8601" in res_bad_date.json()["detail"]
+
+    # Test invalid: uncleaned currency symbol in amount
+    bad_curr_csv = clean_csv.replace("150000.00", "Rp 150.000")
+    res_bad_curr = client.post(
+        "/api/v1/courses/data-hygiene/capstone",
+        json={"content": bad_curr_csv},
+    )
+    assert res_bad_curr.status_code == 422
+    assert "currency symbol" in res_bad_curr.json()["detail"].lower()
+
+    # Test invalid: category drift outside canonical taxonomy
+    bad_cat_csv = clean_csv.replace("Operasional", "MarketingGimmick123")
+    res_bad_cat = client.post(
+        "/api/v1/courses/data-hygiene/capstone",
+        json={"content": bad_cat_csv},
+    )
+    assert res_bad_cat.status_code == 422
+    assert "canonical taxonomy" in res_bad_cat.json()["detail"]
+
+    # Test invalid: duplicate composite key
+    dup_csv = clean_csv + "\ntx_001,2026-01-05,999.00,IDR,Operasional"
+    res_dup = client.post(
+        "/api/v1/courses/data-hygiene/capstone",
+        json={"content": dup_csv},
+    )
+    assert res_dup.status_code == 422
+    assert "duplicate composite key" in res_dup.json()["detail"].lower()
 
 
 def test_certificate_pdf_and_privacy(client):

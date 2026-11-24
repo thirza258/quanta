@@ -19,7 +19,7 @@ test("complete a lesson, run and restore an experiment, and retain a research no
   ).toBeVisible();
   await page.getByRole("button", { name: "Run experiment" }).click();
   await expect(page.locator(".console-output")).toContainText(
-    "Margin of safety: 40.0 %",
+    "Base margin of safety: 40.0 %",
   );
   await page.getByRole("button", { name: "Equity curve", exact: true }).click();
   await expect(page.locator(".financial-chart canvas").first()).toBeVisible();
@@ -71,7 +71,7 @@ test("complete a lesson, run and restore an experiment, and retain a research no
   );
   await page.getByRole("button", { name: "Run experiment" }).click();
   await expect(page.locator(".console-output")).toContainText(
-    "Margin of safety: 40.0 %",
+    "Base margin of safety: 40.0 %",
   );
   await page.getByRole("link", { name: "My notebook", exact: true }).click();
   await expect(page.locator(".note-card")).toContainText(

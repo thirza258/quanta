@@ -31,7 +31,7 @@ def build_data_hygiene():
             ),
             "content": (
                 "## The idea\n\n"
-                "Bad data ruins good math. No machine learning algorithm or econometrics model can compensate for garbage data. Most spreadsheet analysts spend 80% of their time fighting messy spreadsheets rather than generating insights.\n\n"
+                "Bad data ruins good math. No machine learning algorithm or econometrics model can compensate for garbage data. Spreadsheet analysts routinely spend a disproportionate share of their time restructuring messy spreadsheets rather than analyzing data.\n\n"
                 "The foundation of data hygiene is **Tidy Data** (formalized by Hadley Wickham):\n"
                 "1. Each **variable** must have its own column.\n"
                 "2. Each **observation** must have its own row.\n"
@@ -48,14 +48,14 @@ def build_data_hygiene():
                 "2. Remove all merged cells, blank spacer rows, and colored subtotal lines.\n"
                 "3. Ensure the top row contains unique, lowercase, underscore-separated column names.\n\n"
                 "### In the sandbox\n\n"
-                "Run the script to inspect how pandas represents clean atomic rows."
+                "Run the script to inspect how clean atomic rows are represented in Python."
             ),
             "exercise": question(
                 "Which characteristic violates the fundamental rules of tidy data?",
                 [
-                    "Using consistent lowercase column names",
+                    "Applying consistent lowercase column naming conventions with underscores across tabular headers",
                     "Merging cells across multiple rows to create decorative section headers",
-                    "Sorting rows chronologically by date",
+                    "Sorting historical transaction rows chronologically by date in ascending sequence",
                 ],
                 1,
                 "Merged cells destroy tabular indexing and cause automated CSV parsers to treat rows as containing missing or shifted values.",
@@ -64,9 +64,9 @@ def build_data_hygiene():
                 question(
                     "Which characteristic violates tidy data rules?",
                     [
-                        "Consistent lowercase column names",
-                        "Merging cells across rows for decorative headers",
-                        "Sorting chronologically",
+                        "Applying consistent lowercase column naming conventions with underscores across tabular headers",
+                        "Merging cells across multiple rows to create decorative section headers",
+                        "Sorting historical transaction rows chronologically by date in ascending sequence",
                     ],
                     1,
                     "Merged cells destroy tabular indexing and cause automated CSV parsers to fail.",
@@ -86,7 +86,7 @@ def build_data_hygiene():
             "title": "Dates, currencies, and the defects they hide",
             "subtitle": "Detect ISO 8601 formatting traps and multi-currency exchange hazards.",
             "minutes": 10,
-            "objective": "Detect and correct ambiguous date formats (DD/MM/YYYY vs MM/DD/YYYY) and isolate unstated currency denominations.",
+            "objective": "Detect and correct ambiguous date formats (DD/MM/YYYY vs MM/DD/YYYY) and isolate unstated currency denominations into dedicated columns.",
             "kind": "fundamentals",
             "formula": r"\text{Standard Date: } \text{YYYY-MM-DD} \quad \land \quad \text{Explicit Currency: } (\text{amount}, \text{currency\_code})",
             "code": (
@@ -104,24 +104,24 @@ def build_data_hygiene():
                 "1. **Ambiguous Dates**: What date does `04/05/2026` represent? In the United States, it means April 5th. In Indonesia and the UK, it means May 4th. If an analyst parses an exported CSV with default US settings, one third of the year's trading dates will be flipped, destroying price continuity.\n"
                 "2. **Mixed Currencies**: A ledger that records `15,000,000` (in IDR) in one row and `1,000` (in USD) in another row without an explicit `currency` column will produce absurdly distorted sums and averages.\n\n"
                 "$$\n"
-                r"\text{Rule: Always enforce ISO-8601 } (\texttt{YYYY-MM-DD}) \text{ and numeric-only currency amounts}"
+                r"\text{Rule: Always enforce ISO-8601 } (\texttt{YYYY-MM-DD}) \text{ and numeric-only currency amounts with separate currency code}"
                 "\n$$\n\n"
                 "## A worked example\n\n"
                 "An investor tracks a portfolio with assets in Jakarta and Singapore. Row 1 records an IDR deposit of Rp50.000.000. Row 2 records a dividend of $1,500 SGD. A naive `=SUM(C2:C3)` yields 50,001,500—a mathematically meaningless number.\n\n"
-                "Data hygiene requires two distinct columns: `amount` (numeric float) and `currency` (three-letter ISO code: `IDR`, `SGD`, `USD`). Currency conversion must use an explicit dated exchange rate table, preserving provenance.\n\n"
+                "Data hygiene requires two distinct columns: `amount` (numeric float, stripping symbols like `Rp`, `$`, `€`) and `currency` (three-letter ISO-4217 code: `IDR`, `SGD`, `USD`). Currency conversion must use an explicit dated exchange rate table, preserving provenance.\n\n"
                 "## Work through it yourself\n\n"
                 "1. Check the date format of every CSV in your workflow.\n"
                 "2. Convert all dates to `YYYY-MM-DD`.\n"
-                "3. Verify that currency symbols (`$`, `Rp`, `€`) are stripped from numeric columns.\n\n"
+                "3. Verify that currency symbols (`$`, `Rp`, `€`) are stripped from numeric columns and recorded in a dedicated `currency` column.\n\n"
                 "### In the sandbox\n\n"
                 "Run the date parsing script to see how python handles ISO 8601 formatting."
             ),
             "exercise": question(
                 "Why is the ISO 8601 date format (YYYY-MM-DD) universally mandated in quantitative finance?",
                 [
-                    "Because it is the longest date string possible",
+                    "Because spreadsheet software defaults to American month-day formatting unless overridden",
                     "Because it eliminates ambiguity between day and month and naturally sorts in true chronological order when formatted as text",
-                    "Because it was invented by banks in 1920",
+                    "Because international banking regulators require dates to be written with two-digit century prefixes across all transaction records",
                 ],
                 1,
                 "YYYY-MM-DD eliminates day/month confusion across international locales and has the unique property that alphabetical string sorting matches exact chronological sorting.",
@@ -130,9 +130,9 @@ def build_data_hygiene():
                 question(
                     "Why is ISO 8601 (YYYY-MM-DD) mandated in quantitative finance?",
                     [
-                        "Longest date string",
-                        "Eliminates day/month confusion and sorts chronologically as plain text",
-                        "Invented in 1920",
+                        "Because spreadsheet software defaults to American month-day formatting unless overridden",
+                        "Because it eliminates ambiguity between day and month and naturally sorts in true chronological order when formatted as text",
+                        "Because international banking regulators require dates to be written with two-digit century prefixes across all transaction records",
                     ],
                     1,
                     "ISO 8601 eliminates locale ambiguity and naturally sorts chronologically.",
@@ -154,7 +154,7 @@ def build_data_hygiene():
             "minutes": 10,
             "objective": "Detect duplicate rows using composite primary keys and identify missing calendar trading periods with automated reconciliation checks.",
             "kind": "fundamentals",
-            "formula": r"\text{Duplicate Check: } \mathrm{Count}(K) = 1 \quad \forall K \in \{\text{date} \parallel \text{id} \parallel \text{desc}\}",
+            "formula": r"\text{Duplicate Check: } \mathrm{Count}(K) = 1 \quad \forall K \in \{\text{date} \parallel \text{transaction\_id}\}",
             "code": (
                 "# Detecting duplicate records using composite keys\n"
                 "keys = ['2026-03-01:T1', '2026-03-01:T1', '2026-03-02:T2', '2026-03-05:T3']\n"
@@ -179,17 +179,17 @@ def build_data_hygiene():
                 "Running a duplicate check on the composite key `(date, transaction_id)` instantly flags that transaction `#4082` ($750 dividend payment) was imported twice because the analyst downloaded both the monthly summary and quarterly statement. Removing the single duplicate row brings the spreadsheet into exact reconciliation with the bank balance down to the dollar.\n\n"
                 "## Work through it yourself\n\n"
                 "1. Define a unique primary key for your data (e.g. `date` + `transaction_id`).\n"
-                "2. Count duplicate keys: `=COUNTIF(A:A, A2) > 1` in Excel or `df.duplicated()` in Python.\n"
+                "2. Count duplicate keys using `=COUNTIFS(A:A, A2, B:B, B2) > 1` in Excel or `df.duplicated(subset=['date', 'transaction_id'], keep=False)` in Python pandas.\n"
                 "3. Perform a three-way reconciliation between opening balance, net sum of transactions, and closing balance.\n\n"
                 "### In the sandbox\n\n"
-                "Run the script to see how pandas detects and drops duplicate composite keys."
+                "Run the script to see how duplicate composite keys are detected."
             ),
             "exercise": question(
                 "What is a composite primary key in the context of financial transaction hygiene?",
                 [
-                    "A password used to encrypt the spreadsheet",
+                    "An encrypted access token required to decrypt bank statement CSV files downloaded from customer portals",
                     "A combination of two or more columns (such as date and transaction ID) that together uniquely identify a single record",
-                    "A formula that computes compound interest",
+                    "A proprietary database hashing algorithm designed to compress large transaction log files for long-term offsite storage",
                 ],
                 1,
                 "A composite primary key combines attributes (e.g. date + transaction ID) to guarantee that no duplicate record enters the analytical dataset.",
@@ -198,9 +198,9 @@ def build_data_hygiene():
                 question(
                     "What is a composite primary key in financial transaction hygiene?",
                     [
-                        "Password used to encrypt",
-                        "A combination of columns (date + transaction ID) that uniquely identifies a record",
-                        "Formula for interest",
+                        "An encrypted access token required to decrypt bank statement CSV files downloaded from customer portals",
+                        "A combination of two or more columns (such as date and transaction ID) that together uniquely identify a single record",
+                        "A proprietary database hashing algorithm designed to compress large transaction log files for long-term offsite storage",
                     ],
                     1,
                     "A composite key combines multiple attributes to uniquely identify a transaction.",
@@ -237,17 +237,17 @@ def build_data_hygiene():
                 "Data biases do not only occur in academic research papers—they start innocently in your own personal spreadsheets:\n\n"
                 "1. **Look-Ahead Bias**: Making a decision at time $t$ using information from time $t+k$.\n"
                 "   - *Personal finance example*: Budgeting next month's grocery spending based on an annual bonus that was announced only at the end of the year.\n"
-                "   - *Market example*: Backtesting a strategy that buys stocks trading below their 52-week low, but calculating that low using the full calendar year's closing prices in advance.\n"
+                "   - *Market example*: Backtesting a strategy that buys at calendar-year low, where that low is computed from full year in advance.\n"
                 "2. **Survivorship Bias**: Analyzing only the entities that survived to the end of the period, discarding those that failed.\n"
                 "   - *Personal finance example*: Asking five successful restaurant owners for advice on startup profitability while ignoring the 95 restaurants in the same district that went out of business.\n"
-                "   - *Market example*: Backtesting a stock screen on today's S&P 500 members over the past 20 years, ignoring the companies that went bankrupt (Enron, Lehman Brothers) or were delisted.\n"
+                "   - *Market example*: Backtesting a stock screen on today's S&P 500 members over the past 15 years (2005–2020), ignoring companies that went bankrupt (such as Lehman Brothers in 2008 or Washington Mutual) or were delisted.\n"
                 "3. **Selection Bias**: Filtering a sample non-randomly so that it ceases to represent the true population.\n\n"
                 "$$\n"
                 r"\mathrm{Bias}_{\text{survivor}} = \mathbb{E}[R \mid \text{Delisted} = \text{False}] - \mathbb{E}[R]"
                 "\n$$\n\n"
                 "## A worked example\n\n"
-                "A quantitative investor tests a small-cap value screen from 2000 to 2020. The spreadsheet pulls historical data for the 100 small-cap stocks currently trading on the exchange today, finding a 16% annualized return.\n\n"
-                "When re-tested on a **point-in-time database** that includes the 42 small-cap companies that went bankrupt or were liquidated between 2000 and 2020, the actual return drops to 8.5%. The apparent 7.5% 'alpha' was entirely an illusion produced by survivorship bias.\n\n"
+                "A quantitative investor tests a small-cap value screen from 2005 to 2020. The spreadsheet pulls historical data for the 100 small-cap stocks currently trading on the exchange today, finding a 16.0% annualized return.\n\n"
+                "When re-tested on a **point-in-time database** that includes the 42 small-cap companies that went bankrupt or were liquidated between 2005 and 2020, the actual return drops to 8.5%. The apparent 7.5% gap was entirely an illusion produced by survivorship bias.\n\n"
                 "## Work through it yourself\n\n"
                 "1. Check if your stock screen includes delisted companies.\n"
                 "2. Verify that corporate financial metrics (P/E, Debt/Equity) use the exact filing release date, not the fiscal period end date.\n"
@@ -258,9 +258,9 @@ def build_data_hygiene():
             "exercise": question(
                 "Why does backtesting on the current members of an index (e.g. S&P 500 or LQ45) overstate historical returns?",
                 [
-                    "Because computers calculate numbers too fast",
+                    "Because contemporary server processors compute compounding portfolio returns significantly faster than legacy mainframe computers",
                     "Because it suffers from survivorship bias, ignoring companies that failed and were removed from the index in past years",
-                    "Because index members pay no taxes",
+                    "Because index component equities are legally exempt from paying corporate income taxes and exchange trading fees",
                 ],
                 1,
                 "Survivorship bias ignores failed or delisted companies, creating a falsely optimistic sample of historical winners.",
@@ -269,9 +269,9 @@ def build_data_hygiene():
                 question(
                     "Why does backtesting on current members of an index overstate returns?",
                     [
-                        "Computers calculate too fast",
-                        "Survivorship bias ignores companies that failed and were removed in past years",
-                        "No taxes paid",
+                        "Because contemporary server processors compute compounding portfolio returns significantly faster than legacy mainframe computers",
+                        "Because it suffers from survivorship bias, ignoring companies that failed and were removed from the index in past years",
+                        "Because index component equities are legally exempt from paying corporate income taxes and exchange trading fees",
                     ],
                     1,
                     "Survivorship bias ignores failed companies, creating a falsely optimistic sample of winners.",
@@ -326,9 +326,9 @@ def build_data_hygiene():
             "exercise": question(
                 "Why should you never manually edit or save changes directly inside a raw data export file?",
                 [
-                    "Because Excel files expire after 30 days",
+                    "Because commercial spreadsheet file formats automatically corrupt and lose historical calculation formulas after thirty days of inactivity",
                     "Because it destroys the audit trail and makes it impossible to reproduce the analysis or verify errors against the original source",
-                    "Because raw files are too heavy to save",
+                    "Because operating system file permissions automatically prevent saving changes to any downloaded comma-separated value file",
                 ],
                 1,
                 "Editing raw files destroys the audit trail. Separating raw data from transformation scripts guarantees reproducibility.",
@@ -337,9 +337,9 @@ def build_data_hygiene():
                 question(
                     "Why should you never manually edit raw data export files directly?",
                     [
-                        "Files expire in 30 days",
-                        "Destroys audit trail and prevents reproducible verification",
-                        "Files too heavy",
+                        "Because commercial spreadsheet file formats automatically corrupt and lose historical calculation formulas after thirty days of inactivity",
+                        "Because it destroys the audit trail and makes it impossible to reproduce the analysis or verify errors against the original source",
+                        "Because operating system file permissions automatically prevent saving changes to any downloaded comma-separated value file",
                     ],
                     1,
                     "Editing raw data destroys the provenance audit trail.",
@@ -378,7 +378,7 @@ def build_data_hygiene():
                 "Theory without hands-on practice is easily forgotten. In this capstone lesson, you will put your data hygiene skills to the test on a real messy transaction export.\n\n"
                 "The file `messy_transactions_practice.csv` contains exactly **the five defect classes** explored in this course:\n"
                 "1. **Inconsistent Date Formats**: A mix of `YYYY-MM-DD`, `DD/MM/YYYY`, and text dates.\n"
-                "2. **Mixed Currency Denominations**: Unstandardized amount strings.\n"
+                "2. **Mixed Currency Denominations**: Unstandardized amount strings with embedded currency symbols (`Rp 1.800.000`).\n"
                 "3. **Duplicate Rows**: Identical transaction records repeated.\n"
                 "4. **Missing Periods**: Unaccounted calendar gaps.\n"
                 "5. **Category Drift**: The same expense category labeled inconsistently (`Operasional`, `OpEx`, `operasional`, `Operations`).\n\n"
@@ -386,9 +386,9 @@ def build_data_hygiene():
                 r"\text{Target: Zero Duplicates} \land \text{Standard ISO Dates} \land \text{Normalized Taxonomy}"
                 "\n$$\n\n"
                 "## A worked example & Capstone Deliverable\n\n"
-                "1. Download `messy_transactions_practice.csv` from the downloads bar.\n"
-                "2. Fix all 5 defect classes using your preferred tool (Python, R, or spreadsheet formulas).\n"
-                "3. Upload or submit your cleaned CSV for automated grading.\n\n"
+                "1. Download `messy_transactions_practice.csv` from the resources section on the course page.\n"
+                "2. Diagnose and repair all five defect classes (date ambiguity, uncleaned currency symbols, duplicate records, calendar gaps, category drift).\n"
+                "3. Self-check your cleaned dataset by comparing it against `cleaned_transactions_reference.csv` to verify matching row count, column structure, and continuous balances.\n\n"
                 "## Work through it yourself\n\n"
                 "Compare your cleaned file against the maintainer answer key in `cleaned_transactions_reference.csv`.\n\n"
                 "### In the sandbox\n\n"
@@ -397,9 +397,9 @@ def build_data_hygiene():
             "exercise": question(
                 "When standardizing the category column in a messy transactions file, which approach represents best practice?",
                 [
-                    "Invent a new random name for every row",
+                    "Inventing arbitrary descriptive labels for each transaction row based on the bookkeeping processor's personal memory of the expense",
                     "Establish a fixed canonical taxonomy (e.g. 'Operasional', 'Penjualan', 'Gaji') and map all spelling variants into that taxonomy",
-                    "Delete the category column entirely",
+                    "Deleting the expense categorization column entirely and distributing all transaction amounts evenly across budget categories",
                 ],
                 1,
                 "Standardizing categories requires creating a controlled dictionary or taxonomy and mapping all drift variations into canonical names.",
@@ -408,9 +408,9 @@ def build_data_hygiene():
                 question(
                     "When standardizing categories in messy data, what is the best practice?",
                     [
-                        "Invent random names",
-                        "Establish a fixed canonical taxonomy and map spelling variants into it",
-                        "Delete column",
+                        "Inventing arbitrary descriptive labels for each transaction row based on the bookkeeping processor's personal memory of the expense",
+                        "Establish a fixed canonical taxonomy (e.g. 'Operasional', 'Penjualan', 'Gaji') and map all spelling variants into that taxonomy",
+                        "Deleting the expense categorization column entirely and distributing all transaction amounts evenly across budget categories",
                     ],
                     1,
                     "Establish a controlled taxonomy and map spelling variations into canonical names.",
@@ -455,7 +455,7 @@ def build_data_hygiene():
             "kind": "final",
             "passingScore": 70,
             "minutes": 20,
-            "version": 2,
+            "version": 3,
             "description": "Comprehensive evaluation of tidy data principles, defect detection, bias prevention, and dataset reproducibility.",
             "moduleIds": [m["id"] for m in modules],
             "questions": [
@@ -465,8 +465,8 @@ def build_data_hygiene():
                     "question": "In Hadley Wickham's Tidy Data paradigm, which structural rule is violated when column headers contain values (e.g. '2024', '2025', '2026') rather than variable names?",
                     "options": [
                         "Every variable must form its own column and every observation must form a row",
-                        "Tables must never contain numbers",
-                        "Observations must be arranged in alphabetical order",
+                        "Tables must never contain numeric values in adjacent columns without explicit string labels",
+                        "Observations must be arranged in strict alphabetical order according to client account names",
                     ],
                     "answer": 0,
                     "explanation": "When years or dates are column headers, values are acting as column names; tidying requires melting them into a single 'year' column with one observation per row.",
@@ -476,60 +476,72 @@ def build_data_hygiene():
                     "lessonId": "25.2",
                     "question": "Why does the ISO-8601 standard 'YYYY-MM-DD' prevent date ambiguity in multi-regional financial datasets?",
                     "options": [
+                        "It compresses chronological timestamps into four-byte binary integers to optimize memory buffers during data processing",
                         "It sorts chronologically via standard lexicographical string sorting and eliminates confusion between month-first and day-first formats",
-                        "It compresses dates into 4 bytes of memory",
-                        "It automatically translates dates into all languages",
+                        "It automatically translates local calendar dates into recognized international financial accounting conventions across global market exchanges",
                     ],
-                    "answer": 0,
+                    "answer": 1,
                     "explanation": "ISO-8601 follows a big-endian hierarchy (Year-Month-Day), ensuring consistent alphabetical sorting and eliminating ambiguity between US (MM/DD) and international (DD/MM) conventions.",
                 },
                 {
                     "id": "data-hygiene-final-q3",
-                    "lessonId": "25.3",
+                    "lessonId": "25.2",
                     "question": "When standardizing transaction amounts stored with mixed notations ('$1,200.50', 'Rp 18.000.000', '1500 EUR'), what is the correct data hygiene transformation?",
                     "options": [
-                        "Remove all punctuation and symbols, convert the value to a standardized numeric column, and track currency in a separate ISO-4217 column",
-                        "Multiply all IDR values by zero to match USD",
-                        "Store the entire string unchanged in an object column",
+                        "Strip currency symbols, parse decimal points appropriately into a clean numeric column, and track currency in a separate ISO-4217 column",
+                        "Remove all commas and periods indiscriminately across all columns and multiply Indonesian Rupiah amounts by zero to match US Dollars",
+                        "Store the entire alphanumeric string unchanged in an untyped text column and perform string pattern searches during mathematical summation",
                     ],
                     "answer": 0,
                     "explanation": "Clean tabular hygiene requires isolating the pure numeric magnitude in one column and recording the currency symbol/code (USD, IDR, EUR) in a dedicated adjacent column.",
                 },
                 {
                     "id": "data-hygiene-final-q4",
-                    "lessonId": "25.4",
-                    "question": "How does defining a composite primary key (e.g., date + account_id + check_number) protect a ledger against double-entry errors?",
+                    "lessonId": "25.3",
+                    "question": "How does defining a composite primary key (e.g., date + transaction_id) protect a tabular dataset or database against duplicate entries?",
                     "options": [
-                        "It prevents the database or dataframe from accepting duplicate entries with the exact same combination of key attributes",
-                        "It automatically pays bank fees without human intervention",
-                        "It converts negative cash balances into positive credits",
+                        "It automatically pays recurring banking overdraft charges and vendor invoices without requiring administrative human approval",
+                        "It prevents the database table or dataframe from accepting duplicate records that share the exact same combination of primary key attributes",
+                        "It converts negative cash flow overdraft balances into positive equity credits through automated algorithmic double-entry ledger balance adjustments",
                     ],
-                    "answer": 0,
+                    "answer": 1,
                     "explanation": "A composite primary key enforces uniqueness across the combined set of columns, rejecting any subsequent record that shares identical identifier values.",
                 },
                 {
                     "id": "data-hygiene-final-q5",
-                    "lessonId": "25.5",
+                    "lessonId": "25.4",
                     "question": "How does survivorship bias distort backtested investment returns on an equity index?",
                     "options": [
                         "It excludes bankrupt or delisted companies from historical testing, artificially inflating the apparent performance of the surviving winners",
-                        "It includes too many dead companies, making returns look worse than reality",
-                        "It forces computers to run out of memory during regression calculations",
+                        "It forces statistical calculation engines to exhaust available memory buffers during cross-sectional regression analyses on large historical datasets",
+                        "It incorporates too many defunct corporate entities, making long-term compounding returns appear substantially worse than market reality",
                     ],
                     "answer": 0,
                     "explanation": "Survivorship bias occurs when only companies that survived to the present day are included in historical analysis, systematically ignoring those that failed.",
                 },
                 {
                     "id": "data-hygiene-final-q6",
-                    "lessonId": "25.6",
+                    "lessonId": "25.5",
                     "question": "In an auditable data pipeline, why must raw source datasets be treated as read-only immutable artifacts?",
                     "options": [
-                        "Because modifying raw files directly destroys the audit trail and prevents recreating derived datasets from scratch",
-                        "Because operating systems do not allow files larger than 10MB to be modified",
-                        "Because spreadsheets become corrupted if opened more than once",
+                        "Because modern operating systems strictly prohibit users from saving modifications to comma-separated value files that exceed ten megabytes in file size",
+                        "Because modifying raw files directly destroys the audit trail and prevents recreating derived datasets from scratch in a reproducible way",
+                        "Because spreadsheet software permanently locks calculation workbooks whenever they are opened on more than one workstation simultaneously",
                     ],
-                    "answer": 0,
+                    "answer": 1,
                     "explanation": "Data provenance requires that raw inputs never undergo destructive manual edits; all transformations must be expressed as deterministic, reproducible scripts.",
+                },
+                {
+                    "id": "data-hygiene-final-q7",
+                    "lessonId": "25.6",
+                    "question": "When cleaning a messy financial ledger containing category drift (e.g. 'Operasional', 'OpEx', 'Operations'), how should categories be reconciled?",
+                    "options": [
+                        "Delete the category column entirely and classify all transactions as miscellaneous corporate expenses in the final balance sheet",
+                        "Map all drift variants into a predefined, controlled taxonomy (such as 'Operasional') to maintain consistent reporting buckets",
+                        "Assign a novel category name to every unique spelling variation to preserve every historical clerk's original typographical preference",
+                    ],
+                    "answer": 1,
+                    "explanation": "Standardizing categories requires mapping drifting variants into a predefined, controlled canonical taxonomy.",
                 },
             ],
         }
@@ -583,7 +595,7 @@ def build_data_hygiene():
         "slug": "data-hygiene",
         "subtitle": "Essential Data Hygiene and Reproducibility for Investors",
         "audience_tags": ["beginner", "spreadsheet", "investor", "data"],
-        "estimated_minutes": 60,
+        "estimated_minutes": sum(m["minutes"] for m in modules),
         "lesson_count": len(modules),
         "assessment_count": len(exams),
         "completion_criteria": {"lessons_pct": 100, "assessment_pass_pct": 70},

@@ -97,8 +97,8 @@ COURSE_GUIDES = {
         "The best way to learn security analysis is to study cases where the evidence mattered. This casebook begins with Enron, CSC and WorldCom, Luckin Coffee, and Theranos, then moves to Nikola, FTX, SVB and Lehman, and GE. Each case is paired with a primary source and a transparent method.\n\nThe lessons distinguish allegations from findings and teaching figures from source figures. You will reconstruct affiliated structures, capitalized costs, revenue and backlog claims, related-party balance sheets, and solvency-liquidity spirals. The goal is not to memorize outcomes; it is to build a repeatable process for testing a story against evidence before capital is committed.",
     ),
     "msme-financial-literacy": (
-        "Master practical cash management, 12-month forecasting, break-even unit economics, working capital gaps, and Indonesian UMKM tax rules under PP 55/2022.",
-        "Designed specifically for Indonesian MSME owners (warung, jasa, toko online) and small entrepreneurs. Move step-by-step from separating personal and enterprise bank accounts to building a full 12-month cash forecast (capstone), calculating break-even on single products, closing working capital gaps, evaluating bank loans using DSCR, and complying with the 0.5% PPh final tax regime and Rp500 million exemption threshold.",
+        "Kuasai dasar pengelolaan arus kas, proyeksi 12 bulan (capstone), analisis titik impas (BEP), celah modal kerja, dan kepatuhan pajak UMKM sesuai PP 55/2022 s.t.d.d. PP 20/2026.",
+        "Dirancang khusus bagi pemilik usaha mikro, kecil, dan menengah (UMKM) Indonesia. Pelajari langkah demi langkah pemisahan rekening pribadi vs usaha, penyusunan proyeksi arus kas 12 bulan, perhitungan BEP produk unggulan, penutupan celah modal kerja, evaluasi pinjaman usaha dengan DSCR, serta penerapan skema PPh Final 0,5% dan batas omzet bebas pajak Rp500 juta.",
     ),
     "spreadsheet-to-strategy-lab": (
         "Translate spreadsheet models from Excel and Google Sheets into Strategy Lab's causal backtesting and factor research engine.",
@@ -543,6 +543,8 @@ def vocabulary_for(lesson, course_id):
             definition = "The rights held by the owner of an asset, share, or token. Check what those rights include: an ownership record alone does not establish a right to every payment, asset, or decision in the wider business or system."
         if term == "Benchmark" and course_id == "c-hpc-trading":
             definition = "A defined workload used to compare computing performance. Keep the inputs, correctness checks, hardware, build settings, and timed work clear so the measured difference has a useful meaning."
+        if term == "Liquidity" and course_id == "msme-financial-literacy":
+            definition = "Kemampuan usaha untuk melunasi kewajiban jangka pendek (seperti tagihan pemasok dan upah) tepat waktu menggunakan kas riil yang tersedia tanpa mengganggu operasional."
         pattern = re.compile(r"\b" + re.escape(term) + r"(?:s)?\b", re.I)
         for priority, section in enumerate(sections):
             if match := pattern.search(section):

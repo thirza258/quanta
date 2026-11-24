@@ -374,20 +374,17 @@ Status: Completed & Formally Verified
 
 | Provision | Statutory Rule Verified | Course Implementation Status | Reviewer Audit Notes |
 |---|---|---|---|
-| **PPh Final 0.5% Rate** | Applied to gross turnover (*peredaran bruto*) up to Rp 4.8 billion per tax year. | Fully aligned in lesson 23.10 and interactive calculator. | Valid under PP 55/2022 Pasal 56 ayat (1). |
+| **PPh Final 0.5% Rate** | Applied to gross turnover (*peredaran bruto*) up to Rp 4.8 billion per tax year. | Fully aligned in lesson 23.10 and interactive calculator. | Valid under PP 55/2022 Pasal 56 ayat (1) s.t.d.d. PP 20/2026. |
 | **Rp 500M Exemption** | Part of turnover up to Rp 500,000,000 in a tax year is exempt from PPh (0% tax). | Explicitly modeled as cumulative threshold. Months 1 to threshold pay Rp 0. | **Strictly applies ONLY to Wajib Pajak Orang Pribadi** (Pasal 60 PP 55/2022). WP Badan (CV/PT/Koperasi) pays 0.5% from Rp 1. |
-| **Sunset Clauses** | 7 tax years for Orang Pribadi; 4 tax years for Koperasi, CV, Firma; 3 tax years for Perseroan Terbatas (PT). | Documented in course reading guide and terms glossary. | After sunset, taxpayers must utilize general Pasal 17 rates with normal bookkeeping. |
-| **Pencatatan vs Pembukuan** | WP OP UMKM with omzet $< Rp 4.8B$ is exempt from formal accrual bookkeeping (*pembukuan*) and only required to maintain simple cash records (*pencatatan peredaran bruto*). | Formatted in module 3 and module 10 templates. | Complies with Pasal 28 ayat (2) UU KUP. |
-| **Filing & Billing** | Code 411128-420 via e-Billing DJP; paid monthly by the 15th; summarized annually in SPT 1770 Lampiran III. | Visual guide and payment slip instructions rendered inline. | Withholding by government marketplace partners under PMK 164/2023 explicitly cross-referenced. |
+| **Time Limits & Entities** | No expiry time limit for Orang Pribadi (permanent 0.5% facility); Perseroan Perorangan and Koperasi eligible; existing CV/Firma (4 years) and PT (3 years) retain rate until PP 55 term expires. | Documented in course reading guide and terms glossary. | Aligned with PP 55/2022 s.t.d.d. PP 20/2026. After entity term ends, general Pasal 17 rates apply. |
+| **Pekerjaan Bebas** | Income from independent professional services (doctors, lawyers, accountants, notaries) excluded from 0.5% rate but counts toward Rp 4.8B threshold. | Documented in module 10 curriculum. | Complies with Pasal 56 PP 55/2022. |
+| **Pencatatan vs Pembukuan** | WP OP UMKM with omzet $< Rp 4.8B$ is exempt from formal accrual bookkeeping (*pembukuan*) and only required to maintain simple cash records (*pencatatan peredaran bruto*). | Formatted in module 3 and module 10 templates. | Complies with Pasal 28 ayat (2) UU KUP. PKP threshold is Rp 4.8B. |
+| **Marketplace Withholding** | Withholding of PPh Pasal 22 by registered digital marketplace operators on merchant sales. | Taught in module 10. | Aligned with PMK 37/2025. |
 
-### 4.3 Reviewer Sign-Off & Educational Attribution
+### 4.3 Regulatory Foundation & Educational Attribution
 
-> **Pernyataan Penelaahan Ahli Pajak (Tax Reviewer Statement):**  
-> *"Materi modul 23.10 mengenai perpajakan UMKM telah diperiksa dan disesuaikan dengan ketentuan perundang-undangan perpajakan Republik Indonesia yang berlaku (UU HPP No. 7/2021, PP No. 55/2022, dan PMK No. 164/2023). Perhitungan omzet bebas pajak Rp 500 juta khusus Orang Pribadi, tata cara pembuatan e-Billing 411128-420, serta kewajiban pencatatan peredaran bruto telah disajikan secara akurat dan tepat sasaran bagi pelaku usaha rintisan."*  
->  
-> **Terakhir Ditinjau Oleh:** Tim Konsultan Pajak & Akuntan Publik Terdaftar (BKP/CA)  
-> **Tanggal Penelaahan:** 22 November 2026  
-> **Status:** Terverifikasi & Layak Publikasi  
+> **Pernyataan Rujukan Regulasi:**  
+> *"Materi modul 23.10 mengenai perpajakan UMKM telah diperiksa dan disesuaikan dengan ketentuan perundang-undangan perpajakan Republik Indonesia yang berlaku (UU HPP No. 7/2021, PP No. 55/2022 s.t.d.d. PP No. 20/2026, PMK No. 164/2023, dan PMK No. 37/2025). Perhitungan omzet bebas pajak Rp 500 juta khusus Orang Pribadi, tata cara pembuatan e-Billing 411128-420, serta kewajiban pencatatan peredaran bruto disajikan secara akurat bagi pelaku usaha rintisan."*  
 >  
 > *Disclaimer: Materi ini disajikan untuk tujuan edukasi literasi keuangan dan kepatuhan dasar. Untuk restrukturisasi badan hukum, sengketa pajak, atau pelaporan kasus khusus, pelaku usaha diimbau untuk berkonsultasi langsung dengan Kantor Pelayanan Pajak (KPP) terdaftar atau konsultan pajak berlisensi.*
 

@@ -150,6 +150,9 @@
   padding: 4px;
   border-radius: 10px;
   border: 1px solid var(--border);
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .map-view-tab {
@@ -735,6 +738,32 @@
 }
 
 @media (max-width: 768px) {
+  .map-summary-strip {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    padding: 14px;
+    gap: 12px;
+  }
+  .map-view-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .map-view-tabs {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+  .map-view-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .map-view-tab {
+    white-space: nowrap;
+    padding: 6px 10px;
+    font-size: var(--text-xs);
+  }
+  .inspector-title-area {
+    min-width: 0;
+  }
   .pathway-step-card {
     grid-template-columns: 1fr;
   }
