@@ -38,8 +38,9 @@ class RateLimiter:
                 ) from None
         with self.lock:
             if len(self.records) > 10000:
+                max_window = 3600
                 self.records = {
-                    k: q for k, q in self.records.items() if q and q[-1] > now - seconds
+                    k: q for k, q in self.records.items() if q and q[-1] > now - max_window
                 }
             queue = self.records.setdefault(key, deque())
             while queue and queue[0] <= now - seconds:

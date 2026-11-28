@@ -3,7 +3,6 @@ import {
   DOMAIN_CONFIG,
   getConnection,
   getCourseReadiness,
-  getMissingPrerequisites,
   getRecommendedNextTracks,
   learningPathways,
   STAGE_CONFIG,
@@ -803,7 +802,19 @@ export default function CourseMap() {
               {filteredConnections.map((conn) => {
                 const track = tracks.find((t) => t.id === conn.id)!;
                 const readiness = getCourseReadiness(track, state);
-                const missing = getMissingPrerequisites(conn.id, state);
+                const hardMissing = conn.prerequisites.filter((pId) => {
+                  const pTrack = tracks.find((t) => t.id === pId);
+                  return !pTrack || !trackProgress(pTrack, state).complete;
+                }).length;
+                const anyOfMissing =
+                  conn.prerequisitesAnyOf.length > 0 &&
+                  !conn.prerequisitesAnyOf.some((pId) => {
+                    const pTrack = tracks.find((t) => t.id === pId);
+                    return pTrack && trackProgress(pTrack, state).complete;
+                  })
+                    ? 1
+                    : 0;
+                const neededCount = hardMissing + anyOfMissing;
 
                 return (
                   <tr key={conn.id}>
@@ -901,15 +912,15 @@ export default function CourseMap() {
                                 .join(", ")}
                             </span>
                           ) : null}
-                          {missing.length > 0 && readiness === "locked" && (
+                          {neededCount > 0 && readiness === "locked" && (
                             <span
                               style={{
                                 fontSize: "0.6875rem",
                                 color: "var(--negative)",
                               }}
                             >
-                              Needs {missing.length} prerequisite
-                              {missing.length === 1 ? "" : "s"}
+                              Needs {neededCount} prerequisite
+                              {neededCount === 1 ? "" : "s"}
                             </span>
                           )}
                         </div>

@@ -29,7 +29,7 @@ def owner(request: Request, response: Response, user: User | None = Depends(auth
             options={"require": ["exp", "sub"]},
         )
         return "guest:" + str(UUID(claims["sub"]))
-    except jwt.PyJWTError, ValueError, KeyError:
+    except (jwt.PyJWTError, ValueError, KeyError):
         guest = str(uuid4())
         token = jwt.encode(
             {

@@ -88,11 +88,11 @@ def run(code: str, data: dict, params: dict | None = None) -> dict:
         return output
     except subprocess.TimeoutExpired:
         raise ExecutionError("Execution exceeded the 2-second limit.") from None
-    except OSError, json.JSONDecodeError:
+    except (OSError, json.JSONDecodeError):
         raise ExecutionError("Sandbox runtime unavailable or returned invalid output.") from None
     finally:
         if container:
             try:
                 subprocess.run(["docker", "rm", "-f", container], capture_output=True, timeout=3)
-            except OSError, subprocess.TimeoutExpired:
+            except (OSError, subprocess.TimeoutExpired):
                 pass

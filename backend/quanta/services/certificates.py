@@ -23,15 +23,20 @@ class CertificateClaim(BaseModel):
     workspaceVersion: StrictInt = Field(ge=0)
 
 
-def _passed(exam: dict, attempt: object) -> bool:
+def _grade_attempt(exam: dict, attempt: object) -> dict | None:
     # Device attempts are accepted only after regrading their answers here.
     # Caller-supplied score, passed, and grading fields have no authority.
     if not isinstance(attempt, dict):
-        return False
+        return None
     try:
-        return grade(exam, ExamAnswers.model_validate(attempt))["passed"]
+        return grade(exam, ExamAnswers.model_validate(attempt))
     except (ValidationError, DomainError):
-        return False
+        return None
+
+
+def _passed(exam: dict, attempt: object) -> bool:
+    res = _grade_attempt(exam, attempt)
+    return bool(res and res.get("passed"))
 
 
 def claim(payload: CertificateClaim, user: User, db: Session):
@@ -65,7 +70,8 @@ def claim(payload: CertificateClaim, user: User, db: Session):
     if not isinstance(device_attempts, dict):
         device_attempts = {}
 
-    all_attempts = []
+    score_band = None
+    best_pct = 0.0
     for exam in course["exams"]:
         online = db.exec(
             select(ExamSubmission).where(
@@ -76,21 +82,16 @@ def claim(payload: CertificateClaim, user: User, db: Session):
         attempts = [submission.result for submission in online] + (
             saved if isinstance(saved, list) else []
         )
-        all_attempts.extend(attempts)
-        if not any(_passed(exam, attempt) for attempt in attempts):
+        passed_scores = []
+        for attempt in attempts:
+            graded = _grade_attempt(exam, attempt)
+            if graded and graded.get("passed"):
+                passed_scores.append(float(graded.get("score", 0.0)))
+        if not passed_scores:
             raise HTTPException(
                 422, f"Pass the current {exam['title']} before claiming this certificate."
             )
-
-    # Compute score band if applicable (e.g. Conduct & Compliance Essentials)
-    score_band = None
-    best_pct = 0.0
-    for a in all_attempts:
-        if isinstance(a, dict):
-            if "score" in a:
-                best_pct = max(best_pct, float(a.get("score", 0)))
-            elif "correct" in a and "total" in a and a.get("total", 0) > 0:
-                best_pct = max(best_pct, float(a["correct"]) / float(a["total"]) * 100.0)
+        best_pct = max(best_pct, max(passed_scores))
 
     cert_config = course.get("certificate", {})
     if payload.trackId == "conduct-compliance-essentials" or cert_config.get("verification_required"):
@@ -146,10 +147,16 @@ def list_certificates(user: User, db: Session):
     return {"certificates": [record.record for record in records]}
 
 
-def verify(identifier: str, db: Session):
-    certificate = db.get(Certificate, identifier.upper()) if len(identifier) == 40 else None
+def _lookup_certificate(identifier: str, db: Session) -> Certificate:
+    clean_id = identifier.strip().upper() if identifier else ""
+    certificate = db.get(Certificate, clean_id) if len(clean_id) == 40 else None
     if not certificate:
         raise HTTPException(404, "No issued certificate matches this ID.")
+    return certificate
+
+
+def verify(identifier: str, db: Session):
+    certificate = _lookup_certificate(identifier, db)
     rec = dict(certificate.record)
     if rec.get("publicVerificationOptOut"):
         rec["recipientName"] = "Withheld by recipient (authentic certificate confirmed)"
@@ -157,9 +164,7 @@ def verify(identifier: str, db: Session):
 
 
 def set_privacy(identifier: str, opt_out: bool, user: User, db: Session):
-    certificate = db.get(Certificate, identifier.upper()) if len(identifier) == 40 else None
-    if not certificate:
-        raise HTTPException(404, "No issued certificate matches this ID.")
+    certificate = _lookup_certificate(identifier, db)
     if certificate.user_id != user.id:
         raise HTTPException(403, "You do not have permission to modify this certificate.")
     rec = dict(certificate.record)
@@ -172,9 +177,10 @@ def set_privacy(identifier: str, opt_out: bool, user: User, db: Session):
 
 
 def generate_pdf(identifier: str, db: Session) -> tuple[bytes, str]:
-    certificate = db.get(Certificate, identifier.upper()) if len(identifier) == 40 else None
-    if not certificate:
-        raise HTTPException(404, "No issued certificate matches this ID.")
-    pdf_bytes = generate_certificate_pdf(certificate.record)
+    certificate = _lookup_certificate(identifier, db)
+    rec = dict(certificate.record)
+    if rec.get("publicVerificationOptOut"):
+        rec["recipientName"] = "Withheld by recipient"
+    pdf_bytes = generate_certificate_pdf(rec)
     filename = f"certificate_{certificate.id}.pdf"
     return pdf_bytes, filename

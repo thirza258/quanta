@@ -120,10 +120,35 @@ def parse_idr_amount(val) -> float:
     s = str(val).strip()
     if not s:
         return 0.0
+
+    is_negative = False
+    if s.startswith("(") and s.endswith(")"):
+        is_negative = True
+        s = s[1:-1].strip()
+    elif s.startswith("-"):
+        is_negative = True
+        s = s[1:].strip()
+    elif s.endswith("-"):
+        is_negative = True
+        s = s[:-1].strip()
+
     # Strip currency prefixes and suffixes
-    s = re.sub(r"^[Rr][Pp]\.?\s*", "", s)
+    s = re.sub(r"^[Rr][Pp]\.?\s*", "", s, flags=re.IGNORECASE)
     s = re.sub(r"^[\$€£]\s*", "", s)
+
+    # Secondary check for negative sign after currency symbol (e.g. "Rp -5000" or "Rp (5000)")
+    if s.startswith("(") and s.endswith(")"):
+        is_negative = True
+        s = s[1:-1].strip()
+    elif s.startswith("-"):
+        is_negative = True
+        s = s[1:].strip()
+    elif s.endswith("-"):
+        is_negative = True
+        s = s[:-1].strip()
+
     s = re.sub(r"\s*(IDR|USD|SGD|EUR|GBP)$", "", s, flags=re.IGNORECASE).strip()
+
     # Normalize IDR / European dot-as-thousands vs comma-as-thousands
     if "." in s and "," in s:
         if s.rfind(",") > s.rfind("."):
@@ -140,7 +165,8 @@ def parse_idr_amount(val) -> float:
             s = s.replace(",", "")
         else:
             s = s.replace(",", ".")
-    return float(s)
+    parsed = float(s)
+    return -parsed if is_negative else parsed
 
 
 def validate_capstone(course_id: str, csv_content: str, user: User | None, db: Session):
@@ -275,16 +301,21 @@ def validate_capstone(course_id: str, csv_content: str, user: User | None, db: S
         date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
         currency_symbols = ["$", "Rp", "rp", "€", "EUR", "USD", "IDR", "SGD", "GBP"]
 
-        for idx, row in enumerate(rows):
+        for idx, raw_row in enumerate(rows):
+            row = {
+                (str(k).strip().lower() if k is not None else ""): (v.strip() if isinstance(v, str) else v)
+                for k, v in raw_row.items()
+            }
+
             # 1. Date format check
-            date_val = row.get("date") or row.get("Date") or row.get("tanggal")
+            date_val = row.get("date") or row.get("tanggal")
             if not date_val or not date_pattern.match(date_val.strip()):
                 raise HTTPException(
                     422, f"Row {idx+1} invalid date '{date_val}': must follow ISO-8601 'YYYY-MM-DD'."
                 )
 
             # 2. Category taxonomy check
-            cat_val = row.get("category") or row.get("Category") or row.get("kategori")
+            cat_val = row.get("category") or row.get("kategori")
             if not cat_val or cat_val.strip().lower() not in allowed_taxonomy:
                 raise HTTPException(
                     422,
@@ -292,7 +323,7 @@ def validate_capstone(course_id: str, csv_content: str, user: User | None, db: S
                 )
 
             # 3. Numeric amounts and isolated currencies
-            amount_cols = ["amount", "Amount", "nominal", "inflow", "outflow", "balance"]
+            amount_cols = ["amount", "nominal", "inflow", "outflow", "balance"]
             for col in amount_cols:
                 if col in row and row[col] is not None and str(row[col]).strip() != "":
                     val_str = str(row[col]).strip()

@@ -90,7 +90,7 @@ def git_commit() -> str | None:
             text=True,
             timeout=2,
         )
-    except OSError, subprocess.TimeoutExpired:
+    except (OSError, subprocess.TimeoutExpired):
         return None
     commit = result.stdout.strip()
     return commit if result.returncode == 0 and len(commit) == 40 else None

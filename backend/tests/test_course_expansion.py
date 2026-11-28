@@ -227,3 +227,78 @@ def test_certificate_pdf_and_privacy(client):
     assert verify_res.status_code == 200
     assert verify_res.json()["certificate"]["recipientName"] == "Compliance Scholar"
     assert verify_res.json()["certificate"]["scoreBand"] == "Distinction"
+
+
+def test_parse_idr_amount_negative_and_accounting_formats():
+    from quanta.services.learning import parse_idr_amount
+    assert parse_idr_amount("-Rp 5.000.000") == -5000000.0
+    assert parse_idr_amount("(Rp 5.000.000)") == -5000000.0
+    assert parse_idr_amount("(5.000.000)") == -5000000.0
+    assert parse_idr_amount("Rp -2.500.000,50") == -2500000.50
+    assert parse_idr_amount("10.000.000-") == -10000000.0
+    assert parse_idr_amount("Rp 10.000.000") == 10000000.0
+
+
+def test_data_hygiene_capstone_with_uppercase_and_spaced_headers(client):
+    csv_content = """ID, DATE, CATEGORY, AMOUNT, CURRENCY
+1, 2024-01-15, penjualan, 1500000, IDR
+2, 2024-01-16, operasional, 500000, IDR
+"""
+    res = client.post(
+        "/api/v1/courses/data-hygiene/capstone",
+        json={"content": csv_content},
+    )
+    assert res.status_code == 200
+    assert res.json()["status"] == "passed"
+
+
+def test_certificate_pdf_privacy_withheld(client):
+    from quanta.db.session import engine
+    from quanta.db.models import Certificate, User
+    from sqlmodel import Session
+    from datetime import datetime, timezone
+    from uuid import uuid4
+
+    test_cert_id = f"QTA-{str(uuid4()).upper()}"
+    with Session(engine) as session:
+        user = User(
+            id="privacy-user-id",
+            email="privacy@example.com",
+            name="Secret Scholar",
+            hashed_password="pw",
+        )
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+
+        cert = Certificate(
+            id=test_cert_id,
+            user_id=user.id,
+            course_key="test-privacy-key",
+            record={
+                "id": test_cert_id,
+                "trackId": "conduct-compliance-essentials",
+                "courseTitle": "Conduct & Compliance Essentials",
+                "recipientName": "Secret Scholar",
+                "issuedAt": datetime.now(timezone.utc).isoformat(),
+                "studyMinutes": 420,
+                "scoreBand": "Distinction",
+                "contentVersion": 1,
+                "publicVerificationOptOut": True,
+                "lessonIds": [],
+                "examVersions": {},
+            },
+        )
+        session.add(cert)
+        session.commit()
+
+    pdf_res = client.get(f"/api/v1/certificates/{test_cert_id}/pdf")
+    assert pdf_res.status_code == 200
+    assert b"Secret Scholar" not in pdf_res.content
+    assert b"Withheld by recipient" in pdf_res.content
+
+    # Whitespace and lowercase tolerance in URL verification
+    verify_res = client.get(f"/api/v1/certificates/%20{test_cert_id.lower()}%20/verify")
+    assert verify_res.status_code == 200
+    assert verify_res.json()["certificate"]["recipientName"] == "Withheld by recipient (authentic certificate confirmed)"
+

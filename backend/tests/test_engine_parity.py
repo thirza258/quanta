@@ -103,7 +103,7 @@ def _decimal_reference(op, a, b):
             "down": lambda: x.quantize(CENT, rounding=ROUND_DOWN),
             "integral": lambda: x.to_integral_value(rounding=ROUND_DOWN),
         }[op]()
-    except InvalidOperation, ZeroDivisionError, ArithmeticError:
+    except (InvalidOperation, ZeroDivisionError, ArithmeticError):
         return "ERR"
     return str(result)
 

@@ -7,7 +7,6 @@ import {
 } from "@/features/learning/model/cases";
 import {
   findLesson,
-  lessons,
   lessonTrack,
   trackLabel,
 } from "@/features/learning/model/catalog";
@@ -74,7 +73,7 @@ function Reader({ lesson }: { lesson: Lesson }) {
   const completed = state.completed.includes(lesson.id),
     practicePassed = practiceComplete(lesson, state),
     exam = track.exams.find((exam) => exam.moduleIds.at(-1) === lesson.id),
-    next = lessons[lessons.findIndex((l) => l.id === lesson.id) + 1];
+    next = track.modules[track.modules.findIndex((l) => l.id === lesson.id) + 1];
   const caseStudy = lessonCase(track, lesson);
   useEffect(() => {
     update((s) => ({ ...s, lastLesson: lesson.id }));

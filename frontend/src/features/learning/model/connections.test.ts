@@ -246,6 +246,19 @@ describe("courseConnections model", () => {
         "bank-analysis",
       ]),
     );
+
+    // Unlocking real-world-casebook only requires 1 of the prerequisitesAnyOf
+    const conn = getConnection("real-world-casebook")!;
+    const hardMissing = conn.prerequisites.filter((id) =>
+      emptyState.completed.includes(id),
+    ).length;
+    const anyOfMissing =
+      conn.prerequisitesAnyOf.length > 0 &&
+      !conn.prerequisitesAnyOf.some((id) => emptyState.completed.includes(id))
+        ? 1
+        : 0;
+    const neededCount = hardMissing + anyOfMissing;
+    expect(neededCount).toBe(1);
   });
 
   it("retrieves a connection by track ID", () => {

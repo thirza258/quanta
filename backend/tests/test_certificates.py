@@ -153,3 +153,38 @@ def test_new_course_edition_requires_current_passes_and_preserves_original(clien
         client.get(f"/api/v1/certificates/{original['id']}/verify").json()["certificate"]
         == original
     )
+
+
+def test_claim_regrades_answers_and_ignores_client_spoofed_score(client):
+    signup(client)
+    conduct_course = next(c for c in CATALOG if c["id"] == "conduct-compliance-essentials")
+    state = {
+        "completed": [lesson["id"] for lesson in conduct_course["modules"]],
+        "examAttempts": {
+            exam["id"]: [exam_payload(exam["id"], correct=22)]
+            for exam in conduct_course["exams"]
+        },
+    }
+    # Attempt to spoof score: 99.0 in device attempt
+    for exam in conduct_course["exams"]:
+        state["examAttempts"][exam["id"]][0]["score"] = 99.0
+
+    res = claim(client, save(client, state), trackId="conduct-compliance-essentials")
+    assert res.status_code == 200, res.text
+    cert = res.json()
+    # The true regraded score is 84.6%, so scoreBand must be Pass, NOT the spoofed Distinction (>=95%)
+    assert cert["scoreBand"] == "Pass"
+
+    # If the attempt failed on answers, spoofing score: 99.0 must be rejected
+    client.post("/api/v1/auth/logout")
+    signup(client)
+    state["examAttempts"] = {
+        exam["id"]: [exam_payload(exam["id"], correct=10)]
+        for exam in conduct_course["exams"]
+    }
+    for exam in conduct_course["exams"]:
+        state["examAttempts"][exam["id"]][0]["score"] = 99.0
+    res_failed = claim(client, save(client, state), trackId="conduct-compliance-essentials")
+    assert res_failed.status_code == 422
+
+
