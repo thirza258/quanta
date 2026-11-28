@@ -7,9 +7,9 @@ import {
   getRecommendedNextTracks,
   learningPathways,
   STAGE_CONFIG,
+  STAGE_ORDER,
   type CourseDomain,
   type CourseReadiness,
-  type CourseStage,
 } from "@/features/learning/model/connections";
 import { trackLabel, tracks } from "@/features/learning/model/catalog";
 import { trackProgress } from "@/features/learning/model/progress";
@@ -91,7 +91,7 @@ export default function CourseMap() {
     return matchesDomain && matchesQuery;
   });
 
-  const stages: CourseStage[] = [1, 2, 3, 4];
+  const stages = STAGE_ORDER;
 
   const renderReadinessBadge = (readiness: CourseReadiness) => {
     switch (readiness) {
@@ -416,14 +416,27 @@ export default function CourseMap() {
                             >
                               {conn.domainLabel}
                             </span>
+                            <span
+                              style={{
+                                fontSize: "0.6875rem",
+                                padding: "2px 6px",
+                                borderRadius: "4px",
+                                background: "var(--surface)",
+                                border: "1px solid var(--border)",
+                                color: "var(--muted)",
+                              }}
+                            >
+                              L{conn.difficulty}
+                            </span>
                           </div>
 
                           <div className="node-connections-row">
                             <span className="node-conn-item">
                               <Layers size={13} />
-                              {conn.prerequisites.length === 0
+                              {conn.prerequisites.length === 0 &&
+                              conn.prerequisitesAnyOf.length === 0
                                 ? "Entry point"
-                                : `${conn.prerequisites.length} prereq${conn.prerequisites.length === 1 ? "" : "s"}`}
+                                : `${conn.prerequisites.length + (conn.prerequisitesAnyOf.length ? 1 : 0)} prereq${conn.prerequisites.length + (conn.prerequisitesAnyOf.length ? 1 : 0) === 1 ? "" : "s"}`}
                             </span>
                             <span className="node-conn-item">
                               <Sparkles size={13} />
@@ -524,6 +537,50 @@ export default function CourseMap() {
                           </button>
                         );
                       })}
+                    </div>
+                  )}
+
+                  {selectedConnection.prerequisitesAnyOf.length > 0 && (
+                    <div style={{ marginTop: 12 }}>
+                      <span
+                        style={{
+                          fontSize: "0.6875rem",
+                          color: "var(--muted)",
+                          display: "block",
+                          marginBottom: 4,
+                        }}
+                      >
+                        Complete at least one of:
+                      </span>
+                      <div className="conn-chips-list">
+                        {selectedConnection.prerequisitesAnyOf.map(
+                          (prereqId) => {
+                            const prereqTrack = tracks.find(
+                              (t) => t.id === prereqId,
+                            );
+                            if (!prereqTrack) return null;
+                            const isDone = trackProgress(
+                              prereqTrack,
+                              state,
+                            ).complete;
+                            return (
+                              <button
+                                key={prereqId}
+                                className="conn-link-chip prereq-badge"
+                                onClick={() => setSelectedTrackId(prereqId)}
+                                title="Any one of these satisfies this prerequisite"
+                              >
+                                {isDone ? (
+                                  <CheckCircle2 size={13} color="#16a34a" />
+                                ) : (
+                                  <Clock size={13} color="var(--muted)" />
+                                )}
+                                <span>{prereqTrack.title}</span>
+                              </button>
+                            );
+                          },
+                        )}
+                      </div>
                     </div>
                   )}
 
@@ -783,7 +840,8 @@ export default function CourseMap() {
                       </span>
                     </td>
                     <td>
-                      {conn.prerequisites.length === 0 ? (
+                      {conn.prerequisites.length === 0 &&
+                      conn.prerequisitesAnyOf.length === 0 ? (
                         <span style={{ color: "var(--muted)" }}>
                           None (Entry point)
                         </span>
@@ -823,6 +881,26 @@ export default function CourseMap() {
                               </span>
                             );
                           })}
+                          {conn.prerequisitesAnyOf.length > 0 ? (
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                color: "var(--secondary)",
+                              }}
+                            >
+                              <Layers size={12} />
+                              At least one of:{" "}
+                              {conn.prerequisitesAnyOf
+                                .map(
+                                  (pId) =>
+                                    tracks.find((t) => t.id === pId)?.title ??
+                                    pId,
+                                )
+                                .join(", ")}
+                            </span>
+                          ) : null}
                           {missing.length > 0 && readiness === "locked" && (
                             <span
                               style={{

@@ -95,10 +95,10 @@ def test_order_and_legacy_strategy_subjects():
         "trading-fundamentals",
         "trading-ethics",
         "simulator-workshop",
-        "lab-workshop",
         "intelligent-investor",
         "security-analysis",
         "news-to-markets",
+        "forensic-accounting",
     ]
     assert CATALOG[-1]["id"] == "algorithm-evaluation"
     for id, answer in [("4.1", 1), ("4.2", 1), ("4.3", 1), ("4.4", 2)]:

@@ -4,7 +4,7 @@ Every one of the 425 lessons has an original application connected to a practica
 
 Learners can select **Explore the real-world case** at the top of a lesson, read the source context, attempt **Your task**, and expand **Compare your reasoning**. **Work through this case** opens a notebook prompt containing the task, source links, source scope, and assumptions. Saved work follows the existing notebook persistence flow. Case practice is optional additional work and does not change the listed lesson durations or assessment requirements.
 
-The course overview lists its cases, and each unit links directly to a relevant lesson's `#real-world-case` section. References also appear in the existing lesson footer and reference library. The course AI assistant receives the selected lesson's application and resolved case, including its dates, source scope, and illustrative-data boundary. Course-level assistance receives that course's case anchors. The OpenAI SDK/OpenRouter configuration is unchanged.
+The course overview lists its cases, and each unit links directly to a relevant lesson's `#real-world-case` section. References also appear in the existing lesson footer and reference library. The course AI assistant receives the selected lesson's application and resolved case, including its dates, source scope, and illustrative-data boundary. Course-level assistance receives that course's case anchors. The assistant context contract is unchanged across the OpenRouter and Firebase AI Logic providers.
 
 ## Coverage
 

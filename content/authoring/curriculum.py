@@ -8,6 +8,7 @@ from bank_analysis_course import build_bank_analysis
 from c_hpc_course import build_c_hpc_trading
 from course_references import attach_references
 from credit_distress_course import build_credit_distress
+from curriculum_metadata import attach_curriculum_metadata
 from cyclical_industrials_course import build_cyclical_industrials
 from econometrics_course import build_econometrics
 from evaluation_course import build_algorithm_evaluation
@@ -681,6 +682,10 @@ for _course in catalog[-5:]:
         for _q in _e["questions"]:
             _rebalance(_q)
 catalog.append(build_algorithm_evaluation())
+
+# Ordering is metadata, never lesson IDs. This validates the prerequisite DAG,
+# attaches stage/sequence/difficulty metadata, and sorts the catalog in place.
+attach_curriculum_metadata(catalog)
 
 
 

@@ -153,7 +153,7 @@ export default function Overview() {
             <div className="orbital-line" />
             <TrackArt kind="book" large />
             <span className="formula-tag">
-              {track.number === 0
+              {track.id === "trading-fundamentals"
                 ? "Understand before you trade"
                 : "Value ≠ Price"}
             </span>

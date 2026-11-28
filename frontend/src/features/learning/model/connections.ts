@@ -4,9 +4,15 @@ import type { Track } from "@/features/learning/model/types";
 import type { WorkspaceState } from "@/features/workspace/model/types";
 
 export type CourseDomain =
-  "fundamentals" | "value" | "quant" | "systems" | "specialized" | "crypto";
+  | "fundamentals"
+  | "value"
+  | "quant"
+  | "systems"
+  | "specialized"
+  | "crypto"
+  | "professional";
 
-export type CourseStage = 1 | 2 | 3 | 4;
+export type CourseStage = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 export type CourseConnection = {
   id: string;
@@ -15,12 +21,20 @@ export type CourseConnection = {
   domain: CourseDomain;
   domainLabel: string;
   prerequisites: string[];
+  /** The learner must complete at least one of these, not all of them. */
+  prerequisitesAnyOf: string[];
   recommendedBefore: string[];
   unlocks: string[];
   whyPrerequisites: string;
   whyUnlocks: string;
   focusSummary: string;
   skillsGained: string[];
+  courseType: string;
+  difficulty: number;
+  sequence: number;
+  isCore: boolean;
+  isSpecialization: boolean;
+  isCapstone: boolean;
 };
 
 export type LearningPathway = {
@@ -43,30 +57,82 @@ export const STAGE_CONFIG: Record<
   { name: string; subtitle: string; badge: string }
 > = {
   1: {
-    name: "Stage 1: Foundations & Market Mechanics",
+    name: "Orientation & Market Mechanics",
     subtitle:
-      "Core market microstructure, order books, execution mechanics, and trading ethics.",
-    badge: "Foundations",
+      "Vocabulary, ownership, orders, returns, costs, and the first research plan.",
+    badge: "Orientation",
   },
   2: {
-    name: "Stage 2: Core Analysis & Quantitative Modeling",
+    name: "Financial & Investment Foundations",
     subtitle:
-      "Classical fundamental valuation principles, statistical tools, and decentralized ledgers.",
-    badge: "Core Tools",
+      "Conduct, careful-investor principles, and supervised simulator practice.",
+    badge: "Foundations",
   },
   3: {
-    name: "Stage 3: Applied Research & Strategy Formulation",
+    name: "Fundamental Analysis & Market Information",
     subtitle:
-      "Econometric factor modeling, news sentiment analysis, algorithmic bots, and backtesting.",
-    badge: "Applied Research",
+      "Financial statements, security analysis, and verified news-to-valuation reasoning.",
+    badge: "Fundamental Core",
   },
   4: {
-    name: "Stage 4: Specialized Deep Dives & Systems Architecture",
+    name: "Advanced Fundamental Analysis",
     subtitle:
-      "Forensic accounting, credit distress, C/HPC low latency, machine learning, and capstone audits.",
-    badge: "Specialized & Capstones",
+      "Forensics, credit, quality, banks, cyclicals, intangibles, and documented cases.",
+    badge: "Value Specializations",
+  },
+  5: {
+    name: "Quantitative Foundations & Applied Valuation",
+    subtitle:
+      "Data hygiene, Python, probability, statistics, regression, risk, and valuation under uncertainty.",
+    badge: "Quant Foundations",
+  },
+  6: {
+    name: "Empirical Finance & Econometrics",
+    subtitle:
+      "Identification, time series, volatility, factor tests, causal designs, and state-space models.",
+    badge: "Econometrics",
+  },
+  7: {
+    name: "Research Methodology & Strategy Development",
+    subtitle:
+      "Point-in-time data, backtest hygiene, strategy construction, portfolio constraints, and validation.",
+    badge: "Strategy Research",
+  },
+  8: {
+    name: "Machine Learning for Markets",
+    subtitle:
+      "Features, labels, purged validation, regularized and tree models, deployment, and monitoring.",
+    badge: "Machine Learning",
+  },
+  9: {
+    name: "Algorithmic & AI Trading",
+    subtitle:
+      "Event-driven bots, execution, risk gates, AI evidence, operations, and capacity.",
+    badge: "Algorithmic Trading",
+  },
+  10: {
+    name: "High-Performance Computing",
+    subtitle:
+      "C17 systems, cache layout, profiling, threads, SIMD, GPUs, and distributed research.",
+    badge: "HPC",
+  },
+  11: {
+    name: "Specializations & Professional Practice",
+    subtitle:
+      "Web3/DeFi, conduct and compliance, and an alternative MSME financial-literacy on-ramp.",
+    badge: "Specializations",
+  },
+  12: {
+    name: "Capstone: Research Evaluation",
+    subtitle:
+      "Audit an algorithm's returns, risk, execution, uncertainty, and reproducibility in a final report.",
+    badge: "Capstone",
   },
 };
+
+export const STAGE_ORDER: CourseStage[] = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+];
 
 export const DOMAIN_CONFIG: Record<
   CourseDomain,
@@ -78,1026 +144,147 @@ export const DOMAIN_CONFIG: Record<
   systems: { label: "Systems & Algorithmic Bots", color: "#ea580c" },
   specialized: { label: "Advanced Security Analysis", color: "#0891b2" },
   crypto: { label: "Web3 & Cryptography", color: "#d97706" },
+  professional: { label: "Conduct & Professional Practice", color: "#64748b" },
 };
 
-export const courseConnections: CourseConnection[] = [
-  // STAGE 1: FOUNDATIONS & MECHANICS
-  {
-    id: "trading-fundamentals",
-    stage: 1,
-    stageName: "Foundations & Market Mechanics",
-    domain: "fundamentals",
-    domainLabel: "Foundations & Ethics",
-    prerequisites: [],
-    recommendedBefore: [],
-    unlocks: [
-      "trading-ethics",
-      "simulator-workshop",
-      "lab-workshop",
-      "intelligent-investor",
-      "security-analysis",
-      "statistical-foundations",
-      "web3",
-    ],
-    whyPrerequisites:
-      "The universal starting point of the Quanta curriculum. No prerequisites required.",
-    whyUnlocks:
-      "Establishes order book depth, market vs limit orders, slippage, and compounding returns without which subsequent modeling is abstract or prone to naive execution assumptions.",
-    focusSummary:
-      "Market microstructure, bid-ask spreads, order execution types, and compounding arithmetic.",
-    skillsGained: [
-      "Order books & execution queues",
-      "Market, limit & stop orders",
-      "Bid-ask spreads & transaction slippage",
-      "Compounding & portfolio arithmetic",
-    ],
-  },
-  {
-    id: "trading-ethics",
-    stage: 1,
-    stageName: "Foundations & Market Mechanics",
-    domain: "fundamentals",
-    domainLabel: "Foundations & Ethics",
-    prerequisites: ["trading-fundamentals"],
-    recommendedBefore: [],
-    unlocks: ["simulator-workshop"],
-    whyPrerequisites:
-      "Requires basic familiarity with order submission and execution to recognize illegal market conduct.",
-    whyUnlocks:
-      "Teaches market integrity regulations (spoofing, wash sales, front-running, material non-public info) before you operate with simulated capital or design automated execution bots.",
-    focusSummary:
-      "Regulatory compliance, market abuse prohibitions, information barriers, and professional fiduciary duties.",
-    skillsGained: [
-      "Market manipulation detection",
-      "Wash trading & spoofing rules",
-      "Information barriers & MNPI",
-      "Fiduciary obligations & licensing",
-    ],
-  },
-  {
-    id: "simulator-workshop",
-    stage: 1,
-    stageName: "Foundations & Market Mechanics",
-    domain: "systems",
-    domainLabel: "Systems & Algorithmic Bots",
-    prerequisites: ["trading-fundamentals", "trading-ethics"],
-    recommendedBefore: [],
-    unlocks: ["stock-bots"],
-    whyPrerequisites:
-      "Combines order mechanics from Fundamentals with ethical execution constraints from Ethics.",
-    whyUnlocks:
-      "Provides hands-on terminal experience managing order flow and tracking real-time slippage, establishing essential intuition for building automated trading bots.",
-    focusSummary:
-      "Live order flow simulation, order book manipulation safeguards, and portfolio management.",
-    skillsGained: [
-      "Live order-flow entry & monitoring",
-      "Fill price slippage tracking",
-      "Paper portfolio position sizing",
-      "Execution speed & latency intuition",
-    ],
-  },
-  {
-    id: "lab-workshop",
-    stage: 1,
-    stageName: "Foundations & Market Mechanics",
-    domain: "quant",
-    domainLabel: "Quantitative & Econometrics",
-    prerequisites: ["trading-fundamentals"],
-    recommendedBefore: [],
-    unlocks: ["strategy-lab"],
-    whyPrerequisites:
-      "Builds directly upon fundamental asset pricing and return metrics to introduce Python scripting.",
-    whyUnlocks:
-      "Provides a gentle on-ramp to factor regression and strategy mechanics from scratch, preparing you for the advanced Strategy Lab.",
-    focusSummary:
-      "Hands-on Python arithmetic, data structures, and introductory factor regressions.",
-    skillsGained: [
-      "Financial data wrangling in Python",
-      "Simple factor regression lines",
-      "Strategy returns aggregation",
-      "Benchmark comparison math",
-    ],
-  },
+const trackById = new Map(tracks.map((track) => [track.id, track]));
 
-  // STAGE 2: CORE ANALYSIS & QUANTITATIVE MODELING
-  {
-    id: "intelligent-investor",
-    stage: 2,
-    stageName: "Core Analysis & Quantitative Modeling",
-    domain: "value",
-    domainLabel: "Fundamental & Value",
-    prerequisites: ["trading-fundamentals"],
-    recommendedBefore: [],
-    unlocks: ["security-analysis"],
-    whyPrerequisites:
-      "Requires understanding basic shares, bonds, yields, and orders to appreciate Graham's philosophy.",
-    whyUnlocks:
-      "Instills the emotional discipline (Mr. Market) and margin of safety necessary before undertaking rigorous mathematical statement adjustments in Security Analysis.",
-    focusSummary:
-      "Graham & Dodd value philosophy, margin of safety, and defensive vs enterprising allocation.",
-    skillsGained: [
-      "Margin of safety calculation",
-      "Mr. Market psychological discipline",
-      "Defensive investor asset allocation",
-      "Inflation protection & bond analysis",
-    ],
-  },
-  {
-    id: "security-analysis",
-    stage: 2,
-    stageName: "Core Analysis & Quantitative Modeling",
-    domain: "value",
-    domainLabel: "Fundamental & Value",
-    prerequisites: ["trading-fundamentals"],
-    recommendedBefore: ["intelligent-investor"],
-    unlocks: [
-      "news-to-markets",
-      "forensic-accounting",
-      "credit-distress",
-      "quality-moats",
-      "bank-analysis",
-      "valuation-uncertainty",
-      "cyclical-industrials",
-      "tech-intangibles",
-      "real-world-casebook",
-      "strategy-lab",
-    ],
-    whyPrerequisites:
-      "Draws upon corporate equity structures and market pricing to deconstruct financial reports.",
-    whyUnlocks:
-      "The foundational cornerstone for all 8 specialized fundamental deep-dives and fundamental factor screening in the Strategy Lab.",
-    focusSummary:
-      "Three-statement financial analysis, earnings power normalization, and balance-sheet solvency.",
-    skillsGained: [
-      "Income statement & cash flow audits",
-      "Balance sheet asset-debt quality",
-      "Normalized earnings power",
-      "Fixed charge & debt coverage ratios",
-    ],
-  },
-  {
-    id: "statistical-foundations",
-    stage: 2,
-    stageName: "Core Analysis & Quantitative Modeling",
-    domain: "quant",
-    domainLabel: "Quantitative & Econometrics",
-    prerequisites: ["trading-fundamentals"],
-    recommendedBefore: [],
-    unlocks: [
-      "econometrics",
-      "strategy-lab",
-      "stock-bots",
-      "stock-machine-learning",
-      "valuation-uncertainty",
-    ],
-    whyPrerequisites:
-      "Grounds mathematical probability and distribution theories in actual asset returns and market variables.",
-    whyUnlocks:
-      "The rigorous mathematical engine required for multi-factor econometrics, machine learning, algorithmic bots, and quantitative backtesting.",
-    focusSummary:
-      "Probability distributions, hypothesis testing, OLS regression, time series, and Value at Risk.",
-    skillsGained: [
-      "Probability distributions & central limit theorem",
-      "Hypothesis testing & p-values",
-      "OLS & multiple regression diagnostics",
-      "Time-series stationarity & Value at Risk",
-    ],
-  },
-  {
-    id: "web3",
-    stage: 2,
-    stageName: "Core Analysis & Quantitative Modeling",
-    domain: "crypto",
-    domainLabel: "Web3 & Cryptography",
-    prerequisites: ["trading-fundamentals"],
-    recommendedBefore: [],
-    unlocks: ["strategy-lab"],
-    whyPrerequisites:
-      "Contrasts centralized exchange order routing with cryptographic peer-to-peer ledger mechanics.",
-    whyUnlocks:
-      "Enables students to explore decentralized liquidity pool strategies (x*y=k) and tokenomics models in the Strategy Lab.",
-    focusSummary:
-      "Public-key cryptography, distributed ledgers, automated market makers (AMMs), and smart contracts.",
-    skillsGained: [
-      "SHA-256 & secp256k1 elliptic curve math",
-      "Automated Market Maker (AMM) invariant equations",
-      "Solidity smart contract mechanics",
-      "Liquidity pool impermanent loss modeling",
-    ],
-  },
+function courseStage(track: Track): CourseStage {
+  const stage = track.stage_number;
+  return (stage && stage >= 1 && stage <= 12 ? stage : 12) as CourseStage;
+}
 
-  // STAGE 3: APPLIED RESEARCH & STRATEGY FORMULATION
-  {
-    id: "news-to-markets",
-    stage: 3,
-    stageName: "Applied Research & Strategy Formulation",
-    domain: "value",
-    domainLabel: "Fundamental & Value",
-    prerequisites: ["trading-fundamentals", "security-analysis"],
-    recommendedBefore: [],
-    unlocks: ["real-world-casebook"],
-    whyPrerequisites:
-      "Requires financial statement literacy to separate media headlines and PR spin from real economic value.",
-    whyUnlocks:
-      "Feeds into real-world investment memos and corporate event-driven dossiers in the Real-World Casebook.",
-    focusSummary:
-      "SEC 10-K/10-Q filings, earnings surprise decomposition, and macroeconomic transmission channels.",
-    skillsGained: [
-      "Translating headlines to earnings revisions",
-      "Decomposing earnings calls & 8-K filings",
-      "Macro interest-rate transmission",
-      "Event-driven valuation impact modeling",
-    ],
-  },
-  {
-    id: "econometrics",
-    stage: 3,
-    stageName: "Applied Research & Strategy Formulation",
-    domain: "quant",
-    domainLabel: "Quantitative & Econometrics",
-    prerequisites: ["statistical-foundations"],
-    recommendedBefore: [],
-    unlocks: ["strategy-lab", "stock-machine-learning", "algorithm-evaluation"],
-    whyPrerequisites:
-      "Extends statistical foundations into multi-factor regression, cointegration, and heteroskedastic time-series.",
-    whyUnlocks:
-      "Directly provides the Fama-French multi-factor alpha models, volatility estimators (GARCH), and pairs models implemented in the Strategy Lab.",
-    focusSummary:
-      "CAPM, Fama-French multi-factor asset pricing, cointegration pairs, and ARCH/GARCH volatility.",
-    skillsGained: [
-      "Fama-French 3- and 5-factor regressions",
-      "Cointegration & statistical arbitrage pairs",
-      "GARCH conditional volatility forecasting",
-      "Panel regression & fixed effects",
-    ],
-  },
-  {
-    id: "strategy-lab",
-    stage: 3,
-    stageName: "Applied Research & Strategy Formulation",
-    domain: "quant",
-    domainLabel: "Quantitative & Econometrics",
-    prerequisites: ["statistical-foundations", "econometrics"],
-    recommendedBefore: ["lab-workshop", "security-analysis"],
-    unlocks: ["stock-bots", "algorithm-evaluation"],
-    whyPrerequisites:
-      "Synthesizes statistical distributions and econometric factor models into systematic portfolio construction.",
-    whyUnlocks:
-      "Outputs systematic trading rules, factor weights, and rebalancing signals ready to be automated by Stock Bots or audited by Algorithm Evaluation.",
-    focusSummary:
-      "Systematic factor portfolios, momentum & value screening, and realistic transaction cost backtesting.",
-    skillsGained: [
-      "Factor scoring & cross-sectional ranking",
-      "Turnover, transaction cost & friction stress tests",
-      "Long-short portfolio construction",
-      "Sharpe, Sortino & max drawdown optimization",
-    ],
-  },
-  {
-    id: "stock-bots",
-    stage: 3,
-    stageName: "Applied Research & Strategy Formulation",
-    domain: "systems",
-    domainLabel: "Systems & Algorithmic Bots",
-    prerequisites: ["trading-fundamentals", "statistical-foundations"],
-    recommendedBefore: ["simulator-workshop", "strategy-lab"],
-    unlocks: ["c-hpc-trading", "algorithm-evaluation"],
-    whyPrerequisites:
-      "Merges market microstructure principles with statistical logic into production software code.",
-    whyUnlocks:
-      "Provides the asynchronous event loops and execution logic that are upgraded to bare-metal speed in C/HPC and audited in Algorithm Evaluation.",
-    focusSummary:
-      "Asynchronous Python trading engines, WebSocket feeds, state machines, and risk kill-switches.",
-    skillsGained: [
-      "Event-driven architectural loops",
-      "WebSocket streaming & order state machines",
-      "Execution safety & drawdown kill-switches",
-      "Automated paper trading integration",
-    ],
-  },
+function courseDomain(track: Track): CourseDomain {
+  const domain = track.domain;
+  return domain && domain in DOMAIN_CONFIG
+    ? (domain as CourseDomain)
+    : "fundamentals";
+}
 
-  // STAGE 4: SPECIALIZED DEEP DIVES & SYSTEMS ARCHITECTURE
-  {
-    id: "forensic-accounting",
-    stage: 4,
-    stageName: "Specialized Deep Dives & Systems Architecture",
-    domain: "specialized",
-    domainLabel: "Advanced Security Analysis",
-    prerequisites: ["security-analysis"],
-    recommendedBefore: [],
-    unlocks: ["real-world-casebook"],
-    whyPrerequisites:
-      "Relies on deep familiarity with the three financial statements to spot subtle balance sheet manipulations.",
-    whyUnlocks:
-      "Supplies critical accounting manipulation filters for building fraud-resistant valuation cases in the Real-World Casebook.",
-    focusSummary:
-      "Earnings quality forensic tests, Beneish M-Score, aggressive revenue recognition, and cash-flow red flags.",
-    skillsGained: [
-      "Beneish M-Score accruals analysis",
-      "Channel stuffing & revenue manipulation detection",
-      "Operating vs financing cash flow reclassification",
-      "Off-balance-sheet commitment auditing",
-    ],
-  },
-  {
-    id: "credit-distress",
-    stage: 4,
-    stageName: "Specialized Deep Dives & Systems Architecture",
-    domain: "specialized",
-    domainLabel: "Advanced Security Analysis",
-    prerequisites: ["security-analysis"],
-    recommendedBefore: [],
-    unlocks: ["real-world-casebook"],
-    whyPrerequisites:
-      "Uses capital structure and fixed-charge coverage foundations from Security Analysis to dissect debt instruments.",
-    whyUnlocks:
-      "Powers distressed debt turnaround evaluations and recovery waterfall models in the Real-World Casebook.",
-    focusSummary:
-      "High-yield credit analysis, structural default modeling (Merton, Altman Z), debt covenants, and restructuring.",
-    skillsGained: [
-      "Altman Z-Score & Merton structural default model",
-      "Bond indentures & covenant compliance analysis",
-      "Seniority waterfalls & recovery estimation",
-      "Distressed debt & chapter 11 reorganization",
-    ],
-  },
-  {
-    id: "quality-moats",
-    stage: 4,
-    stageName: "Specialized Deep Dives & Systems Architecture",
-    domain: "specialized",
-    domainLabel: "Advanced Security Analysis",
-    prerequisites: ["security-analysis"],
-    recommendedBefore: [],
-    unlocks: ["real-world-casebook"],
-    whyPrerequisites:
-      "Expands ROIC and capital deployment metrics learned in Security Analysis into long-term strategic competitive moats.",
-    whyUnlocks:
-      "Provides the core qualitative and quantitative moat framework for high-conviction compounder theses in the Casebook.",
-    focusSummary:
-      "ROIC vs WACC persistence, economic moats, capital allocation, and competitive advantages.",
-    skillsGained: [
-      "ROIC and incremental invested capital runways",
-      "Switching costs, network effects & intangible assets",
-      "Management capital allocation scorecards",
-      "Pricing power durability through inflation",
-    ],
-  },
-  {
-    id: "bank-analysis",
-    stage: 4,
-    stageName: "Specialized Deep Dives & Systems Architecture",
-    domain: "specialized",
-    domainLabel: "Advanced Security Analysis",
-    prerequisites: ["security-analysis"],
-    recommendedBefore: [],
-    unlocks: ["real-world-casebook"],
-    whyPrerequisites:
-      "Adapts corporate financial analysis to the balance sheet of financial intermediaries where loans are assets and deposits are debt.",
-    whyUnlocks:
-      "Crucial for analyzing financial institutions, credit crises, and liquidity runs in the Real-World Casebook.",
-    focusSummary:
-      "Bank financial statements, Net Interest Margin (NIM), Basel III capital tiers, and CECL credit loss provisioning.",
-    skillsGained: [
-      "Net Interest Margin (NIM) decomposition",
-      "Common Equity Tier 1 (CET1) & Basel III compliance",
-      "Current Expected Credit Losses (CECL) modeling",
-      "Asset-Liability Management (ALM) & interest rate duration risk",
-    ],
-  },
-  {
-    id: "valuation-uncertainty",
-    stage: 4,
-    stageName: "Specialized Deep Dives & Systems Architecture",
-    domain: "specialized",
-    domainLabel: "Advanced Security Analysis",
-    prerequisites: ["security-analysis", "statistical-foundations"],
-    recommendedBefore: [],
-    unlocks: ["real-world-casebook"],
-    whyPrerequisites:
-      "Combines DCF valuation mechanics with probability distributions to model businesses with negative or volatile earnings.",
-    whyUnlocks:
-      "Supplies probabilistic valuation ranges and reverse-DCF hurdle models for complex valuation dossiers in the Casebook.",
-    focusSummary:
-      "Valuation of early-stage, distressed, or high-growth firms using reverse DCF and real options.",
-    skillsGained: [
-      "Reverse DCF market expectation pricing",
-      "Monte Carlo valuation distributions",
-      "Real options in capital expenditures",
-      "Negative earnings normalization pathways",
-    ],
-  },
-  {
-    id: "cyclical-industrials",
-    stage: 4,
-    stageName: "Specialized Deep Dives & Systems Architecture",
-    domain: "specialized",
-    domainLabel: "Advanced Security Analysis",
-    prerequisites: ["security-analysis"],
-    recommendedBefore: [],
-    unlocks: ["real-world-casebook"],
-    whyPrerequisites:
-      "Uses fixed-cost and margin concepts from Security Analysis to isolate underlying earnings power from business cycle swings.",
-    whyUnlocks:
-      "Enables analyzing capital-intensive commodities, transport, and manufacturing dossiers in the Casebook.",
-    focusSummary:
-      "Mid-cycle normalized earnings, operating leverage, capex replacement cycles, and commodity margins.",
-    skillsGained: [
-      "Mid-cycle earnings power normalization",
-      "Operating leverage & fixed cost breakeven",
-      "Capex maintenance vs growth accounting",
-      "Commodity price curve transmission",
-    ],
-  },
-  {
-    id: "tech-intangibles",
-    stage: 4,
-    stageName: "Specialized Deep Dives & Systems Architecture",
-    domain: "specialized",
-    domainLabel: "Advanced Security Analysis",
-    prerequisites: ["security-analysis"],
-    recommendedBefore: [],
-    unlocks: ["real-world-casebook"],
-    whyPrerequisites:
-      "Adapts standard GAAP/IFRS accounting from Security Analysis to capitalize intangibles, software R&D, and user cohorts.",
-    whyUnlocks:
-      "Powers software, platform, and subscription ecosystem investment theses in the Casebook.",
-    focusSummary:
-      "SaaS unit economics (CAC, LTV, NRR), capitalizing R&D, and platform network effects.",
-    skillsGained: [
-      "Customer Acquisition Cost (CAC) & Lifetime Value (LTV)",
-      "Net Retention Rate (NRR) cohort waterfall analysis",
-      "Software R&D capitalization adjustments",
-      "Multi-sided platform take-rate economics",
-    ],
-  },
-  {
-    id: "real-world-casebook",
-    stage: 4,
-    stageName: "Specialized Deep Dives & Systems Architecture",
-    domain: "specialized",
-    domainLabel: "Advanced Security Analysis",
-    prerequisites: ["security-analysis"],
-    recommendedBefore: [
-      "forensic-accounting",
-      "credit-distress",
-      "bank-analysis",
-      "quality-moats",
-      "news-to-markets",
-    ],
-    unlocks: [],
-    whyPrerequisites:
-      "Requires Security Analysis and specialized deep-dive topics to analyze complex real-world SEC filings and autopsies.",
-    whyUnlocks:
-      "The definitive fundamental analysis capstone: demonstrates synthesis of forensic audits, debt seniority, and intrinsic valuation on real corporate histories.",
-    focusSummary:
-      "Comprehensive investment memos, forensic company autopsies, and turnaround investment theses.",
-    skillsGained: [
-      "End-to-end investment memo creation",
-      "Forensic balance sheet adjustments on live filings",
-      "Defensible margin-of-safety valuation bounds",
-      "Catalyst & thesis risk verification",
-    ],
-  },
-  {
-    id: "stock-machine-learning",
-    stage: 4,
-    stageName: "Specialized Deep Dives & Systems Architecture",
-    domain: "quant",
-    domainLabel: "Quantitative & Econometrics",
-    prerequisites: ["statistical-foundations", "econometrics"],
-    recommendedBefore: [],
-    unlocks: ["algorithm-evaluation"],
-    whyPrerequisites:
-      "Builds upon linear factor regressions using non-linear decision trees, gradient boosting, and temporal sequences.",
-    whyUnlocks:
-      "Generates predictive ML signals and alpha weights that require rigorous validation in Algorithm Evaluation.",
-    focusSummary:
-      "Non-linear machine learning models (XGBoost, LightGBM, LSTM) for financial time-series prediction.",
-    skillsGained: [
-      "Purged & embargoed k-fold cross-validation",
-      "Tree-based gradient boosting for returns",
-      "Sequence modeling & recurrent architectures",
-      "Feature engineering & lookahead leakage prevention",
-    ],
-  },
-  {
-    id: "c-hpc-trading",
-    stage: 4,
-    stageName: "Specialized Deep Dives & Systems Architecture",
-    domain: "systems",
-    domainLabel: "Systems & Algorithmic Bots",
-    prerequisites: ["stock-bots"],
-    recommendedBefore: [],
-    unlocks: ["algorithm-evaluation"],
-    whyPrerequisites:
-      "Re-implements the event-driven bot architecture from Python Stock Bots into ultra-low-latency modern C17.",
-    whyUnlocks:
-      "Outputs deterministic, high-throughput execution engines ready for sub-microsecond latency profiling and audit in Algorithm Evaluation.",
-    focusSummary:
-      "Ultra-low-latency algorithmic trading in modern C17, lock-free data structures, and POSIX threads.",
-    skillsGained: [
-      "Modern C17 memory management & ownership",
-      "Lock-free single-producer single-consumer queues",
-      "Zero-copy networking & cache-line alignment",
-      "SIMD vectorization for order book processing",
-    ],
-  },
-  {
-    id: "msme-financial-literacy",
-    stage: 1,
-    stageName: "Foundations & Market Mechanics",
-    domain: "fundamentals",
-    domainLabel: "Foundations & Ethics",
-    prerequisites: [],
-    recommendedBefore: [],
-    unlocks: ["intelligent-investor", "data-hygiene"],
-    whyPrerequisites:
-      "The dedicated on-ramp for small business owners and non-technical adults. No prerequisites required.",
-    whyUnlocks:
-      "Builds the cash-flow awareness and accounting discipline needed to evaluate public equities and maintain clean financial records.",
-    focusSummary:
-      "Cash flow vs accounting profit, 12-month cash forecast capstone, break-even unit analysis, working capital cycles, and Indonesian UMKM tax obligations.",
-    skillsGained: [
-      "12-month cash flow forecasting",
-      "Segregating personal & business accounts",
-      "Single-product break-even calculations",
-      "Indonesian UMKM tax compliance (PP 55/2022)",
-    ],
-  },
-  {
-    id: "spreadsheet-to-strategy-lab",
-    stage: 2,
-    stageName: "Core Analysis & Quantitative Modeling",
-    domain: "quant",
-    domainLabel: "Quantitative & Factor Methods",
-    prerequisites: [],
-    recommendedBefore: ["trading-fundamentals"],
-    unlocks: ["strategy-lab", "stock-bots"],
-    whyPrerequisites:
-      "Designed for spreadsheet users; requires no programming background or prior platform experience.",
-    whyUnlocks:
-      "Bridges tabular spreadsheet thinking directly into Strategy Lab's 32-lesson track, Factor Studio, and automated stock bots.",
-    focusSummary:
-      "Translating spreadsheet models to OHLCV bar dictionaries, eliminating look-ahead bias, accounting for transaction friction, and saving versioned strategies.",
-    skillsGained: [
-      "Spreadsheet-to-code translation",
-      "Causal execution & lag modeling",
-      "Transaction friction & slippage accounting",
-      "Strategy versioning & Factor Studio navigation",
-    ],
-  },
-  {
-    id: "data-hygiene",
-    stage: 1,
-    stageName: "Foundations & Market Mechanics",
-    domain: "fundamentals",
-    domainLabel: "Foundations & Ethics",
-    prerequisites: [],
-    recommendedBefore: [],
-    unlocks: ["statistical-foundations", "econometrics"],
-    whyPrerequisites:
-      "Zero prerequisites. Open to spreadsheet investors, small bookkeepers, and curious analysts.",
-    whyUnlocks:
-      "Clean, tidy data is the foundation of institutional research, protecting subsequent econometric models from garbage-in garbage-out artifacts.",
-    focusSummary:
-      "Tidy data rules, detecting and repairing the 5 common tabular defects, eliminating survivorship and look-ahead biases, and reproducible pipelines.",
-    skillsGained: [
-      "Tidy data rectangular architecture",
-      "Detecting 5 tabular defect classes",
-      "Survivorship & look-ahead bias elimination",
-      "Reproducible data cleaning pipelines",
-    ],
-  },
-  {
-    id: "conduct-compliance-essentials",
-    stage: 1,
-    stageName: "Foundations & Market Mechanics",
-    domain: "fundamentals",
-    domainLabel: "Foundations & Ethics",
-    prerequisites: [],
-    recommendedBefore: ["trading-fundamentals"],
-    unlocks: ["security-analysis", "algorithm-evaluation"],
-    whyPrerequisites:
-      "No prerequisites. Suitable for MSME founders, junior corporate finance staff, and quantitative researchers.",
-    whyUnlocks:
-      "Yields a verifiable compliance certificate and grounds pre-trade risk controls and GIPS standards before algorithmic execution.",
-    focusSummary:
-      "Fiduciary duty of loyalty, client asset segregation, MNPI vs Mosaic Theory, market manipulation defense, SEC Rule 15c3-5 risk firewalls, and GIPS standards.",
-    skillsGained: [
-      "Fiduciary duty of loyalty & asset segregation",
-      "MNPI & Mosaic Theory compliance",
-      "Pre-trade risk controls & emergency kill switches",
-      "GIPS compliant net-of-fee performance presentation",
-    ],
-  },
-  {
-    id: "python-reluctant-investor",
-    stage: 1,
-    stageName: "Foundations & Market Mechanics",
-    domain: "quant",
-    domainLabel: "Quantitative & Factor Methods",
-    prerequisites: [],
-    recommendedBefore: [],
-    unlocks: ["spreadsheet-to-strategy-lab", "stock-bots"],
-    whyPrerequisites:
-      "Zero programming, finance, or advanced math required. Designed for non-coders and high-school students.",
-    whyUnlocks:
-      "Removes the fear of code, enabling learners to confidently enter the Strategy Lab and automated stock bot tracks.",
-    focusSummary:
-      "Zero-install Python execution, pandas CSV manipulation, rolling moving averages, trend charting, parameterization, and confident traceback debugging.",
-    skillsGained: [
-      "Interactive browser-based Python execution",
-      "pandas DataFrame inspection & slicing",
-      "Rolling moving average calculation",
-      "Python traceback reading & error resolution",
-    ],
-  },
-  {
-    id: "algorithm-evaluation",
-    stage: 4,
-    stageName: "Specialized Deep Dives & Systems Architecture",
-    domain: "systems",
-    domainLabel: "Systems & Algorithmic Bots",
-    prerequisites: ["stock-bots"],
-    recommendedBefore: [
-      "statistical-foundations",
-      "econometrics",
-      "strategy-lab",
-      "c-hpc-trading",
-      "stock-machine-learning",
-    ],
-    unlocks: [],
-    whyPrerequisites:
-      "Demands an operational algorithmic trading engine or factor model to evaluate and stress-test.",
-    whyUnlocks:
-      "The definitive quantitative capstone: certifies that a strategy is mathematically resilient against p-hacking, overfitting, and transaction slippage.",
-    focusSummary:
-      "Deflated Sharpe Ratio, combinatorial cross-validation, White's Reality Check, and institutional audit reporting.",
-    skillsGained: [
-      "Deflated Sharpe Ratio (DSR) & selection bias correction",
-      "White's Reality Check for data-mining snooping",
-      "Combinatorial Purged Cross-Validation (CPCV)",
-      "Standardized institutional strategy audit reports",
-    ],
-  },
-];
+function focusSummary(track: Track): string {
+  if (track.focus_summary) return track.focus_summary;
+  const firstSentence = track.description
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[*_`]/g, "")
+    .split(/(?<=\.)\s/)[0];
+  return firstSentence.replace(/\.$/, "") + ".";
+}
 
-export const learningPathways: LearningPathway[] = [
-  {
-    id: "fundamental-analyst",
-    title: "Fundamental Equity & Value Investor",
-    subtitle:
-      "From market basics to balance-sheet forensics and comprehensive company dossiers.",
-    targetRole:
-      "Equity Analyst · Value Fund Portfolio Manager · Buy-Side Researcher",
-    badge: "Most Popular for Value",
-    description:
-      "Designed for investors who want to master Graham & Dodd valuation, deconstruct financial statements, identify durable moats, and build audit-grade investment memos.",
-    steps: [
-      {
-        step: 1,
-        trackId: "trading-fundamentals",
-        whyThisStep:
-          "Understand how shares, bid-ask spreads, and transaction costs work in the real market.",
-        keyDeliverable:
-          "Market microstructure fluency and compounding arithmetic mastery.",
-      },
-      {
-        step: 2,
-        trackId: "intelligent-investor",
-        whyThisStep:
-          "Build the psychological framework of Mr. Market and the discipline of margin of safety.",
-        keyDeliverable:
-          "Defensive vs enterprising asset allocation rules and valuation attitude.",
-      },
-      {
-        step: 3,
-        trackId: "security-analysis",
-        whyThisStep:
-          "The foundation of financial statement teardowns: income statements, balance sheets, and debt capacity.",
-        keyDeliverable:
-          "Comprehensive normalized earnings power and solvency models.",
-      },
-      {
-        step: 4,
-        trackId: "news-to-markets",
-        whyThisStep:
-          "Connect company news releases, SEC 8-K filings, and earnings surprises to market reactions.",
-        keyDeliverable:
-          "Ability to evaluate market sentiment against real corporate disclosures.",
-      },
-      {
-        step: 5,
-        trackId: "quality-moats",
-        whyThisStep:
-          "Identify structural competitive advantages that allow companies to sustain high ROIC.",
-        keyDeliverable:
-          "Moat durability scorecard and capital allocation evaluation.",
-      },
-      {
-        step: 6,
-        trackId: "forensic-accounting",
-        whyThisStep:
-          "Protect your capital by detecting aggressive accounting, accrual manipulation, and deceptive cash flows.",
-        keyDeliverable: "Beneish M-Score and forensic earnings quality screen.",
-      },
-      {
-        step: 7,
-        trackId: "valuation-uncertainty",
-        whyThisStep:
-          "Learn reverse-DCF and probabilistic scenario modeling when valuing high-growth or volatile assets.",
-        keyDeliverable:
-          "Reverse DCF expectations model with margin-of-safety bounds.",
-      },
-      {
-        step: 8,
-        trackId: "real-world-casebook",
-        whyThisStep:
-          "Capstone: Synthesize forensic, debt, and quality analysis into complete investment dossiers.",
-        keyDeliverable:
-          "Professional investment thesis and forensic autopsy dossier.",
-      },
-    ],
-  },
-  {
-    id: "quantitative-researcher",
-    title: "Quantitative Researcher & Alpha Modeler",
-    subtitle:
-      "Mathematical modeling, multi-factor econometrics, machine learning, and strategy stress-testing.",
-    targetRole: "Quantitative Researcher · Factor Strategist · Risk Modeler",
-    badge: "Quant & Math Track",
-    description:
-      "For mathematically-minded researchers looking to build statistical rigor, formulate multi-factor asset pricing models, harness machine learning, and test alpha under transaction friction.",
-    steps: [
-      {
-        step: 1,
-        trackId: "trading-fundamentals",
-        whyThisStep:
-          "Ground mathematical concepts in market realities like liquidity, spreads, and order queues.",
-        keyDeliverable:
-          "Return calculation and execution friction understanding.",
-      },
-      {
-        step: 2,
-        trackId: "statistical-foundations",
-        whyThisStep:
-          "Master probability distributions, hypothesis testing, OLS regression, and stationarity diagnostics.",
-        keyDeliverable:
-          "Statistical toolkit and hypothesis testing framework for asset prices.",
-      },
-      {
-        step: 3,
-        trackId: "econometrics",
-        whyThisStep:
-          "Develop multi-factor asset pricing models (CAPM, Fama-French), GARCH volatility, and cointegration.",
-        keyDeliverable:
-          "Factor regression models and statistical arbitrage pair engines.",
-      },
-      {
-        step: 4,
-        trackId: "lab-workshop",
-        whyThisStep:
-          "Transition theory into practical Python worksheets and basic factor regressions.",
-        keyDeliverable:
-          "Scripted factor screening and return attribution code.",
-      },
-      {
-        step: 5,
-        trackId: "strategy-lab",
-        whyThisStep:
-          "Formulate systematic investment strategies, optimize factor weights, and model turnover friction.",
-        keyDeliverable:
-          "Multi-factor backtested portfolio with Sharpe and drawdown diagnostics.",
-      },
-      {
-        step: 6,
-        trackId: "stock-machine-learning",
-        whyThisStep:
-          "Apply gradient boosted trees and temporal sequence networks to capture non-linear market patterns.",
-        keyDeliverable:
-          "Purged cross-validated machine learning alpha pipeline.",
-      },
-      {
-        step: 7,
-        trackId: "algorithm-evaluation",
-        whyThisStep:
-          "Capstone: Conduct Deflated Sharpe Ratio audits to prove alpha is not a byproduct of data mining.",
-        keyDeliverable:
-          "Institutional algorithm verification and audit report.",
-      },
-    ],
-  },
-  {
-    id: "algorithmic-systems",
-    title: "Algorithmic Trader & High-Performance Systems Engineer",
-    subtitle:
-      "From execution ethics and paper simulators to Python bot architectures and bare-metal C17 pipelines.",
-    targetRole:
-      "Algorithmic Trader · Execution Quant · Low-Latency Systems Architect",
-    badge: "Engineering & Bots",
-    description:
-      "Focuses on the engineering architecture of automated trading: asynchronous event loops, real-time WebSocket feeds, risk kill-switches, and nanosecond C execution.",
-    steps: [
-      {
-        step: 1,
-        trackId: "trading-fundamentals",
-        whyThisStep:
-          "Internalize order book priorities, fill types, and transaction fees.",
-        keyDeliverable: "Exact understanding of exchange mechanics.",
-      },
-      {
-        step: 2,
-        trackId: "trading-ethics",
-        whyThisStep:
-          "Study regulatory boundaries (spoofing, wash trades, front-running) before deploying bot logic.",
-        keyDeliverable:
-          "Compliance ruleset to embed into automated trading code.",
-      },
-      {
-        step: 3,
-        trackId: "simulator-workshop",
-        whyThisStep:
-          "Gain muscle memory managing order flow and watching slippage in the interactive simulator.",
-        keyDeliverable:
-          "Empirical grasp of live order queues and book dynamics.",
-      },
-      {
-        step: 4,
-        trackId: "statistical-foundations",
-        whyThisStep:
-          "Learn the quantitative metrics needed to evaluate signal significance and manage position risk.",
-        keyDeliverable:
-          "Quantitative risk management rules (Value at Risk, volatility sizing).",
-      },
-      {
-        step: 5,
-        trackId: "stock-bots",
-        whyThisStep:
-          "Construct an asynchronous Python bot with live WebSocket streaming, state management, and safety kill-switches.",
-        keyDeliverable:
-          "Fully functional automated trading bot with paper execution.",
-      },
-      {
-        step: 6,
-        trackId: "c-hpc-trading",
-        whyThisStep:
-          "Re-engineer the bot in modern C17 for deterministic microsecond latency, zero-copy queues, and SIMD speed.",
-        keyDeliverable:
-          "High-performance C17 matching engine and execution pipeline.",
-      },
-      {
-        step: 7,
-        trackId: "algorithm-evaluation",
-        whyThisStep:
-          "Capstone: Subject the system to institutional audit: stress test against slippage, regime shifts, and latency delays.",
-        keyDeliverable:
-          "Complete institutional execution and algorithm performance dossier.",
-      },
-    ],
-  },
-  {
-    id: "credit-special-situations",
-    title: "Credit Analyst & Distressed Securities Specialist",
-    subtitle:
-      "Master debt structures, default risk modeling, bank solvency, and distressed restructurings.",
-    targetRole:
-      "Credit Analyst · Distressed Debt Researcher · Turnaround Specialist",
-    badge: "Fixed Income & Credit",
-    description:
-      "For analysts focused on credit risk, debt recovery waterfalls, bank regulatory capital, and cyclical industrial companies.",
-    steps: [
-      {
-        step: 1,
-        trackId: "trading-fundamentals",
-        whyThisStep:
-          "Foundational asset mechanics, debt yields, and return arithmetic.",
-        keyDeliverable: "Yield and interest compounding fluency.",
-      },
-      {
-        step: 2,
-        trackId: "security-analysis",
-        whyThisStep:
-          "Deconstruct corporate balance sheets, debt service capacity, and normalized earnings.",
-        keyDeliverable: "Solvency and interest coverage models.",
-      },
-      {
-        step: 3,
-        trackId: "credit-distress",
-        whyThisStep:
-          "Model structural default risk (Merton, Altman Z) and map out bankruptcy recovery waterfalls.",
-        keyDeliverable:
-          "Debt seniority waterfall and covenant compliance assessment.",
-      },
-      {
-        step: 4,
-        trackId: "bank-analysis",
-        whyThisStep:
-          "Analyze financial intermediaries where debt is raw material: Net Interest Margin, CECL, and Basel III.",
-        keyDeliverable: "Bank capital tier and asset-liability duration model.",
-      },
-      {
-        step: 5,
-        trackId: "cyclical-industrials",
-        whyThisStep:
-          "Examine capital-intensive, cyclical companies where operating leverage stresses debt capacity.",
-        keyDeliverable:
-          "Mid-cycle operating leverage and cash flow breakeven model.",
-      },
-      {
-        step: 6,
-        trackId: "forensic-accounting",
-        whyThisStep:
-          "Detect accounting maneuvers used by distressed firms to conceal covenant breaches.",
-        keyDeliverable:
-          "Forensic audit for hidden liabilities and aggressive capitalization.",
-      },
-      {
-        step: 7,
-        trackId: "real-world-casebook",
-        whyThisStep:
-          "Capstone: Build complete distressed restructuring and turnaround investment memos.",
-        keyDeliverable:
-          "Comprehensive distressed credit and reorganization memo.",
-      },
-    ],
-  },
-  {
-    id: "web3-crypto-markets",
-    title: "Decentralized Finance & Blockchain Microstructure",
-    subtitle:
-      "Cryptographic trust, automated market makers (AMMs), token economics, and smart contract architecture.",
-    targetRole: "Web3 Researcher · Crypto Quant · Protocol Strategist",
-    badge: "Crypto & Web3",
-    description:
-      "Explore the intersection of public ledger cryptography, automated liquidity pool equations, and multi-asset quantitative strategy testing.",
-    steps: [
-      {
-        step: 1,
-        trackId: "trading-fundamentals",
-        whyThisStep:
-          "Understand how traditional order books and bid-ask spreads operate to contrast with AMMs.",
-        keyDeliverable: "Order book mechanics and market friction baseline.",
-      },
-      {
-        step: 2,
-        trackId: "web3",
-        whyThisStep:
-          "Dive deep into cryptography (secp256k1), blockchain state, AMM invariant curves (x*y=k), and token creation.",
-        keyDeliverable:
-          "Custom token implementation and AMM liquidity pool simulation.",
-      },
-      {
-        step: 3,
-        trackId: "lab-workshop",
-        whyThisStep:
-          "Write Python scripts to parse token trades, fee distributions, and pool returns.",
-        keyDeliverable: "Data wrangling scripts for liquidity pool history.",
-      },
-      {
-        step: 4,
-        trackId: "strategy-lab",
-        whyThisStep:
-          "Construct and stress-test systematic strategies across traditional and crypto asset factors.",
-        keyDeliverable:
-          "Systematic multi-asset portfolio with impermanent loss hedging.",
-      },
-    ],
-  },
-];
+function titleOf(id: string): string {
+  return trackById.get(id)?.title ?? id;
+}
+
+function joinedTitles(ids: string[]): string {
+  const titles = ids.map(titleOf);
+  if (titles.length <= 1) return titles[0] ?? "";
+  if (titles.length === 2) return `${titles[0]} and ${titles[1]}`;
+  return `${titles.slice(0, -1).join(", ")}, and ${titles.at(-1)}`;
+}
+
+// An "unlocks" edge exists when a course is a hard prerequisite or one of the
+// accepted alternatives for a later course.
+const unlocksById = new Map<string, string[]>(
+  tracks.map((track) => [track.id, []]),
+);
+for (const track of tracks) {
+  for (const prerequisite of [
+    ...(track.prerequisite_course_ids ?? []),
+    ...(track.prerequisite_any_of ?? []),
+  ]) {
+    unlocksById.get(prerequisite)?.push(track.id);
+  }
+}
+
+export const courseConnections: CourseConnection[] = tracks.map((track) => {
+  const stage = courseStage(track);
+  const domain = courseDomain(track);
+  const prerequisites = track.prerequisite_course_ids ?? [];
+  const prerequisitesAnyOf = track.prerequisite_any_of ?? [];
+  const recommendedBefore = track.recommended_course_ids ?? [];
+  const unlocks = unlocksById.get(track.id) ?? [];
+  const requiredParts: string[] = [];
+  if (prerequisites.length) {
+    requiredParts.push(`requires ${joinedTitles(prerequisites)}`);
+  }
+  if (prerequisitesAnyOf.length) {
+    requiredParts.push(
+      `requires at least one of ${joinedTitles(prerequisitesAnyOf)}`,
+    );
+  }
+  if (!requiredParts.length) {
+    requiredParts.push("has no hard prerequisites");
+  }
+  const notes = track.prerequisites?.trim();
+  return {
+    id: track.id,
+    stage,
+    stageName: STAGE_CONFIG[stage].name,
+    domain,
+    domainLabel: DOMAIN_CONFIG[domain].label,
+    prerequisites,
+    prerequisitesAnyOf,
+    recommendedBefore,
+    unlocks,
+    whyPrerequisites: requiredParts.join("; ") + (notes ? `. ${notes}` : "."),
+    whyUnlocks: unlocks.length
+      ? `Builds the foundation for ${joinedTitles(unlocks)}.`
+      : "Terminal course in this branch; it consolidates earlier skills rather than unlocking a new course.",
+    focusSummary: focusSummary(track),
+    skillsGained:
+      track.skills ?? track.learning_outcomes ?? track.outcomes ?? [],
+    courseType: track.course_type ?? "core",
+    difficulty: track.difficulty ?? 0,
+    sequence: track.sequence ?? 0,
+    isCore: track.is_core ?? false,
+    isSpecialization: track.is_specialization ?? false,
+    isCapstone: track.is_capstone ?? false,
+  };
+});
 
 const connectionMap = new Map<string, CourseConnection>(
-  courseConnections.map((c) => [c.id, c]),
+  courseConnections.map((connection) => [connection.id, connection]),
 );
 
 export function getConnection(trackId: string): CourseConnection | undefined {
   return connectionMap.get(trackId);
 }
 
+function completed(trackId: string, state: WorkspaceState): boolean {
+  const track = trackById.get(trackId);
+  return track ? trackProgress(track, state).complete : false;
+}
+
 export function arePrerequisitesMet(
   trackId: string,
   state: WorkspaceState,
 ): boolean {
-  const conn = connectionMap.get(trackId);
-  if (!conn || conn.prerequisites.length === 0) return true;
-  return conn.prerequisites.every((prereqId) => {
-    const track = tracks.find((t) => t.id === prereqId);
-    return track ? trackProgress(track, state).complete : false;
-  });
+  const connection = connectionMap.get(trackId);
+  if (!connection) return true;
+  const hardMet = connection.prerequisites.every((id) => completed(id, state));
+  const anyMet =
+    connection.prerequisitesAnyOf.length === 0 ||
+    connection.prerequisitesAnyOf.some((id) => completed(id, state));
+  return hardMet && anyMet;
 }
 
 export function getMissingPrerequisites(
   trackId: string,
   state: WorkspaceState,
 ): Track[] {
-  const conn = connectionMap.get(trackId);
-  if (!conn) return [];
-  return conn.prerequisites
-    .map((prereqId) => tracks.find((t) => t.id === prereqId))
-    .filter(
-      (track): track is Track =>
-        track !== undefined && !trackProgress(track, state).complete,
-    );
+  const connection = connectionMap.get(trackId);
+  if (!connection) return [];
+  const missingIds = connection.prerequisites.filter(
+    (id) => !completed(id, state),
+  );
+  if (
+    connection.prerequisitesAnyOf.length > 0 &&
+    !connection.prerequisitesAnyOf.some((id) => completed(id, state))
+  ) {
+    missingIds.push(...connection.prerequisitesAnyOf);
+  }
+  return [...new Set(missingIds)]
+    .map((id) => trackById.get(id))
+    .filter((track): track is Track => track !== undefined);
 }
 
 export type CourseReadiness = "completed" | "in_progress" | "ready" | "locked";
@@ -1109,34 +296,428 @@ export function getCourseReadiness(
   const progress = trackProgress(track, state);
   if (progress.complete) return "completed";
   if (progress.percent > 0) return "in_progress";
-  const met = arePrerequisitesMet(track.id, state);
-  return met ? "ready" : "locked";
+  return arePrerequisitesMet(track.id, state) ? "ready" : "locked";
 }
 
 export function getRecommendedNextTracks(state: WorkspaceState): Track[] {
-  // 1. Any track currently in progress
-  const inProgress = tracks.filter((t) => {
-    const p = trackProgress(t, state);
-    return p.percent > 0 && !p.complete;
+  const inProgress = tracks.filter((track) => {
+    const progress = trackProgress(track, state);
+    return progress.percent > 0 && !progress.complete;
   });
   if (inProgress.length > 0) return inProgress.slice(0, 3);
 
-  // 2. Otherwise, tracks that are ready to start (prerequisites met, not started)
-  const ready = tracks.filter((t) => {
-    const p = trackProgress(t, state);
-    return p.percent === 0 && arePrerequisitesMet(t.id, state);
+  const ready = tracks.filter((track) => {
+    const progress = trackProgress(track, state);
+    return progress.percent === 0 && arePrerequisitesMet(track.id, state);
   });
   if (ready.length > 0) {
-    // Sort so Stage 1 comes before Stage 2 etc.
     return ready
-      .sort((a, b) => {
-        const connA = getConnection(a.id)?.stage ?? 4;
-        const connB = getConnection(b.id)?.stage ?? 4;
-        return connA - connB;
-      })
+      .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0))
       .slice(0, 3);
   }
-
-  // 3. Fallback: Stage 1 tracks
-  return tracks.filter((t) => t.id === "trading-fundamentals");
+  return tracks.filter((track) => track.id === "trading-fundamentals");
 }
+
+export const learningPathways: LearningPathway[] = [
+  {
+    id: "complete-quant",
+    title: "Complete Quantitative Finance Path",
+    subtitle:
+      "The full progression from market literacy to econometrics, strategy research, ML, bots, HPC, and the capstone.",
+    targetRole:
+      "Quantitative Analyst · Portfolio Researcher · Systematic Trader",
+    badge: "Core Quantitative Path",
+    description:
+      "The default path for a learner who wants the whole discipline: foundations, fundamental analysis, quantitative methods, empirical finance, research methodology, machine learning, algorithmic systems, high-performance computing, and a final evaluation capstone.",
+    steps: [
+      {
+        step: 1,
+        trackId: "trading-fundamentals",
+        whyThisStep:
+          "Establish ownership, order mechanics, returns, costs, risk, and the vocabulary every later course assumes.",
+        keyDeliverable: "A written research and paper-trading plan.",
+      },
+      {
+        step: 2,
+        trackId: "trading-ethics",
+        whyThisStep:
+          "Settle whose interest a trade serves before learning to value or automate one.",
+        keyDeliverable: "A personal trading charter with do-and-do-not rules.",
+      },
+      {
+        step: 3,
+        trackId: "intelligent-investor",
+        whyThisStep:
+          "Build the temperament, allocation policy, and margin-of-safety discipline that precede security selection.",
+        keyDeliverable: "A written careful-investor policy.",
+      },
+      {
+        step: 4,
+        trackId: "security-analysis",
+        whyThisStep:
+          "Learn to read statements, senior claims, earnings quality, and asset value before any quantitative model.",
+        keyDeliverable:
+          "A normalized earnings and valuation range for a company.",
+      },
+      {
+        step: 5,
+        trackId: "statistical-foundations",
+        whyThisStep:
+          "Acquire time value, probability, inference, regression, factor risk, VaR, and backtest hygiene in one coherent toolkit.",
+        keyDeliverable: "A reproducible quantitative research report.",
+      },
+      {
+        step: 6,
+        trackId: "econometrics",
+        whyThisStep:
+          "Move from statistical description to identification, time series, volatility, factor tests, and causal designs.",
+        keyDeliverable:
+          "A factor regression with robust inference and diagnostics.",
+      },
+      {
+        step: 7,
+        trackId: "lab-workshop",
+        whyThisStep:
+          "Practise the research platform only after the statistics and regression it exposes.",
+        keyDeliverable:
+          "A complete saved research loop from hypothesis to evidence.",
+      },
+      {
+        step: 8,
+        trackId: "strategy-lab",
+        whyThisStep:
+          "Turn hypotheses into falsifiable, cost-aware strategies with portfolio constraints and honest validation.",
+        keyDeliverable: "A defended reproducible strategy dossier.",
+      },
+      {
+        step: 9,
+        trackId: "stock-machine-learning",
+        whyThisStep:
+          "Add point-in-time features, purged validation, regularized and tree models, and production monitoring.",
+        keyDeliverable: "A validated stock-ML pipeline and model card.",
+      },
+      {
+        step: 10,
+        trackId: "stock-bots",
+        whyThisStep:
+          "Integrate signals, execution, risk gates, AI evidence, and operations into an event-driven bot.",
+        keyDeliverable:
+          "A durable paper bot with an acceptance and incident dossier.",
+      },
+      {
+        step: 11,
+        trackId: "c-hpc-trading",
+        whyThisStep:
+          "Optimize only after the algorithms are understood: C17, profiling, threads, SIMD, and GPUs.",
+        keyDeliverable: "A reproducible C trading research engine.",
+      },
+      {
+        step: 12,
+        trackId: "algorithm-evaluation",
+        whyThisStep:
+          "Close the program by auditing returns, risk, execution, robustness, and uncertainty in a final report.",
+        keyDeliverable: "A complete algorithm evaluation and results dossier.",
+      },
+    ],
+  },
+  {
+    id: "fundamental-investor",
+    title: "Fundamental Equity & Value Investor",
+    subtitle:
+      "Statements, forensics, credit, quality, banks, and valuation under uncertainty, ending in a documented casebook.",
+    targetRole: "Equity Analyst · Value Fund Analyst · Buy-Side Researcher",
+    badge: "Value & Fundamental",
+    description:
+      "For learners who want the fundamental-analysis branch: careful investing, Security Analysis, verified news research, forensic accounting, credit, quality, bank analysis, valuation under uncertainty, and a documented real-world casebook.",
+    steps: [
+      {
+        step: 1,
+        trackId: "trading-fundamentals",
+        whyThisStep:
+          "Understand shares, quotes, costs, and risk before reading a company in detail.",
+        keyDeliverable: "Market-mechanics and return-arithmetic fluency.",
+      },
+      {
+        step: 2,
+        trackId: "intelligent-investor",
+        whyThisStep:
+          "Establish temperament, diversification, and margin-of-safety discipline.",
+        keyDeliverable: "A careful-investor policy statement.",
+      },
+      {
+        step: 3,
+        trackId: "security-analysis",
+        whyThisStep:
+          "Learn the full Graham-Dodd method from statements to senior claims and asset value.",
+        keyDeliverable: "A normalized earnings and valuation-range memo.",
+      },
+      {
+        step: 4,
+        trackId: "news-to-markets",
+        whyThisStep:
+          "Convert news and macro releases into verified cash-flow and valuation implications.",
+        keyDeliverable: "An evidence-led news research memo.",
+      },
+      {
+        step: 5,
+        trackId: "forensic-accounting",
+        whyThisStep:
+          "Detect aggressive accounting before trusting reported earnings.",
+        keyDeliverable: "A forensic scorecard and red-team memo.",
+      },
+      {
+        step: 6,
+        trackId: "credit-distress",
+        whyThisStep:
+          "Test debt safety, covenants, and recovery before valuing the equity.",
+        keyDeliverable: "A coverage and recovery-waterfall analysis.",
+      },
+      {
+        step: 7,
+        trackId: "quality-moats",
+        whyThisStep:
+          "Separate durable business quality from a temporarily good year.",
+        keyDeliverable: "A moat and capital-allocation scorecard.",
+      },
+      {
+        step: 8,
+        trackId: "bank-analysis",
+        whyThisStep:
+          "Handle financial institutions, where leverage and liquidity change the analysis.",
+        keyDeliverable: "A bank capital, liquidity, and valuation review.",
+      },
+      {
+        step: 9,
+        trackId: "statistical-foundations",
+        whyThisStep:
+          "Acquire the time-value and scenario arithmetic required for valuation under uncertainty.",
+        keyDeliverable: "Time-value, regression, and risk literacy.",
+      },
+      {
+        step: 10,
+        trackId: "valuation-uncertainty",
+        whyThisStep:
+          "Value high-uncertainty businesses with scenarios, real options, and reverse DCF.",
+        keyDeliverable: "A scenario valuation with a price ceiling.",
+      },
+      {
+        step: 11,
+        trackId: "real-world-casebook",
+        whyThisStep:
+          "Apply the toolkit to documented accounting, solvency, and disclosure failures.",
+        keyDeliverable: "A professional casebook investment memo.",
+      },
+    ],
+  },
+  {
+    id: "quant-researcher",
+    title: "Quantitative Researcher & Alpha Modeler",
+    subtitle:
+      "Statistics, econometrics, research methodology, strategy validation, ML, and the evaluation capstone.",
+    targetRole: "Quant Researcher · Factor Modeler · Risk Analyst",
+    badge: "Quant Research",
+    description:
+      "For mathematically minded learners who want the research core without the systems-engineering branch: statistical foundations, econometrics, the research platform, strategy lab, stock ML, and the capstone.",
+    steps: [
+      {
+        step: 1,
+        trackId: "trading-fundamentals",
+        whyThisStep:
+          "Anchor abstract statistics in actual market frictions and return arithmetic.",
+        keyDeliverable: "Return, cost, and execution literacy.",
+      },
+      {
+        step: 2,
+        trackId: "statistical-foundations",
+        whyThisStep:
+          "Build probability, inference, regression, factor risk, and backtest foundations.",
+        keyDeliverable: "A reproducible quantitative research report.",
+      },
+      {
+        step: 3,
+        trackId: "econometrics",
+        whyThisStep:
+          "Add identification, time series, volatility, panel, causal, and asset-pricing methods.",
+        keyDeliverable: "A factor regression with robust diagnostics.",
+      },
+      {
+        step: 4,
+        trackId: "lab-workshop",
+        whyThisStep:
+          "Learn the research platform with the theory already in place.",
+        keyDeliverable: "A saved research loop and evidence trail.",
+      },
+      {
+        step: 5,
+        trackId: "strategy-lab",
+        whyThisStep:
+          "Build and defend strategies with point-in-time data, costs, and portfolio constraints.",
+        keyDeliverable: "A reproducible strategy dossier.",
+      },
+      {
+        step: 6,
+        trackId: "stock-machine-learning",
+        whyThisStep:
+          "Apply purged validation and regularized models to financial prediction.",
+        keyDeliverable: "A validated ML pipeline and monitoring plan.",
+      },
+      {
+        step: 7,
+        trackId: "algorithm-evaluation",
+        whyThisStep:
+          "Audit the result for selection bias, costs, robustness, and uncertainty.",
+        keyDeliverable: "An institutional-style algorithm evaluation report.",
+      },
+    ],
+  },
+  {
+    id: "algorithmic-engineer",
+    title: "Algorithmic Trading Engineer",
+    subtitle:
+      "Market mechanics, conduct, Python, strategy research, bots, C17/HPC, and execution evaluation.",
+    targetRole:
+      "Algorithmic Trader · Execution Engineer · Low-Latency Systems Developer",
+    badge: "Engineering & Bots",
+    description:
+      "For learners who want to build trading systems: market and conduct foundations, programming, statistics, strategy research, an event-driven Python bot, C17 high-performance computing, and the evaluation capstone.",
+    steps: [
+      {
+        step: 1,
+        trackId: "trading-fundamentals",
+        whyThisStep:
+          "Learn orders, fills, costs, and risk before automating them.",
+        keyDeliverable: "Exchange-mechanics fluency.",
+      },
+      {
+        step: 2,
+        trackId: "trading-ethics",
+        whyThisStep: "Embed conduct rules before writing execution logic.",
+        keyDeliverable: "A compliance and charter ruleset.",
+      },
+      {
+        step: 3,
+        trackId: "simulator-workshop",
+        whyThisStep:
+          "Practise order handling, slippage, margin, and short selling in the paper terminal.",
+        keyDeliverable: "A supervised simulator trading week.",
+      },
+      {
+        step: 4,
+        trackId: "python-reluctant-investor",
+        whyThisStep:
+          "Acquire the Python basics used by every later worksheet and project.",
+        keyDeliverable: "Working scripts for data, math, and charts.",
+      },
+      {
+        step: 5,
+        trackId: "statistical-foundations",
+        whyThisStep:
+          "Learn the statistics and risk metrics needed to evaluate signals.",
+        keyDeliverable: "A quantitative research report.",
+      },
+      {
+        step: 6,
+        trackId: "econometrics",
+        whyThisStep:
+          "Understand inference, time series, and factor models before optimizing code.",
+        keyDeliverable: "A robust factor and time-series analysis.",
+      },
+      {
+        step: 7,
+        trackId: "strategy-lab",
+        whyThisStep:
+          "Build cost-aware, validated strategies before deploying a bot.",
+        keyDeliverable: "A defended strategy dossier.",
+      },
+      {
+        step: 8,
+        trackId: "stock-bots",
+        whyThisStep:
+          "Integrate execution, accounting, risk gates, ML, and operations.",
+        keyDeliverable: "A durable event-driven paper bot.",
+      },
+      {
+        step: 9,
+        trackId: "c-hpc-trading",
+        whyThisStep:
+          "Re-engineer the research engine in C17 and optimize it with profiling and parallelism.",
+        keyDeliverable: "A reproducible C trading research engine.",
+      },
+      {
+        step: 10,
+        trackId: "algorithm-evaluation",
+        whyThisStep:
+          "Evaluate returns, execution quality, computing performance, and uncertainty.",
+        keyDeliverable: "A complete execution and algorithm report.",
+      },
+    ],
+  },
+  {
+    id: "web3-defi",
+    title: "Web3 & Decentralized Finance",
+    subtitle:
+      "Cryptography, ledgers, smart contracts, tokenomics, AMMs, DeFi risk, and research validation.",
+    targetRole: "Web3 Researcher · Crypto Quant · Protocol Analyst",
+    badge: "Crypto & DeFi",
+    description:
+      "A specialization branch that can be taken after the quantitative foundations without interrupting the equity and algorithmic core. It covers cryptography, blockchain ledgers, ERC-20 contracts, tokenomics, AMMs, impermanent loss, and DeFi risk.",
+    steps: [
+      {
+        step: 1,
+        trackId: "trading-fundamentals",
+        whyThisStep:
+          "Contrast traditional order books and settlement with on-chain markets.",
+        keyDeliverable: "Market-microstructure baseline.",
+      },
+      {
+        step: 2,
+        trackId: "python-reluctant-investor",
+        whyThisStep:
+          "Acquire scripting and data basics used by the guided Web3 labs.",
+        keyDeliverable: "Working Python data scripts.",
+      },
+      {
+        step: 3,
+        trackId: "data-hygiene",
+        whyThisStep:
+          "Chain data is unusually easy to misread; learn tidy, dated, reconciled evidence first.",
+        keyDeliverable: "A cleaned, reproducible dataset.",
+      },
+      {
+        step: 4,
+        trackId: "statistical-foundations",
+        whyThisStep:
+          "Build probability, risk, and backtest literacy for token and pool analysis.",
+        keyDeliverable: "A quantitative research report.",
+      },
+      {
+        step: 5,
+        trackId: "econometrics",
+        whyThisStep:
+          "Add time-series and factor methods for crypto return and liquidity research.",
+        keyDeliverable: "A crypto time-series and factor analysis.",
+      },
+      {
+        step: 6,
+        trackId: "web3",
+        whyThisStep:
+          "Study cryptography, ledgers, smart contracts, tokenomics, AMMs, and DeFi risk.",
+        keyDeliverable: "A signed native-coin and ERC-20 project dossier.",
+      },
+      {
+        step: 7,
+        trackId: "strategy-lab",
+        whyThisStep:
+          "Test multi-asset and DeFi strategies with the same validation discipline as equity research.",
+        keyDeliverable: "A validated multi-asset strategy dossier.",
+      },
+      {
+        step: 8,
+        trackId: "algorithm-evaluation",
+        whyThisStep:
+          "Audit the strategy's returns, costs, risk, and uncertainty in a final report.",
+        keyDeliverable: "A complete algorithm evaluation report.",
+      },
+    ],
+  },
+];

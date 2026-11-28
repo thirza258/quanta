@@ -4,16 +4,41 @@ The assistant is available on every course overview and lesson through **Ask AI 
 
 ## Configuration
 
-The FastAPI backend uses the official `openai` Python package, configured with OpenRouter's `https://openrouter.ai/api/v1` endpoint. It calls `client.chat.completions.create`, not a direct OpenAI endpoint.
+The FastAPI backend supports two providers. Both receive the same authored course context and must return the same JSON contract.
+
+### OpenRouter
+
+The default provider uses the official `openai` Python package, configured with OpenRouter's `https://openrouter.ai/api/v1` endpoint. It calls `client.chat.completions.create`, not a direct OpenAI endpoint.
 
 Add the following to the repository's `.env` (copy `.env.example` only if you do not already have a `.env`):
 
 ```dotenv
+AI_PROVIDER=openrouter
 OPENROUTER_API_KEY=your-openrouter-key
 OPENROUTER_MODEL=openai/gpt-4.1-mini
 ```
 
 `OPENROUTER_MODEL` can be changed to an OpenRouter model slug supporting JSON Schema structured outputs. The default is `openai/gpt-4.1-mini`. Provider routing requires support for the requested parameters; unsupported models produce an actionable connection error instead of unstructured files. See [OpenRouter's OpenAI SDK configuration](https://openrouter.ai/docs/quickstart#using-the-openai-sdk) and [structured outputs documentation](https://openrouter.ai/docs/guides/features/structured-outputs).
+
+### Firebase AI Logic
+
+Firebase AI Logic is a managed Gemini proxy. The backend calls its REST endpoint directly; the browser never receives a key.
+
+```dotenv
+AI_PROVIDER=firebase
+FIREBASE_PROJECT_ID=your-firebase-project
+FIREBASE_API_KEY=your-firebase-web-api-key
+FIREBASE_MODEL=gemini-2.5-flash
+```
+
+- `FIREBASE_MODEL` is a Gemini model name such as `gemini-2.5-flash`.
+- `FIREBASE_LOCATION` is optional. Set it (for example `us-central1`) to use the Agent Platform/Vertex backend path; leave it empty for the Gemini Developer API path.
+- `FIREBASE_APP_CHECK_TOKEN` is optional. Firebase AI Logic uses App Check to protect the proxy; if enforcement is enabled, requests without a valid token are rejected. Supply a short-lived token from a trusted client, or keep App Check unenforced for local development.
+- `FIREBASE_ID_TOKEN` is optional and is sent as `Authorization: Firebase …` for deployments that require Firebase Authentication in addition to the API key.
+
+The request uses `responseMimeType: application/json` and a resolved Gemini `responseSchema`. Invalid JSON, a blocked prompt, or a truncated candidate never becomes a downloadable artifact. Provider errors are redacted exactly as with OpenRouter.
+
+If `AI_PROVIDER` is empty, the backend uses OpenRouter when `OPENROUTER_API_KEY` is set, otherwise Firebase when `FIREBASE_PROJECT_ID` and `FIREBASE_API_KEY` are set. An explicit unknown provider leaves the assistant disabled.
 
 Local installation:
 
@@ -46,17 +71,17 @@ The UI sends the message, selected course/lesson IDs, help mode, operating syste
 
 The **Include editor code & last run error** control omits the draft, execution error, and generated file bodies from subsequent requests when switched off. Text explicitly typed into chat remains part of the recent conversation. Turning the control off does not retract context already sent.
 
-OpenRouter and its selected model provider process the submitted context according to their settings and policies. The app stores the latest 12 chat messages in browser tab session storage, scoped to the account/guest and course or lesson. Chats are not part of account workspace sync. Closing the drawer keeps completed messages; navigation or account changes cancel pending UI requests and isolate conversations. Starting a new chat clears the current stored conversation. Stopping a response restores the question; upstream inference may already be running and incur usage.
+The selected provider (OpenRouter or Firebase AI Logic) processes the submitted context according to its settings and policies. The app stores the latest 12 chat messages in browser tab session storage, scoped to the account/guest and course or lesson. Chats are not part of account workspace sync. Closing the drawer keeps completed messages; navigation or account changes cancel pending UI requests and isolate conversations. Starting a new chat clears the current stored conversation. Stopping a response restores the question; upstream inference may already be running and incur usage.
 
 ## API and limits
 
 | Route | Behavior |
 | --- | --- |
-| `GET /api/v1/assistant/status` | Reports only whether an OpenRouter key is configured; makes no paid request. |
+| `GET /api/v1/assistant/status` | Reports whether the selected provider is configured and names it; makes no paid request. |
 | `POST /api/v1/assistant/chat` | Returns `{message, files}`; messages support Markdown, each file has `path`, `language`, `content`, and `target`. |
 | `POST /api/v1/assistant/bundle` | Packages validated text files into `quanta-project.zip`, under a `quanta-project/` directory; never executes or writes them to disk. |
 
-Chat permits 10 requests per minute and 40 per hour per user (or guest IP), plus 60 per hour per source IP. Downloads permit 30 per minute. Existing origin checks and Redis-backed request limits apply. AI usage is charged to the configured OpenRouter account.
+Chat permits 10 requests per minute and 40 per hour per user (or guest IP), plus 60 per hour per source IP. Downloads permit 30 per minute. Existing origin checks and Redis-backed request limits apply. AI usage is charged to the configured OpenRouter or Firebase account.
 
 Inputs are bounded to 4,000 characters per question, 20,000 for editor code, 4,000 for the error, and ten history messages totaling 60,000 characters. Output is capped at 8,192 tokens and six files, with at most 20,000 characters per file and 80,000 total file characters. Absolute paths, traversal, conflicting paths, and Windows reserved names are rejected. Local project files and mismatched source languages cannot be applied to a lesson editor.
 
@@ -71,4 +96,4 @@ npm run build
 TEST_URL=http://127.0.0.1:5173 npm run test:e2e -- assistant.spec.ts
 ```
 
-Backend tests run the real OpenAI SDK against a mocked HTTP transport to verify the OpenRouter URL, authorization, schema, context, error handling, path validation, ZIP contents, and rate limits without paid inference. Browser tests mock AI replies while exercising actual course pages, editor persistence, undo, error sharing, downloads through the API, cancellation, lesson isolation, and mobile controls. A live model call additionally requires a funded OpenRouter key.
+Backend tests run the real OpenAI SDK against a mocked HTTP transport to verify the OpenRouter URL, authorization, schema, context, error handling, path validation, ZIP contents, and rate limits without paid inference. They also mock the Firebase AI Logic REST transport to verify its endpoint, API-key header, resolved response schema, location path, blocked-prompt handling, and error mapping. Browser tests mock AI replies while exercising actual course pages, editor persistence, undo, error sharing, downloads through the API, cancellation, lesson isolation, and mobile controls. A live model call additionally requires a funded OpenRouter or Firebase project.

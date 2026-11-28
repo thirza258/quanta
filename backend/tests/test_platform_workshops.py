@@ -11,10 +11,12 @@ COURSES = {course["id"]: course for course in CATALOG}
 LAB_TOOLS = {"market", "valuation", "factors", "broker", "amm"}
 
 
-def test_workshops_follow_the_conduct_course_in_the_learning_sequence():
+def test_workshops_follow_their_conceptual_prerequisites_in_the_learning_sequence():
     order = [course["id"] for course in CATALOG]
     assert order.index("trading-ethics") + 1 == order.index("simulator-workshop")
-    assert order.index("simulator-workshop") + 1 == order.index("lab-workshop")
+    assert order.index("statistical-foundations") < order.index("lab-workshop")
+    assert order.index("econometrics") < order.index("lab-workshop")
+    assert order.index("lab-workshop") < order.index("strategy-lab")
 
 
 @pytest.mark.parametrize(

@@ -116,8 +116,60 @@ Do not request passwords, API keys, private keys, or other secrets in chat.
 """
 
 
+KNOWN_PROVIDERS = {"openrouter", "firebase"}
+REFUSAL_MESSAGE = (
+    "I couldn't help with that request. Try asking about a course concept, "
+    "a setup step, or a small code example."
+)
+
+
+def _env(name: str) -> str:
+    return os.getenv(name, "").strip()
+
+
+def firebase_config() -> dict[str, str]:
+    """Firebase AI Logic REST settings.
+
+    The Firebase web API key is a project identifier, not a secret, but it is
+    still kept server-side so it never reaches the browser.
+    """
+    return {
+        "project": _env("FIREBASE_PROJECT_ID"),
+        "api_key": _env("FIREBASE_API_KEY"),
+        "model": _env("FIREBASE_MODEL") or "gemini-2.5-flash",
+        "location": _env("FIREBASE_LOCATION"),
+        "app_check": _env("FIREBASE_APP_CHECK_TOKEN"),
+        "id_token": _env("FIREBASE_ID_TOKEN"),
+    }
+
+
+def firebase_configured() -> bool:
+    config = firebase_config()
+    return bool(config["project"] and config["api_key"])
+
+
+def configured_provider() -> str:
+    explicit = _env("AI_PROVIDER").lower()
+    if explicit:
+        return explicit
+    if _env("OPENROUTER_API_KEY"):
+        return "openrouter"
+    if firebase_configured():
+        return "firebase"
+    return "openrouter"
+
+
+def provider_enabled(provider: str) -> bool:
+    if provider == "firebase":
+        return firebase_configured()
+    if provider == "openrouter":
+        return bool(_env("OPENROUTER_API_KEY"))
+    return False
+
+
 def status():
-    return {"enabled": bool(os.getenv("OPENROUTER_API_KEY", "").strip())}
+    provider = configured_provider()
+    return {"enabled": provider_enabled(provider), "provider": provider}
 
 
 def context(payload: AssistantRequest):
@@ -162,17 +214,40 @@ def context(payload: AssistantRequest):
     }
 
 
-async def reply(payload: AssistantRequest):
-    lesson_context = context(payload)
-    api_key = os.getenv("OPENROUTER_API_KEY", "").strip()
+def _messages(payload: AssistantRequest, lesson_context: dict[str, Any]) -> list[dict[str, str]]:
+    return [
+        {"role": "system", "content": INSTRUCTIONS},
+        {"role": "system", "content": "Course context (JSON):\n" + json.dumps(lesson_context)},
+        *[item.model_dump() for item in payload.history],
+        {"role": "user", "content": payload.message},
+    ]
+
+
+def _validate_answer(
+    answer: AssistantReply,
+    payload: AssistantRequest,
+    lesson_context: dict[str, Any],
+) -> AssistantReply:
+    language = (lesson_context["lesson"] or {}).get("codeLanguage") or "python"
+    for file in answer.files:
+        expected_extension = ".c" if language == "c" else ".py"
+        if (
+            not payload.lesson_id
+            or file.language != language
+            or not file.path.endswith(expected_extension)
+        ):
+            file.target = "local"
+    return answer
+
+
+async def _openrouter_reply(
+    payload: AssistantRequest,
+    lesson_context: dict[str, Any],
+) -> AssistantReply:
+    api_key = _env("OPENROUTER_API_KEY")
     if not api_key:
         raise HTTPException(503, "The AI assistant is not connected yet. Course templates and downloads are still available.")
-    messages = [
-            {"role": "system", "content": INSTRUCTIONS},
-            {"role": "system", "content": "Course context (JSON):\n" + json.dumps(lesson_context)},
-            *[item.model_dump() for item in payload.history],
-            {"role": "user", "content": payload.message},
-    ]
+    messages = _messages(payload, lesson_context)
     try:
         async with asyncio.timeout(85), AsyncOpenAI(
             api_key=api_key, base_url="https://openrouter.ai/api/v1",
@@ -229,18 +304,184 @@ async def reply(payload: AssistantRequest):
     try:
         choice = response.choices[0]
         if choice.message.refusal:
-            return AssistantReply(message="I couldn't help with that request. Try asking about a course concept, a setup step, or a small code example.", files=[])
+            return AssistantReply(message=REFUSAL_MESSAGE, files=[])
         if choice.finish_reason != "stop":
             raise ValueError("Incomplete generation")
         answer = AssistantReply.model_validate_json(choice.message.content or "")
-        language = (lesson_context["lesson"] or {}).get("codeLanguage") or "python"
-        for file in answer.files:
-            expected_extension = ".c" if language == "c" else ".py"
-            if not payload.lesson_id or file.language != language or not file.path.endswith(expected_extension):
-                file.target = "local"
-        return answer
+        return _validate_answer(answer, payload, lesson_context)
     except (ValueError, TypeError, KeyError, IndexError, AttributeError, ValidationError):
         raise HTTPException(502, "The assistant returned an incomplete response. Try requesting a smaller example.") from None
+
+
+def _gemini_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    """Resolve Pydantic refs into the OpenAPI subset Gemini accepts."""
+    definitions = schema.get("$defs", {})
+    allowed = {
+        "type",
+        "description",
+        "enum",
+        "format",
+        "nullable",
+        "minimum",
+        "maximum",
+        "minItems",
+        "maxItems",
+        "minLength",
+        "maxLength",
+        "pattern",
+        "required",
+        "properties",
+        "items",
+        "anyOf",
+        "default",
+        "propertyOrdering",
+    }
+
+    def resolve(node: dict[str, Any]) -> dict[str, Any]:
+        if "$ref" in node:
+            name = node["$ref"].rsplit("/", 1)[-1]
+            return resolve(definitions[name])
+        result: dict[str, Any] = {}
+        for key, value in node.items():
+            if key in {"$defs", "title", "additionalProperties"}:
+                continue
+            if key == "properties":
+                result[key] = {name: resolve(item) for name, item in value.items()}
+            elif key == "items":
+                result[key] = resolve(value)
+            elif key == "anyOf":
+                result[key] = [resolve(item) for item in value]
+            elif key in allowed:
+                result[key] = value
+        return result
+
+    return resolve(schema)
+
+
+def _http_client(**kwargs: Any) -> httpx.AsyncClient:
+    return httpx.AsyncClient(**kwargs)
+
+
+def _firebase_url(config: dict[str, str]) -> str:
+    base = (
+        "https://firebasevertexai.googleapis.com/v1beta/projects/"
+        + config["project"]
+    )
+    if config["location"]:
+        return (
+            f"{base}/locations/{config['location']}/publishers/google/models/"
+            f"{config['model']}:generateContent"
+        )
+    return f"{base}/models/{config['model']}:generateContent"
+
+
+def _firebase_body(
+    payload: AssistantRequest,
+    lesson_context: dict[str, Any],
+) -> dict[str, Any]:
+    contents = []
+    for item in payload.history:
+        contents.append({
+            "role": "model" if item.role == "assistant" else "user",
+            "parts": [{"text": item.content}],
+        })
+    contents.append({"role": "user", "parts": [{"text": payload.message}]})
+    return {
+        "systemInstruction": {
+            "parts": [{
+                "text": INSTRUCTIONS
+                + "\n\nCourse context (JSON):\n"
+                + json.dumps(lesson_context),
+            }],
+        },
+        "contents": contents,
+        "generationConfig": {
+            "responseMimeType": "application/json",
+            "responseSchema": _gemini_schema(AssistantReply.model_json_schema()),
+            "maxOutputTokens": 8192,
+        },
+    }
+
+
+def _provider_status_error(status_code: int) -> HTTPException:
+    if status_code == 429:
+        return HTTPException(
+            429,
+            "The AI service is busy or its usage limit was reached. Please try again later.",
+            headers={"Retry-After": "60"},
+        )
+    if status_code in (400, 401, 402, 403, 404):
+        return HTTPException(
+            503,
+            "The AI connection needs attention from the workspace administrator.",
+        )
+    return HTTPException(
+        502,
+        "The AI service could not complete the response. Please try again.",
+    )
+
+
+async def _firebase_reply(
+    payload: AssistantRequest,
+    lesson_context: dict[str, Any],
+) -> AssistantReply:
+    config = firebase_config()
+    if not (config["project"] and config["api_key"]):
+        raise HTTPException(503, "The AI assistant is not connected yet. Course templates and downloads are still available.")
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": config["api_key"],
+    }
+    if config["app_check"]:
+        headers["X-Firebase-AppCheck"] = config["app_check"]
+    if config["id_token"]:
+        headers["Authorization"] = f"Firebase {config['id_token']}"
+    try:
+        async with asyncio.timeout(85), _http_client(
+            timeout=httpx.Timeout(80, connect=10)
+        ) as client:
+            response = await client.post(
+                _firebase_url(config),
+                headers=headers,
+                json=_firebase_body(payload, lesson_context),
+            )
+    except (httpx.TimeoutException, TimeoutError):
+        raise HTTPException(504, "The assistant took too long. Try a smaller question or fewer files.") from None
+    except httpx.RequestError:
+        raise HTTPException(502, "The AI service could not be reached. Please try again.") from None
+
+    if response.status_code >= 400:
+        raise _provider_status_error(response.status_code) from None
+    try:
+        data = response.json()
+        candidate = (data.get("candidates") or [None])[0]
+        if not candidate:
+            if data.get("promptFeedback", {}).get("blockReason"):
+                return AssistantReply(message=REFUSAL_MESSAGE, files=[])
+            raise ValueError("No candidate")
+        finish_reason = candidate.get("finishReason")
+        if finish_reason in {"SAFETY", "RECITATION", "BLOCKLIST", "PROHIBITED_CONTENT"}:
+            return AssistantReply(message=REFUSAL_MESSAGE, files=[])
+        if finish_reason != "STOP":
+            raise ValueError("Incomplete generation")
+        parts = candidate.get("content", {}).get("parts") or []
+        text = "".join(part.get("text", "") for part in parts)
+        if not text:
+            raise ValueError("Empty response")
+        answer = AssistantReply.model_validate_json(text)
+        return _validate_answer(answer, payload, lesson_context)
+    except (ValueError, TypeError, KeyError, IndexError, AttributeError, ValidationError):
+        raise HTTPException(502, "The assistant returned an incomplete response. Try requesting a smaller example.") from None
+
+
+async def reply(payload: AssistantRequest):
+    lesson_context = context(payload)
+    provider = configured_provider()
+    if provider == "firebase":
+        return await _firebase_reply(payload, lesson_context)
+    if provider == "openrouter":
+        return await _openrouter_reply(payload, lesson_context)
+    raise HTTPException(503, "The AI assistant provider is not configured correctly.")
 
 
 def bundle(payload: AssistantBundle):

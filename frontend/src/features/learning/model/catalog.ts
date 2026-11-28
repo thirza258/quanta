@@ -13,8 +13,27 @@ function caseKind(value: unknown): CaseStudy["kind"] {
     return value;
   throw new Error(`Unsupported case kind: ${String(value)}`);
 }
+const COURSE_TYPES = [
+  "core",
+  "foundation",
+  "specialization",
+  "workshop",
+  "capstone",
+  "reference",
+  "on-ramp",
+] as const;
+function courseType(value: unknown): Track["course_type"] {
+  if (value === undefined) return undefined;
+  if (
+    typeof value === "string" &&
+    (COURSE_TYPES as readonly string[]).includes(value)
+  )
+    return value as Track["course_type"];
+  throw new Error(`Unsupported course type: ${String(value)}`);
+}
 export const tracks: Track[] = data.map((track) => ({
   ...track,
+  course_type: courseType(track.course_type),
   caseStudies: track.caseStudies.map((item) => ({
     ...item,
     kind: caseKind(item.kind),
@@ -35,7 +54,7 @@ export function examTrack(id: string) {
   return tracks.find((track) => track.exams.some((exam) => exam.id === id));
 }
 export function trackLabel(track: Track) {
-  return track.number === 0
+  return track.id === "trading-fundamentals"
     ? "START HERE"
     : `TRACK ${String(tracks.findIndex((item) => item.id === track.id)).padStart(2, "0")}`;
 }

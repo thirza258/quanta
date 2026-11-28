@@ -30,6 +30,9 @@ def completion(answer=None, **choice):
 
 @pytest.fixture
 def provider(monkeypatch):
+    monkeypatch.delenv("AI_PROVIDER", raising=False)
+    monkeypatch.delenv("FIREBASE_PROJECT_ID", raising=False)
+    monkeypatch.delenv("FIREBASE_API_KEY", raising=False)
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-private-key")
     monkeypatch.setenv("OPENROUTER_MODEL", "openai/gpt-4.1-mini")
     calls = []
@@ -48,11 +51,53 @@ def provider(monkeypatch):
     return calls, state
 
 
-def test_unconfigured_is_explicit_and_private(client, monkeypatch):
+def firebase_completion(answer=None, **candidate):
+    return {
+        "candidates": [{
+            "content": {"parts": [{
+                "text": json.dumps(answer or {"message": "Try this small example.", "files": [file()]}),
+            }]},
+            "finishReason": "STOP",
+            **candidate,
+        }],
+    }
+
+
+@pytest.fixture
+def firebase(monkeypatch):
+    monkeypatch.setenv("AI_PROVIDER", "firebase")
+    monkeypatch.setenv("FIREBASE_PROJECT_ID", "demo-project")
+    monkeypatch.setenv("FIREBASE_API_KEY", "test-firebase-key")
+    monkeypatch.setenv("FIREBASE_MODEL", "gemini-2.5-flash")
+    monkeypatch.delenv("FIREBASE_LOCATION", raising=False)
+    monkeypatch.delenv("FIREBASE_APP_CHECK_TOKEN", raising=False)
+    monkeypatch.delenv("FIREBASE_ID_TOKEN", raising=False)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    calls = []
+    state = {"body": firebase_completion(), "status": 200, "exception": None}
+
+    def handle(req):
+        calls.append(req)
+        if state["exception"]:
+            raise state["exception"]
+        return httpx.Response(state["status"], json=state["body"])
+
+    def factory(**kwargs):
+        kwargs.pop("timeout", None)
+        return httpx.AsyncClient(transport=httpx.MockTransport(handle), **kwargs)
+
+    monkeypatch.setattr(assistant, "_http_client", factory)
+    return calls, state
+
+
+def test_unconfigured_is_explicit_and_private(client, monkeypatch):
+    monkeypatch.delenv("AI_PROVIDER", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.delenv("FIREBASE_PROJECT_ID", raising=False)
+    monkeypatch.delenv("FIREBASE_API_KEY", raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "must-not-be-used")
     response = client.get("/api/v1/assistant/status")
-    assert response.json() == {"enabled": False}
+    assert response.json() == {"enabled": False, "provider": "openrouter"}
     assert response.headers["cache-control"] == "no-store"
     assert client.post("/api/v1/assistant/chat", json=request()).status_code == 503
 
@@ -106,6 +151,124 @@ def test_c_lesson_does_not_offer_python_to_editor(client, provider):
     response = client.post("/api/v1/assistant/chat", json=request(course_id="c-hpc-trading", lesson_id="9.1"))
     assert response.status_code == 200
     assert response.json()["files"][0]["target"] == "local"
+
+
+def test_firebase_provider_calls_ai_logic_with_context_and_schema(client, firebase):
+    calls, _ = firebase
+    response = client.post("/api/v1/assistant/chat", json=request(
+        mode="code", code="print(missing)", error="Name not defined: missing",
+        history=[{"role": "user", "content": "Please keep it simple"}],
+    ))
+    assert response.status_code == 200, response.text
+    assert response.json()["files"][0] == file()
+    assert response.headers["cache-control"] == "no-store"
+    assert len(calls) == 1
+    assert str(calls[0].url) == (
+        "https://firebasevertexai.googleapis.com/v1beta/projects/demo-project/"
+        "models/gemini-2.5-flash:generateContent"
+    )
+    assert calls[0].headers["x-goog-api-key"] == "test-firebase-key"
+    body = json.loads(calls[0].content)
+    system = body["systemInstruction"]["parts"][0]["text"]
+    assert "Quanta's course assistant" in system
+    assert "Course context (JSON):" in system
+    context = json.loads(system.split("Course context (JSON):\n", 1)[1])
+    assert context["lesson"]["id"] == "0.1"
+    assert context["current_code"] == "print(missing)"
+    assert [item["role"] for item in body["contents"]] == ["user", "user"]
+    assert body["contents"][0]["parts"][0]["text"] == "Please keep it simple"
+    assert body["contents"][1]["parts"][0]["text"] == "Help me understand the example"
+    generation = body["generationConfig"]
+    assert generation["responseMimeType"] == "application/json"
+    assert generation["maxOutputTokens"] == 8192
+    schema = generation["responseSchema"]
+    assert schema["type"] == "object"
+    assert set(schema["properties"]) == {"message", "files"}
+    assert schema["properties"]["files"]["items"]["properties"]["target"]["enum"] == ["lesson", "local"]
+    assert "$defs" not in json.dumps(schema)
+    assert "$ref" not in json.dumps(schema)
+    assert "test-firebase-key" not in response.text
+
+
+def test_firebase_location_uses_agent_platform_path(client, firebase, monkeypatch):
+    calls, _ = firebase
+    monkeypatch.setenv("FIREBASE_LOCATION", "us-central1")
+    response = client.post("/api/v1/assistant/chat", json=request())
+    assert response.status_code == 200
+    assert str(calls[0].url) == (
+        "https://firebasevertexai.googleapis.com/v1beta/projects/demo-project/"
+        "locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent"
+    )
+
+
+def test_firebase_status_reports_selected_provider(client, firebase):
+    response = client.get("/api/v1/assistant/status")
+    assert response.json() == {"enabled": True, "provider": "firebase"}
+
+
+def test_firebase_blocked_prompt_is_a_readable_answer(client, firebase):
+    _, state = firebase
+    state["body"] = {"promptFeedback": {"blockReason": "SAFETY"}, "candidates": []}
+    response = client.post("/api/v1/assistant/chat", json=request())
+    assert response.status_code == 200
+    assert response.json()["files"] == []
+    assert "couldn't help" in response.json()["message"]
+
+
+def test_firebase_invalid_or_truncated_output_never_becomes_code(client, firebase):
+    _, state = firebase
+    for body in (
+        {"candidates": []},
+        firebase_completion(finishReason="MAX_TOKENS"),
+        {"candidates": [{"content": {"parts": []}, "finishReason": "STOP"}]},
+        {"candidates": [{"content": {"parts": [{"text": "not JSON"}]}, "finishReason": "STOP"}]},
+        firebase_completion({"message": "ok", "files": [file(path="../escape.py")]}),
+    ):
+        state["body"] = body
+        response = client.post("/api/v1/assistant/chat", json=request())
+        assert response.status_code == 502
+
+
+@pytest.mark.parametrize("upstream,status", [(400, 503), (401, 503), (403, 503), (404, 503), (429, 429), (500, 502)])
+def test_firebase_provider_failures_are_redacted(client, firebase, upstream, status):
+    _, state = firebase
+    state.update(status=upstream, body={"error": {"message": "secret provider configuration"}})
+    response = client.post("/api/v1/assistant/chat", json=request())
+    assert response.status_code == status
+    assert "secret provider" not in response.text
+
+
+def test_firebase_timeout_is_readable(client, firebase):
+    _, state = firebase
+    state["exception"] = httpx.ReadTimeout("private request details")
+    response = client.post("/api/v1/assistant/chat", json=request())
+    assert response.status_code == 504
+    assert "private request" not in response.text
+
+
+def test_firebase_missing_configuration_stays_disabled(client, monkeypatch):
+    monkeypatch.setenv("AI_PROVIDER", "firebase")
+    monkeypatch.delenv("FIREBASE_PROJECT_ID", raising=False)
+    monkeypatch.delenv("FIREBASE_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    assert client.get("/api/v1/assistant/status").json() == {
+        "enabled": False,
+        "provider": "firebase",
+    }
+    assert client.post("/api/v1/assistant/chat", json=request()).status_code == 503
+
+
+def test_firebase_is_auto_selected_when_it_is_the_only_configured_provider(
+    client, monkeypatch
+):
+    monkeypatch.delenv("AI_PROVIDER", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.setenv("FIREBASE_PROJECT_ID", "demo-project")
+    monkeypatch.setenv("FIREBASE_API_KEY", "test-firebase-key")
+    assert client.get("/api/v1/assistant/status").json() == {
+        "enabled": True,
+        "provider": "firebase",
+    }
 
 
 @pytest.mark.parametrize("change,status", [

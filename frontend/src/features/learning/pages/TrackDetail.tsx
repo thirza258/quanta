@@ -67,6 +67,12 @@ export default function TrackDetail() {
           <div className="page-eyebrow">
             {trackLabel(track)}
             <span className="level-badge">{track.level}</span>
+            {track.stage_name ? (
+              <span className="level-badge">{track.stage_name}</span>
+            ) : null}
+            {typeof track.difficulty === "number" ? (
+              <span className="level-badge">L{track.difficulty}</span>
+            ) : null}
             {track.language?.length ? (
               <span
                 className="lang-badge"

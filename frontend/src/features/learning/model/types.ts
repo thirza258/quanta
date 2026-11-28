@@ -88,10 +88,35 @@ export type Track = {
   subtitle?: string;
   audience_tags?: string[];
   estimated_minutes?: number;
+  estimated_hours?: number;
   lesson_count?: number;
   assessment_count?: number;
   completion_criteria?: CourseCompletionCriteria;
   certificate?: CourseCertificateConfig;
   funnel_cta?: FunnelCta;
   language?: string[];
+  /** Canonical curriculum architecture metadata. IDs above remain stable. */
+  stage?: string;
+  stage_number?: number;
+  stage_name?: string;
+  sequence?: number;
+  difficulty?: number;
+  prerequisite_course_ids?: string[];
+  prerequisite_any_of?: string[];
+  recommended_course_ids?: string[];
+  learning_outcomes?: string[];
+  skills?: string[];
+  focus_summary?: string;
+  domain?: string;
+  course_type?:
+    | "core"
+    | "foundation"
+    | "specialization"
+    | "workshop"
+    | "capstone"
+    | "reference"
+    | "on-ramp";
+  is_core?: boolean;
+  is_specialization?: boolean;
+  is_capstone?: boolean;
 };

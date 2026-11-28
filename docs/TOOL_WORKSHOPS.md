@@ -1,10 +1,10 @@
 # Trading simulator & strategy lab workshops
 
-Two applied courses teach the platform's own tools. They come straight after Trading ethics, so learners practise with their written charter in hand, and before the valuation and strategy courses that rely on the tools. The strategy lab workshop has 12 lessons of 30 minutes (6 hours) in three units of four, 24 practice questions, three four-question checkpoints and a 12-question final. The simulator workshop has 16 lessons (8 hours) in four such units, with a 16-question final.
+Two applied courses teach the platform's own tools. The simulator workshop follows Trading ethics, so a learner practises with a written charter in hand. The strategy lab workshop follows Quantitative Investment Analysis and Financial Econometrics, because its backtest, factor-studio, and robustness lessons rely on that statistical foundation. The simulator workshop has 16 lessons (8 hours) in four units of four, with a 16-question final. The strategy lab workshop has 12 lessons of 30 minutes (6 hours) in three units of four, 24 practice questions, three four-question checkpoints and a 12-question final.
 
 | Course | Lessons | Builder | Units |
 | --- | --- | --- | --- |
-| Trading simulator workshop (`simulator-workshop`) | 13.1–13.12 | `content/authoring/simulator_workshop.py` | Set up and read the market · Place and manage orders · Research, review and discipline |
+| Trading simulator workshop (`simulator-workshop`) | 13.1–13.16 | `content/authoring/simulator_workshop.py` | Set up and read the market · Place and manage orders · Research, review and discipline · The rest of the market, and the limits of a result |
 | Strategy lab workshop (`lab-workshop`) | 14.1–14.12 | `content/authoring/lab_workshop.py` | The market sandbox · Read evidence and value businesses · Execution, DeFi and your research trail |
 
 ## How the lessons are kept accurate
